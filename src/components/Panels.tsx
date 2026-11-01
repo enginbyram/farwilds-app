@@ -4,7 +4,7 @@ import type { Character } from "@/hooks/useCharacter";
 import { clusterRuleText, type NextSteps } from "@/model/character";
 
 // ── 1. Character ────────────────────────────────────────────
-export function CharacterCard({ model, ch }: { model: TreeModel; ch: Character }) {
+export function CharacterCard({ model, ch, classLocked }: { model: TreeModel; ch: Character; classLocked?: boolean }) {
   const classes = [...model.classes.values()].filter(c => c.name !== "Centre");
   const pct = Math.min(100, (ch.used / ch.total) * 100);
   return (
@@ -12,16 +12,17 @@ export function CharacterCard({ model, ch }: { model: TreeModel; ch: Character }
       <input className="character__name" value={ch.name} aria-label="Character name"
         onChange={e => ch.setName(e.target.value)} spellCheck={false} />
       <div className="character__row">
-        <select className="character__class" aria-label="Class" value={ch.className}
+        <select className="character__class" aria-label="Class" value={ch.className} disabled={classLocked}
+          title={classLocked ? "The class is chosen in the Creator (Dev mode unlocks it here)" : undefined}
           onChange={e => ch.setClassName(e.target.value)}>
           {classes.map(c => <option key={c.name} value={c.name}>{c.name} · {c.aptitude}</option>)}
         </select>
-        <button className="btn btn--small btn--ghost" onClick={ch.reset} disabled={ch.used === 0}>Reset</button>
+        <button className="btn btn--small btn--ghost" onClick={ch.reset} disabled={ch.used === 0} title="Refund every node">Reset</button>
       </div>
       <div className="numbers">
         <div><b>{ch.left}</b><span>points left</span></div>
         <div><b>{ch.used}</b><span>used</span></div>
-        <div><b>{ch.total}</b><span>total</span></div>
+        <div><b>{ch.total}</b><span>total (= level)</span></div>
       </div>
       <div className="meter" role="meter" aria-valuemin={0} aria-valuemax={ch.total} aria-valuenow={ch.used}><i style={{ width: `${pct}%` }} /></div>
     </section>

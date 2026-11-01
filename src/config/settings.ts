@@ -89,9 +89,24 @@ export const ZOOM_BUTTON_FACTOR = 1.5;
 export const APTITUDE_LABEL_SIZE = 30;
 export const APTITUDE_LABEL_GAP = 18;   // distance outside the rim
 
-/** Character defaults. Total points is what a character can spend (the class start is free). */
-export const TOTAL_SKILL_POINTS = 60;
+/** Character defaults. Tree points = the character's level (1 keystone point per level; the class start is free). */
 export const DEFAULT_CHARACTER_NAME = "Unnamed sage";
+
+/**
+ * Colour scheme of the Character page, per core class: [light theme, dark theme].
+ * Add a class here when you add one to the rules; unknown classes fall back to --brass.
+ */
+export const CLASS_THEME: Record<string, [string, string]> = {
+  Fighter:   ["#a3392b", "#e4705f"],   // iron red
+  Rogue:     ["#2f6b5e", "#5cc2ab"],   // slate green
+  Arcanist:  ["#4b45a8", "#9e97f2"],   // indigo
+  Artificer: ["#8a5a24", "#d9a15e"],   // bronze
+  Cleric:    ["#3d6fa8", "#86b6ee"],   // holy blue
+  Druid:     ["#4c7a26", "#94cc5e"],   // leaf
+  Ranger:    ["#6e6524", "#c9bd62"],   // olive
+  Bard:      ["#a53d78", "#ea84bd"],   // magenta
+  Witch:     ["#6c2f80", "#c287db"],   // nightshade
+};
 
 /** Link types from the Links sheet that are NOT paths (never walkable, never drawn). */
 export const NON_PATH_LINK_TYPES = ["requirement"];

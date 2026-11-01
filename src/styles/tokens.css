@@ -43,6 +43,7 @@
   /* layout */
   --radius: 10px;
   --sidebar: 340px;
+  --dev-sidebar: 460px;
   color-scheme: light;
 }
 

@@ -1,9 +1,10 @@
 /**
  * The character being built: name, class, and the set of unlocked node ids.
+ * Points to spend on the tree = keystone points = the character level (passed in as `total`).
  * Saved in the browser (localStorage) per workbook, so a reload keeps your build.
  */
 import { useEffect, useMemo, useState } from "react";
-import { DEFAULT_CHARACTER_NAME, TOTAL_SKILL_POINTS } from "@/config/settings";
+import { DEFAULT_CHARACTER_NAME } from "@/config/settings";
 import type { TreeModel, TreeNode } from "@/data/types";
 import { canRefund, canUnlock, pointsUsed } from "@/model/character";
 
@@ -13,7 +14,7 @@ const load = (key: string): Saved | null => {
   try { const s = localStorage.getItem(key); return s ? (JSON.parse(s) as Saved) : null; } catch { return null; }
 };
 
-export function useCharacter(model: TreeModel, workbookKey: string) {
+export function useCharacter(model: TreeModel, workbookKey: string, total: number) {
   const storageKey = `farwilds.character.${workbookKey}`;
   const firstClass = [...model.classes.values()].find(c => c.name !== "Centre")?.name ?? "";
   const [name, setName] = useState(DEFAULT_CHARACTER_NAME);
@@ -48,11 +49,16 @@ export function useCharacter(model: TreeModel, workbookKey: string) {
   }, [model, start, unlockedIds]);
 
   const used = pointsUsed(owned, start);
-  const total = TOTAL_SKILL_POINTS;
   const left = total - used;
 
   return {
-    name, setName, className, start, owned, used, total, left,
+    name, setName, className, start, owned, used, total, left, unlockedIds,
+    /** Loads a saved character as-is (class and nodes together, so the class change doesn't wipe the nodes). */
+    restore: (r: { name: string; className: string; unlocked: string[] }) => {
+      setName(r.name || DEFAULT_CHARACTER_NAME);
+      if (model.classes.has(r.className)) setClassName(r.className);
+      setUnlockedIds(r.unlocked.filter(id => model.byId.has(id)));
+    },
     setClassName: (c: string) => { setClassName(c); setUnlockedIds([]); },  // new class = fresh build
     reset: () => setUnlockedIds([]),
     unlockVerdict: (n: TreeNode) => canUnlock(n, owned, left),
