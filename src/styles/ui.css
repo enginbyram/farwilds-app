@@ -1,0 +1,105 @@
+/* UI kit (src/ui): form controls, tables, hover cards (Hint), badges, pills, radial gauges, the item menu, class colours. */
+/* form controls */
+.in { font: 13px var(--font-body); color: var(--ink); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 4px 7px; min-width: 0; }
+.in:focus { outline: none; border-color: var(--brass); }
+.in--num { text-align: right; font-variant-numeric: tabular-nums; }
+.in--area { width: 100%; resize: vertical; font: 13px/1.5 var(--font-body); }
+.form { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 10px 12px; }
+.field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.field .in { width: 100%; }
+.field .in--num { width: 72px !important; }
+.field__label { font-size: 11px; color: var(--muted); }
+
+/* tables */
+.table-wrap { overflow-x: auto; }
+.tbl { border-collapse: collapse; width: 100%; font-size: 13px; font-variant-numeric: tabular-nums; }
+.tbl th { font: 500 11px var(--font-body); color: var(--muted); text-align: left; padding: 4px 6px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.tbl th.in-col { color: var(--brass); }
+.tbl td { padding: 3px 6px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); white-space: nowrap; }
+.tbl td.num { text-align: right; }
+.tbl .in { padding: 2px 5px; }
+
+/* stat tiles */
+.stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(92px, 1fr)); gap: 10px; }
+.stat b { display: block; font: var(--weight-number) 18px/1.2 var(--font-display); font-variant-numeric: tabular-nums; }
+.stat--big b { font-size: 26px; }
+.stat span { font-size: 12px; color: var(--muted); }
+
+/* ── Character page bits ───────────────── */
+.muted { color: var(--muted); }
+.focus { font-size: 11px; border-radius: 999px; padding: 0 7px; border: 1px solid var(--line); color: var(--muted); }
+
+/* ── Class colour scheme (CLASS_THEME in config/settings.ts sets --class-l / --class-d) ── */
+.char, .levelup, .cb, .shop { --class: var(--class-l, var(--brass)); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .char, :root:not([data-theme="light"]) .levelup, :root:not([data-theme="light"]) .cb, :root:not([data-theme="light"]) .shop { --class: var(--class-d, var(--brass)); } }
+:root[data-theme="dark"] .char, :root[data-theme="dark"] .levelup, :root[data-theme="dark"] .cb, :root[data-theme="dark"] .shop { --class: var(--class-d, var(--brass)); }
+.char .card, .levelup .card { border-top: 3px solid var(--class); }
+.char .card h2, .levelup .card h2 { color: var(--class); }
+.btn--class { background: var(--class); border-color: var(--class); color: var(--panel); font-weight: 600; }
+.btn--class:hover:not(:disabled) { border-color: var(--class); filter: brightness(1.08); }
+
+.pill { font: 500 10px var(--font-body); letter-spacing: .04em; text-transform: none; border: 1px solid var(--success); color: var(--success); border-radius: 999px; padding: 1px 7px; margin-left: 6px; }
+.pill--bad { border-color: var(--danger); color: var(--danger); }
+/* badges: Main = gold outline, Side = grey outline, none = greyed */
+.badge { display: inline-block; min-width: 34px; text-align: center; font: 500 11px var(--font-mono); border-radius: 999px; padding: 1px 7px; border: 1px solid transparent; }
+.badge--main { border-color: var(--brass); color: var(--brass); }
+.badge--side { border-color: var(--muted); color: var(--ink); }
+.badge--none { color: var(--muted); opacity: .75; }
+
+/* hover breakdowns */
+.hint { position: relative; cursor: help; outline: none; }
+.hint:focus-visible { outline: 2px solid var(--class, var(--brass)); outline-offset: 2px; border-radius: 3px; }
+.hint__box { display: none; position: absolute; z-index: 20; right: 0; top: calc(100% + 6px); min-width: 190px; max-width: 280px;
+  background: var(--ink); color: var(--panel); border-radius: 6px; padding: 7px 9px; font: 12px/1.45 var(--font-body);
+  letter-spacing: 0; text-transform: none; text-align: left; box-shadow: 0 6px 18px rgb(0 0 0 / .18); white-space: normal; }
+.attrs__apt .hint__box { left: 0; right: auto; }
+.hint:hover .hint__box, .hint:focus .hint__box { display: block; }
+.hint__line { display: flex; justify-content: space-between; gap: 14px; }
+.hint__line b { font: 600 12px var(--font-body) !important; color: inherit !important; }
+.hint__line--text { display: block; opacity: .85; }
+
+/* Radial gauge (components/ui.tsx → RadialGauge): sliced ring, one slice per point (or per 2/5/10 above 40) */
+.gauge { display: inline-grid; justify-items: center; gap: 0; vertical-align: middle; }
+.gauge svg { display: block; overflow: visible; }
+.gauge__seg { fill: none; stroke: var(--line); transition: stroke .2s; }
+.gauge__seg.on { stroke: var(--class, var(--brass)); }
+.gauge__seg.mark:not(.on) { stroke: color-mix(in srgb, var(--ink) 35%, var(--line)); }
+.gauge--hp .gauge__seg.on { stroke: var(--success); }
+.gauge--foe .gauge__seg.on { stroke: var(--danger); }
+.gauge--quick .gauge__seg.on { stroke: var(--apt-wisdom); }
+.gauge--pq .gauge__seg.on { stroke: var(--brass); }
+.gauge--sanity .gauge__seg.on { stroke: var(--apt-intellect); }
+.gauge--fel .gauge__seg.on { stroke: var(--forbidden); }
+.gauge--points .gauge__seg.on { stroke: var(--class, var(--brass)); }
+.gauge__num { font-weight: 600; font-family: var(--font-body); fill: var(--ink); font-variant-numeric: tabular-nums; }
+.gauge__max { fill: var(--muted); font-family: var(--font-body); }
+.gauge__label { font-size: 10px; color: var(--muted); letter-spacing: .04em; margin-top: -1px; }
+.cb__log li { line-height: 1.75; }
+.pill { display: inline-block; padding: 0 7px; margin: 0 1px; border-radius: 999px; border: 1px solid var(--line); font: 500 11.5px/1.55 var(--font-body); white-space: nowrap; vertical-align: baseline; }
+.pill--you   { background: color-mix(in srgb, var(--class) 16%, transparent); border-color: var(--class); color: var(--class); font-weight: 600; }
+.pill--foe   { background: color-mix(in srgb, var(--danger) 12%, transparent); border-color: var(--danger); color: var(--danger); font-weight: 600; }
+.pill--skill { background: var(--class); border-color: var(--class); color: var(--panel); font-weight: 600; }
+.pill--roll  { font-family: var(--font-mono); font-size: 11px; color: var(--muted); background: var(--panel); }
+.pill--hit   { background: color-mix(in srgb, var(--success) 15%, transparent); border-color: var(--success); color: var(--success); }
+.pill--miss  { color: var(--muted); border-style: dashed; }
+.pill--crit  { background: var(--route); border-color: var(--route); color: var(--panel); font-weight: 700; }
+.pill--dmg   { background: var(--danger); border-color: var(--danger); color: var(--panel); font-weight: 700; }
+.pill--heal  { background: var(--success); border-color: var(--success); color: var(--on-success); font-weight: 700; }
+.pill--rage  { border-color: var(--class); color: var(--class); font-weight: 600; }
+.pill--check { border-color: var(--success); color: var(--success); }
+.pill--fail  { border-color: var(--danger); color: var(--danger); font-weight: 600; }
+.btn--on { border-color: var(--class); color: var(--class); }
+
+/* Item menu (ItemMenu.tsx): floating, like a right-click menu */
+.imenu { position: fixed; z-index: 60; min-width: 190px; max-width: 280px; padding: 4px; background: var(--panel); border: 1px solid var(--line);
+  border-radius: 8px; box-shadow: 0 10px 28px rgb(0 0 0 / .18); font: 13px var(--font-body); }
+.imenu__title { padding: 6px 8px 5px; font: 600 11px var(--font-body); letter-spacing: .06em; text-transform: uppercase; color: var(--muted);
+  border-bottom: 1px solid var(--line); margin-bottom: 3px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.imenu__item { all: unset; box-sizing: border-box; display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border-radius: 5px; color: var(--ink); cursor: pointer; }
+.imenu__item span { flex: 1; }
+.imenu__item small { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.imenu__item .icon { color: var(--class, var(--ink)); }
+.imenu__item:hover:not(:disabled), .imenu__item:focus-visible { background: color-mix(in srgb, var(--class, var(--brass)) 12%, transparent); }
+.imenu__item:disabled { color: var(--muted); cursor: default; }
+.imenu__item--danger, .imenu__item--danger .icon { color: var(--danger); }
+body:has(.imenu) .hint__box { display: none !important; }   /* no hover cards over an open item menu */

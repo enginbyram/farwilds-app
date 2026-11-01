@@ -1,0 +1,60 @@
+/* Base: page reset, the app frame, header, tabs, buttons, and the frame of the non-tree pages (charmain). */
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.5 var(--font-body); }
+
+.app { display: flex; flex-direction: column; height: 100%; padding: 14px 16px; gap: 12px; }
+
+/* ── Header ─────────────────────────────── */
+.header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; position: relative; z-index: 5; }
+.header h1 { font: var(--weight-title) 26px var(--font-display); letter-spacing: .04em; margin: 0; }
+.header .source { font: 12px var(--font-mono); color: var(--muted); }
+.header .actions { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.warnings-badge { position: relative; font-size: 12px; }
+.warnings-badge summary { cursor: pointer; color: var(--danger); list-style: none; border: 1px solid var(--danger); border-radius: 999px; padding: 2px 10px; }
+.warnings-badge summary::-webkit-details-marker { display: none; }
+.warnings-badge ul { position: absolute; top: calc(100% + 6px); left: 0; width: 360px; max-height: 300px; overflow: auto; margin: 0; padding: 10px 10px 10px 26px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); color: var(--danger); box-shadow: 0 8px 24px rgb(0 0 0 / .12); }
+
+/* ── Buttons ────────────────────────────── */
+.btn {
+  font: 500 13px var(--font-body); color: var(--ink); background: var(--panel);
+  border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; cursor: pointer;
+}
+.btn:hover:not(:disabled) { border-color: var(--brass); }
+.btn:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.btn:disabled { cursor: not-allowed; opacity: .5; }
+.btn.primary { border-color: var(--brass); color: var(--brass); position: relative; }
+label.btn { position: relative; }
+.btn input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.btn--small { padding: 4px 9px; font-size: 12px; }
+.btn--ghost { background: transparent; }
+.btn--success { background: var(--success); border-color: var(--success); color: var(--on-success); }
+.btn--success:hover:not(:disabled) { border-color: var(--success); filter: brightness(1.08); }
+.btn--success:disabled { opacity: .45; }
+.btn--block { width: 100%; padding: 9px 12px; }
+
+/* ── Main area ──────────────────────────── */
+.main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) var(--sidebar); gap: 14px; }
+@media (max-width: 900px) {
+  .main { grid-template-columns: 1fr; grid-template-rows: 70vh auto; }
+  .app { height: auto; }
+}
+
+/* ── Page tabs ──────────────────────────── */
+.tabs { display: flex; gap: 2px; background: var(--line); border-radius: 8px; padding: 2px; }
+.tab { font: 500 13px var(--font-body); color: var(--muted); background: transparent; border: 0; border-radius: 6px; padding: 5px 14px; cursor: pointer; }
+.tab:hover { color: var(--ink); }
+.tab--on { background: var(--panel); color: var(--ink); }
+.tab:focus-visible { outline: 2px solid var(--brass); outline-offset: 1px; }
+.btn--dev { border-color: var(--route); color: var(--route); }
+
+/* ── Character page layout ─────────────── */
+.charmain { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; }
+.charmain--dev { grid-template-columns: var(--dev-sidebar) minmax(0, 1fr); }
+.charmain__page { min-height: 0; overflow-y: auto; }
+@media (max-width: 1000px) {
+  .charmain--dev { grid-template-columns: 1fr; }
+  .charmain, .charmain__page, .dev { overflow: visible; }
+  .app { height: auto; }
+}

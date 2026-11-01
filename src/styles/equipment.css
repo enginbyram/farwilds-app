@@ -1,0 +1,132 @@
+/* Equipment (features/equipment): paper doll, purse, bag, and the shop drawers. */
+/* Gear: paper doll */
+.gearcard { background: linear-gradient(180deg, color-mix(in srgb, var(--class) 7%, var(--panel)) 0, var(--panel) 70%); }
+.paperdoll { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-top: 6px; }
+.paperdoll__col { display: grid; gap: 7px; }
+.paperdoll__figure { width: 100%; max-height: 330px; fill: color-mix(in srgb, var(--class) 16%, transparent); stroke: color-mix(in srgb, var(--class) 45%, transparent); stroke-width: 1; }
+/* Slot size and type as they have always looked (min-width 64px makes the slots a little wider than tall). */
+.slot { position: relative; display: grid; place-items: center; gap: 1px; width: 50px; height: 50px; min-width: 64px; padding: 6px 10px; border-radius: 7px;
+  font: 600 13px var(--font-body); cursor: pointer;
+  border: 1px solid var(--line); background: color-mix(in srgb, var(--bg) 70%, var(--panel));
+  box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--panel) 60%, transparent), inset 0 2px 6px rgb(0 0 0 / .12); color: var(--muted); }
+.slot .icon { opacity: .45; }
+.slot--full { border-color: var(--class); color: var(--class); background: color-mix(in srgb, var(--class) 10%, var(--panel)); }
+.slot--full .icon { opacity: 1; }
+.slot__name { position: absolute; inset: auto 2px 2px; font: 500 8.5px/1.1 var(--font-body); color: var(--ink); text-align: center;
+  overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.slot--full .icon { transform: translateY(-5px); }
+.slot__btn { all: unset; cursor: pointer; display: block; border-radius: 7px; }
+.slot__btn:hover .slot, .slot__btn:focus-visible .slot { border-color: var(--brass); }
+.paperdoll .hint, .paperdoll__weapons .hint, .bag .hint { margin: 0; font-size: inherit; line-height: inherit; }
+.paperdoll__weapons { display: grid; grid-template-columns: 1fr 1fr; align-items: end; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); }
+.paperdoll__wgroup { display: grid; justify-items: center; gap: 4px; }
+.paperdoll__wgroup small { font: 500 10px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.paperdoll__wgroup > .hint b { font: 600 15px var(--font-display); font-variant-numeric: tabular-nums; }
+.paperdoll__wslots { display: flex; gap: 6px; }
+
+/* Equipment: purse strip (coins, valuables) + load gauge */
+.purse { display: flex; align-items: center; gap: 10px; margin: 6px 0 8px; padding: 6px 8px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); }
+.purse__money { flex: 1; min-width: 0; display: grid; gap: 5px; }
+.purse__coins { display: flex; gap: 14px; flex-wrap: wrap; }
+.purse .hint { margin: 0; font-size: inherit; line-height: inherit; }
+.coin { display: inline-flex; align-items: baseline; gap: 4px; }
+.coin .icon { align-self: center; }
+.coin b { font: 600 15px var(--font-display); font-variant-numeric: tabular-nums; }
+.coin small { font-size: 10.5px; color: var(--muted); }
+.coin__in { width: 64px; padding: 1px 4px; }
+.coin--gold .icon { color: #c9a227; fill: color-mix(in srgb, #c9a227 25%, transparent); }
+.coin--silver .icon { color: #9aa3ad; fill: color-mix(in srgb, #9aa3ad 25%, transparent); }
+.coin--copper .icon { color: #b8693a; fill: color-mix(in srgb, #b8693a 25%, transparent); }
+.purse__valuables { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.purse__valuables .empty { margin: 0; font-size: 11.5px; }
+.vchip { display: inline-flex; align-items: center; gap: 4px; font: 11.5px var(--font-body); padding: 1px 7px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--ink); }
+.vchip .icon { color: var(--class); }
+.vchip b { font-weight: 500; color: var(--muted); }
+.vchip__x { all: unset; cursor: pointer; color: var(--muted); padding-left: 2px; }
+.vchip--add { cursor: pointer; border-style: dashed; color: var(--muted); }
+.gauge--load .gauge__seg.on { stroke: var(--class, var(--brass)); }
+.gauge--load-over .gauge__seg.on { stroke: var(--danger); }
+.gauge--load-over .gauge__num { fill: var(--danger); }
+
+/* Equipment: bag grid */
+.bag { display: grid; gap: 4px; margin-top: 6px; }
+.bag > .hint, .bag__wrap { display: block; min-width: 0; }
+.bag__cell { position: relative; display: grid; place-items: center; aspect-ratio: 1; border-radius: 5px; color: var(--class); border: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 70%, var(--panel)); box-shadow: inset 0 2px 5px rgb(0 0 0 / .1); }
+.bag__cell--full { border-color: color-mix(in srgb, var(--class) 70%, var(--line)); background: color-mix(in srgb, var(--class) 9%, var(--panel)); }
+.bag__abbr { font: 600 11px var(--font-body); color: var(--ink); text-transform: capitalize; }
+.bag__qty { position: absolute; right: 2px; bottom: 0; font: 600 9px var(--font-body); color: var(--ink); }
+.bag .slot__btn { display: block; width: 100%; box-sizing: border-box; }   /* a button shrinks to its content unless told to fill the cell */
+.bag .slot__btn:hover .bag__cell { border-color: var(--brass); }
+
+/* Card header with tools on the right (Equipment: Add / Purchase) */
+.card__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.card__head h2 { margin: 0; }
+.card__tools { display: flex; gap: 6px; }
+.card__tools .btn, .shop .btn { display: inline-flex; align-items: center; gap: 5px; }
+
+/* Equipment drawer (left column, in place of the Dev sidebar) */
+.shop { min-height: 0; max-height: calc(100vh - 90px); position: sticky; top: 0; display: flex; flex-direction: column; gap: 8px;
+  background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--class, var(--brass)); border-radius: var(--radius); padding: 12px; }
+.shop__head { display: flex; align-items: center; gap: 8px; }
+.shop__head h2 { flex: 1; font: 500 11px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--class, var(--brass)); margin: 0; }
+.shop__cat { max-width: 170px; }
+.shop__close { padding: 3px 5px; }
+.shop__search { width: 100%; }
+.shop__list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; min-height: 120px; border-top: 1px solid var(--line); }
+.shop__row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); font-size: 13px; }
+.shop__row > .icon { color: var(--class, var(--brass)); flex: none; }
+.shop__row--pick { cursor: pointer; border-radius: 6px; }
+.shop__row--pick:hover { background: color-mix(in srgb, var(--class, var(--brass)) 6%, transparent); }
+.shop__row--pick.on { background: color-mix(in srgb, var(--class, var(--brass)) 12%, transparent); }
+.shop__name { flex: 1; min-width: 0; display: flex !important; flex-direction: column; margin: 0; font-size: inherit; line-height: 1.25; }
+.shop__name b { font-weight: 600; }
+.shop__name small { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shop .hint { margin: 0; font-size: inherit; line-height: inherit; }
+.shop__price { font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 64px; text-align: center; display: inline-block; font-size: 12.5px; }
+.shop__qty { display: inline-flex; align-items: center; gap: 4px; }
+.shop__qty .btn { padding: 3px 4px; }
+.shop__qty b { min-width: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+.shop__list--cart .shop__price { min-width: 70px; text-align: right; }
+.shop__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 12.5px; }
+.shop__foot > span { flex: 1; color: var(--muted); }
+.shop__totals { display: flex; flex-wrap: wrap; gap: 4px 14px; width: 100%; color: var(--muted); }
+.shop__totals b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.shop__totals .bad, .shop__totals .bad b { color: var(--danger); }
+.shop__actions { display: flex; gap: 6px; width: 100%; }
+.shop__actions .btn--class { margin-left: auto; padding: 6px 18px; }
+.charmain--shop { grid-template-columns: var(--shop-sidebar, 360px) minmax(0, 1fr); }
+@media (max-width: 1100px) { .charmain--shop { grid-template-columns: 1fr; } .shop { position: static; max-height: 70vh; } }
+.shop .hint__box { pointer-events: none; left: 0; right: auto; }
+
+.shop__row.on { background: color-mix(in srgb, var(--class) 8%, transparent); }
+/* Price editor (Purchase / Sell): one box per coin */
+.price { margin: 0; }
+.price__boxes { display: inline-flex; align-items: center; gap: 3px; }
+.price__coin { display: inline-flex; align-items: baseline; gap: 1px; }
+.price__coin small { font-size: 10px; color: var(--muted); }
+.price__in { width: 38px; padding: 2px 3px; text-align: right; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+.price__in::-webkit-outer-spin-button, .price__in::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.price.down .price__in { color: var(--danger); font-weight: 600; }
+.price.up .price__in { color: var(--price-up); font-weight: 600; }
+.price__reset { all: unset; cursor: pointer; color: var(--muted); padding: 0 3px; font-size: 13px; }
+.price__reset:hover { color: var(--ink); }
+.price .hint__box { left: auto; right: 0; }
+
+/* Rows with a price editor: name on its own line, the editor and counts under it */
+.shop__row:has(.price) { flex-wrap: wrap; row-gap: 4px; }
+.shop__row:has(.price) .shop__name { flex: 1 1 calc(100% - 32px); }
+.shop__row:has(.price) .price { margin-left: 28px; }
+.shop__row:has(.price) .shop__qty, .shop__row:has(.price) > .btn { margin-left: auto; }
+
+.ct--stats .ct__row { flex-wrap: nowrap; }   /* rest buttons stay on the right; the stat grid drops to two columns instead */
+@media (max-width: 1560px) {   /* narrower stats card: two stat columns, smaller gauges, so the rest buttons keep their place */
+  .ct__stats { grid-template-columns: repeat(2, max-content); }
+}
+@media (max-width: 1420px) {
+  .ct--stats .ct__row { gap: 10px; }
+  .ct--stats .ct__pools { gap: 6px; padding-right: 10px; }
+  .ct--stats .gauge svg { width: 44px; height: 44px; }
+  .btn--rest { padding: 3px 7px; font-size: 11.5px; }
+  .ct__rest { padding-left: 10px; }
+}

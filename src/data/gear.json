@@ -1,5 +1,5 @@
 {
-  "$comment": "Gear slots and coins for the Character page. Edit by hand. Slot list is a placeholder until Rulebook 6.2 (Armour and shields) settles the full list. side: left / right column beside the figure, or weapons row under it. icon: a name from ICONS in src/components/ui.tsx. coins[].value: worth in copper (placeholder rates until Rulebook 6.5 Wealth is settled). sellRate: share of the catalog price a merchant pays when you sell (placeholder, D&D-style half price).",
+  "$comment": "Gear slots and coins for the Character page. Edit by hand. Slot list is a placeholder until Rulebook 6.2 (Armour and shields) settles the full list. side: left / right column beside the figure, or weapons row under it. icon: a name from ICONS in src/ui/icons.ts. coins[].value: worth in copper (placeholder rates until Rulebook 6.5 Wealth is settled). sellRate: share of the catalog price a merchant pays when you sell (placeholder, D&D-style half price).",
   "slots": [
     {
       "id": "head",

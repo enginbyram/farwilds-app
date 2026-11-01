@@ -16,7 +16,7 @@ reads the Nodes sheet's `description` and `bonus` columns into src/data/tree/gem
 changes nothing else. A row with either column filled replaces that node's description and bonuses
 (an empty cell clears it); a row with both empty leaves the node as it is. Each line of `bonus` becomes
 one bonus line. The app reads lines like "+2 STR", "+2 Armor Rating every 10 AR", "+2 bonus to attack
-rolls with thrown weapons", "+1 Main Action" as numbers (src/rules/bonuses.ts); other lines are shown
+rolls with thrown weapons", "+1 Main Action" as numbers (src/features/rules/bonuses.ts); other lines are shown
 as text.
 """
 from __future__ import annotations

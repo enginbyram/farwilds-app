@@ -5,4 +5,4 @@ dist/
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
-tests/__golden__/
+tests/__golden__/baseline.json

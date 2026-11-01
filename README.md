@@ -19,6 +19,8 @@ Other commands:
 | `npm run build` | Type-checks, then builds a static site into `dist/` |
 | `npm run preview` | Serves the built `dist/` locally to check it |
 | `npm run typecheck` | Only the TypeScript check (like a C# compile with no output) |
+| `npm test` | Plays hundreds of seeded fights and works out every class's numbers, and checks nothing changed (about 30 s) |
+| `npm run test:update` | After a **deliberate** rules change: takes a new snapshot (commit `tests/__golden__/baseline.sha256.json`) |
 
 `dist/` is plain HTML/CSS/JS: copy it to any web server (nginx/Caddy container on the homelab works) — no Node needed there.
 
@@ -76,7 +78,7 @@ Cancel refunds the node.
 - Quick = Hit Die (its maximum) + CON modifier, Purequick = Hit Die + WIS modifier; both +2 every 2 levels (`PoolPerStep`, `PoolStepLevels`).
 - Defence is the DEX score: physical attacks (d20 + AP) roll against it. Armour reduces physical damage.
 - Armour, weapon AP, Leech and "gear & passives" are filled automatically from gear and tree passives
-  (`External` in `src/rules/compute.ts`). Until then they read 0.
+  (`External` in `src/features/rules/compute.ts`). Until then they read 0.
 - **Save character** downloads `<name>.farwilds.json`; **Load character** reads it back (older files are converted).
 
 ### Dev mode
@@ -87,18 +89,19 @@ cells that differ from the defaults are highlighted.
 - **From workbook (.xlsx)** reads the Data sheet of the Character Builder workbook — keep editing numbers in Excel if you prefer.
 - **Export / Import rules** move a rules set as `farwilds-rules.json`. **Reset** returns to the defaults.
 - **The rules file is `src/data/rules.json`** — edit it by hand like the tree JSON. When the file changes, browsers set their saved Dev-mode copy aside and use the file. To keep Dev-mode edits for good, Export rules and copy the tables into `rules.json`.
-- Numbers live in the rules; **formulas** live in `src/rules/compute.ts`.
+- Numbers live in the rules; **formulas** live in `src/features/rules/compute.ts`.
+- Each rules table on the Dev panel is one entry in `src/features/dev/tables.ts`: add an entry to show a new table.
 
 ```
-src/rules/types.ts          rules + character sheet shapes
-src/data/rules.json         ★ THE RULES — every number (params, classes, ascendancies, races, marks…)
-src/rules/defaults.ts       loads rules.json
-src/rules/compute.ts        every formula
-src/rules/fromWorkbook.ts   rules from the Builder workbook's Data sheet
-src/hooks/useRules.ts       rules state, kept in the browser
-src/hooks/useSheet.ts       character sheet state, kept in the browser
-src/data/characterFile.ts   JSON save / load format
-src/components/CharacterPage.tsx, CharacterCreator.tsx, LevelUp.tsx, DevPanel.tsx, ui.tsx
+src/data/rules.json                       ★ THE RULES — every number (params, classes, ascendancies, races, marks…)
+src/features/rules/types.ts               rules + character sheet shapes
+src/features/rules/compute.ts             every formula
+src/features/rules/bonuses.ts             gear + tree nodes → bonuses
+src/features/rules/rest.ts                long and short rests
+src/features/character/page/              the Character page, one file per card / top-bar section
+src/features/character/creator/           the Creator (steps.tsx has the four steps)
+src/features/character/levelup/           Level up card, screen, and reading ascendancies from the tree
+src/features/dev/                         Dev mode sidebar (tables.ts = which tables it shows)
 ```
 
 ## Combat
@@ -112,41 +115,65 @@ src/components/CharacterPage.tsx, CharacterCreator.tsx, LevelUp.tsx, DevPanel.ts
 - **Dev mode → Dev tools:** skills in play (start from the tree, tick any others), the Past the Red option, autopilot, and the 1,000-fight simulator.
 
 Data: **`src/data/combat.json`** — `rules` (Defence, initiative, Rage gains, surge DC…), `skills` (each tree node's numbers, keyed by node id), `weapons`, `foes`. Rules marked *Proposed* are placeholders to tune.
-Engine: `src/combat/engine.ts` (pure TypeScript). A new skill needs its numbers in `combat.json` and its behaviour in the engine.
+Code: `src/features/combat/` — `engine/` runs the fight (pure TypeScript), `mechanics/` says what each skill does, `components/` draws the page.
+
+### How a skill works (combat mechanics)
+
+Every skill is a **behaviour**: a small object with the hooks it needs (like a C# class implementing an interface).
+The engine never names a skill; at fixed moments of a fight it asks every skill the fighter owns whether it wants to act.
+The full list of hooks is at the top of `src/features/combat/mechanics/types.ts`.
+
+| I want a skill that… | Do this |
+|---|---|
+| heals (Second Wind) | `combat.json → skills`: `"heal": "1d10", "healPerLevel": 1` — **no code** |
+| gives extra actions this turn (Action Surge) | `"grantActive": 1` or `"grantSide": 1` — **no code** |
+| is limited per fight / per rest | `"perFight": 1`, or `"uses": 1, "recharge": "short"` — **no code** |
+| is a stronger version of another (Headlong II) | `"action": "upgrade", "upgrades": "bbr.headlong1"` and the changed numbers — **no code** |
+| is a weapon attack with a twist | a behaviour with `targeted: true` and `prepareStrike` (its name and dice) |
+| reacts to something (hit taken, Rage overflow, turn start…) | a behaviour with that hook (`afterStruck`, `rageOverflow`, `startOfTurn`…) |
+| belongs to a new class | a new file in `mechanics/classes/` (copy `barbarian.ts`), then add it to `CLASS_MODULES` in `mechanics/registry.ts` |
+
+Behaviours read their numbers from `combat.json` with `eff()` (which applies owned upgrades), so tuning never needs code.
 
 ## Where things live
 
+The code is organised **by feature**: everything about one part of the app sits in one folder, split into
+`model` (pure logic, no React — like plain C# classes), hooks (state), and `components` (what you see).
+Shared building blocks live outside the features and never know about the game.
+
 ```
-farwilds-tree/
-├─ index.html                  page shell (title, fonts)
-├─ tools/xlsx_to_json.py       workbook → JSON converter (Python)
+farwilds-app/
+├─ index.html                     page shell
+├─ tools/                         Python converters (tree / equipment workbooks → JSON)
+├─ tests/                         regression test: the whole game logic against a golden snapshot
 └─ src/
-   ├─ config/settings.ts       ★ the knobs: sizes, spacing, zoom levels, label rules, colours per aptitude
-   ├─ styles/
-   │  ├─ tokens.css            ★ every colour & font (light + dark theme)
-   │  └─ app.css               layout and component styles
-   ├─ data/
-   │  ├─ tree/                 ★ THE DATABASE — nodes/, gems/, clusters, links, world (+ README, schema/)
-   │  ├─ types.ts              data shapes (read this first — like C# classes)
-   │  ├─ loadTree.ts           merges the JSON files into one object
-   │  ├─ loadWorkbook.ts       legacy .xlsx import (SheetJS)
-   │  └─ cells.ts              small helpers (text, number, angles)
-   ├─ model/                   pure logic, no UI — safe to edit like Python modules
-   │  ├─ buildModel.ts         layout: parents, slots, rings, spacing, links, warnings
-   │  ├─ routing.ts            route cost (Dijkstra + parent-2 requirements)
-   │  └─ character.ts          unlock / refund rules, points used, what glows next
-   ├─ hooks/
-   │  ├─ usePanZoom.ts         zoom & drag behaviour
-   │  └─ useCharacter.ts       character state (name, class, unlocked nodes), saved in the browser
-   ├─ components/              the UI (React)
-   │  ├─ MapView.tsx           map panel, zoom buttons, view options, route banner, tooltip, drop zone
-   │  ├─ Wheel.tsx             the SVG layers: background, links + nodes, labels
-   │  ├─ Panels.tsx            sidebar cards: Character, Node (Unlock / Refund), Route
-   │  ├─ Header.tsx            title bar, data-warnings badge, load / copy SVG / theme buttons
-   │  └─ colors.ts             node → colour
-   ├─ App.tsx                  app state (data, selection, route) and page layout
-   └─ main.tsx                 entry point
+   ├─ app/                        the shell: App.tsx (wires features together), Header, pages.ts (page list), main.tsx
+   ├─ config/settings.ts          ★ the knobs: sizes, spacing, zoom, label rules, colours per aptitude and class
+   ├─ data/                       ★ THE DATABASE — JSON only: tree/, rules.json, combat.json, equipment.json, gear.json
+   ├─ styles/                     ★ tokens.css (every colour & font), then one CSS file per feature; index.css sets the order
+   ├─ core/                       plain helpers, no React, no rules: dice, format (signed, plural…), storage, files, objects
+   ├─ hooks/                      generic React hooks: usePersistentState, useKeydown, useFlash
+   ├─ ui/                         the UI kit: Hint, Badge, RadialGauge, Icon (+ icons.ts), Menu, Choice, Stepper, Select,
+   │                              StatIcon, PointBox, HintGauge, FileButton, Fact — import from "@/ui"
+   └─ features/
+      ├─ tree/                    the skill tree
+      │  ├─ load/                 JSON database and legacy .xlsx → TreeData
+      │  ├─ model/                buildModel (layout), routing (route cost), unlock (unlock / refund, what glows)
+      │  ├─ components/           MapView, wheel/ (SVG layers), sidebar/ (Character, Node, Route cards)
+      │  └─ TreePage.tsx, useTreeView.ts, useTreeData.ts
+      ├─ rules/                   character maths: types, compute (formulas), bonuses, rest, params, rules files
+      ├─ character/               state/ (sheet, tree character), page/, creator/, levelup/, save / load
+      ├─ equipment/               model/ (catalog, gear, money, inventory, weapons), components/ (paper doll, purse, bag), shop/
+      ├─ combat/                  data.ts, engine/, mechanics/ (skill behaviours), fighter.ts, useCombat.ts, components/
+      └─ dev/                     Dev mode sidebar: generic TableEditor + tables.ts
 ```
+
+**Rules of the house** (so it stays tidy as it grows):
+- Logic never lives in a component. Components call pure functions from a `model/`, `engine/` or `rules/` folder.
+- A piece of UI used twice becomes a `ui/` component; a helper used twice becomes a `core/` function.
+- A file does one thing. When a component grows past ~150 lines, its parts become their own files.
+- Data is read through its feature's model (`catalogItem()`, `SKILLS`, `rule()`…), never straight from the JSON in a page.
+- `npm test` must pass before anything is merged.
 
 ## Common changes
 
@@ -164,12 +191,17 @@ farwilds-tree/
 | Make the wheel bigger / smaller | `RADIUS_SCALE` in `settings.ts` (multiplies every ring radius) |
 | Aptitude names on the rim | `APTITUDE_LABEL_SIZE`, `APTITUDE_LABEL_GAP` in `settings.ts` |
 | Add a new aptitude colour | add it in `tokens.css`, then map it in `APTITUDE_COLOR` |
-| Change the layout rules | `src/model/buildModel.ts` |
-| Change how route cost works | `src/model/routing.ts` |
-| Change unlock / refund rules | `src/model/character.ts` |
+| Change the layout rules | `src/features/tree/model/buildModel.ts` |
+| Change how route cost works | `src/features/tree/model/routing.ts` |
+| Change unlock / refund rules | `src/features/tree/model/unlock.ts` |
 | Change creator points, HP, pools, Rage… | `src/data/rules.json` → `params` (or Dev mode) |
 | Tree points | equal the character level (Level up adds one) |
-| Add a sidebar card | a new function in `Panels.tsx`, then place it in `App.tsx` |
+| Add a sidebar card | a new file in `src/features/tree/components/sidebar/`, then place it in `TreePage.tsx` |
+| Add a page | `src/app/pages.ts` (tab), then render it in `src/app/App.tsx` |
+| Add an icon | `src/ui/icons.ts` |
+| Add a Dev-mode rules table | `src/features/dev/tables.ts` |
+| Add an item action (bag / slot menu) | `src/features/equipment/components/itemMenus.ts` |
+| Change a combat skill | numbers: `src/data/combat.json`; behaviour: `src/features/combat/mechanics/classes/` |
 
 ## Modes
 
@@ -198,4 +230,4 @@ Rules, field names and examples are in `src/data/tree/README.md`. Layout setting
 - A **component** is a function that returns markup (JSX). `function NodePanel({ node })` ≈ a method that renders a view from its arguments.
 - **`useState`** is a field that triggers a redraw when it changes: `const [selected, setSelected] = useState([])`.
 - **`useMemo(() => expensive(), [deps])`** is a cached property: recomputed only when `deps` change (`model` is rebuilt only when the data changes).
-- Everything in `src/model/` is plain TypeScript with no React — treat it like a Python module.
+- Everything in a `model/`, `engine/`, `mechanics/`, `rules/` or `core/` folder is plain TypeScript with no React — treat it like a Python module.

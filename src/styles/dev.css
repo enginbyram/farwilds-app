@@ -1,0 +1,13 @@
+/* Dev mode rules sidebar (features/dev). */
+/* ── Dev sidebar ───────────────────────── */
+.dev { min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+  background: var(--panel); border: 1px solid var(--route); border-radius: var(--radius); padding: 12px; }
+.dev__head h2 { font: 500 11px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--route); margin: 0; }
+.dev__actions { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.dev__section { border-top: 1px solid var(--line); padding-top: 6px; }
+.dev__section summary { cursor: pointer; font-weight: 500; font-size: 13px; padding: 2px 0 6px; display: flex; gap: 8px; align-items: baseline; }
+.dev__badge { font-size: 11px; color: var(--route); border: 1px solid var(--route); border-radius: 999px; padding: 0 7px; }
+.dev__section > .btn { margin-top: 6px; }
+.tbl--dev td { padding: 2px 3px; }
+.in--dev { font-size: 12px; padding: 2px 4px; }
+.in--changed { border-color: var(--route) !important; background: color-mix(in srgb, var(--route) 14%, var(--bg)); outline-color: var(--route); }
