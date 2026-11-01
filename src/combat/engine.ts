@@ -75,7 +75,14 @@ function eff<K extends keyof SkillDef>(owned: Owned, id: string, key: K): SkillD
 
 export interface FoeState extends FoeDef { id: number; key: string; hpNow: number; hasHitYou: boolean; eaten: boolean; }
 export interface InitRoll { key: string; name: string; roll: number; bonus: number; total: number; side: "you" | "foe"; }
-export interface LogLine { round: number; who: "you" | "foe" | "sys"; text: string; }
+/** kind "line" is a normal entry; "turn" and "round" are centred dividers. */
+export interface LogLine { round: number; who: "you" | "foe" | "sys"; text: string; kind?: "line" | "turn" | "round"; }
+
+/**
+ * Log markup: T(kind, text) wraps a value as ⟦kind|text⟧, which the log draws as a coloured pill.
+ * Kinds: you, foe, skill, roll, hit, miss, crit, dmg, heal, rage, check, fail, stat.
+ */
+export const T = (kind: string, text: string | number) => `⟦${kind}|${text}⟧`;
 export type Phase = "setup" | "player" | "foes" | "over";
 
 export interface CombatState {
@@ -117,7 +124,8 @@ export function rollInitiative(prev: CombatState, f: Fighter, rng: Rng): CombatS
   const all = [you, ...foes].map(r => ({ ...r, total: r.roll + r.bonus }));
   all.sort((a, b) => b.total - a.total || (a.side === "you" ? -1 : b.side === "you" ? 1 : 0));
   s.order = all; s.cursor = 0; s.round = 1; s.phase = "foes";
-  s.log.push({ round: 1, who: "sys", text: `Initiative: ${all.map(r => `${r.name} ${r.total}`).join(", ")}.` });
+  s.log.push({ round: 1, who: "sys", text: `Initiative: ${all.map(r => `${T(r.side, r.name)} ${T("roll", r.total)}`).join(" ")}` });
+  s.log.push({ round: 1, who: "sys", text: "Round 1", kind: "round" });
   return s;
 }
 
@@ -131,13 +139,13 @@ function gainRage(s: CombatState, f: Fighter, owned: Owned, n: number, why: stri
   const before = s.rage;
   s.rage = Math.min(f.rageMax, s.rage + n);
   const over = before + n - f.rageMax;
-  say(s, "you", `+${n} Rage (${why}) → ${s.rage}`);
+  say(s, "you", `${T("rage", `+${n} Rage`)} ${why} → ${T("stat", `${s.rage} Rage`)}`);
   if (over > 0) {
     s.cycle.overflow += over;   // checked once, when your next turn opens
     if (owned.has("bbr.redmist2")) {
       const max = SKILLS["bbr.redmist2"].bankMax ?? 3;
       const banked = Math.min(over, max - s.bank); s.bank += banked; s.cycle.banked += banked;
-      if (banked > 0) say(s, "you", `Red Mist banks ${banked} → ${s.bank}d6 on your next hit`);
+      if (banked > 0) say(s, "you", `${T("skill", "Red Mist")} banks ${T("rage", banked)} → ${T("stat", `${s.bank}d6`)} on your next hit`);
     }
   }
   s.stats.peakRage = Math.max(s.stats.peakRage, s.rage);
@@ -150,12 +158,12 @@ function releaseHeld(s: CombatState, f: Fighter, owned: Owned, rng: Rng) {
     if (total >= dc) {
       const n = SKILLS["bbr.unbroken"].turns ?? 3, part = Math.ceil(s.held / n);
       s.heldQueue.push(...Array.from({ length: n }, (_, i) => Math.min(part, s.held - part * i)).filter(x => x > 0));
-      say(s, "you", `Unbroken: Endurance ${total} vs ${dc} — ${s.held} held damage lands over ${n} turns.`);
+      say(s, "you", `${T("skill", "Unbroken")} ${T("roll", `Endurance ${total} vs ${dc}`)} ${T("check", "held")} ${T("dmg", s.held)} lands over ${n} turns`);
       s.held = 0; return;
     }
-    say(s, "you", `Unbroken: Endurance ${total} vs ${dc} — failed.`);
+    say(s, "you", `${T("skill", "Unbroken")} ${T("roll", `Endurance ${total} vs ${dc}`)} ${T("fail", "failed")}`);
   }
-  s.hp -= s.held; say(s, "you", `Rage hits 0: ${s.held} held damage lands at once → ${s.hp} HP`);
+  s.hp -= s.held; say(s, "you", `Rage hits 0: ${T("skill", "Held Wounds")} ${T("dmg", `${s.held} dmg`)} lands at once → ${T("stat", `${s.hp} HP`)}`);
   s.held = 0;
 }
 
@@ -166,8 +174,8 @@ function spendRage(s: CombatState, f: Fighter, owned: Owned, rng: Rng, n: number
 
 function checkOver(s: CombatState) {
   if (s.result) return;
-  if (s.hp <= 0) { s.result = "loss"; s.phase = "over"; say(s, "sys", `You fall in round ${s.round}.`); }
-  else if (!aliveFoes(s).length) { s.result = "win"; s.phase = "over"; say(s, "sys", `Victory in round ${s.round}.`); }
+  if (s.hp <= 0) { s.result = "loss"; s.phase = "over"; say(s, "sys", `${T("fail", "Defeat")} You fall in round ${s.round}.`); }
+  else if (!aliveFoes(s).length) { s.result = "win"; s.phase = "over"; say(s, "sys", `${T("hit", "Victory")} in round ${s.round}.`); }
 }
 
 // ── Turn flow ────────────────────────────────────────────────
@@ -177,6 +185,7 @@ function advance(s: CombatState) {
   s.cursor += 1;
   if (s.cursor >= s.order.length) {
     s.cursor = 0; s.round += 1;
+    if (s.round <= rule("MaxTurns")) s.log.push({ round: s.round, who: "sys", text: `Round ${s.round}`, kind: "round" });
     if (s.round > rule("MaxTurns")) { s.result = "draw"; s.phase = "over"; say(s, "sys", `Still standing after ${rule("MaxTurns")} rounds — draw.`); }
   }
 }
@@ -188,40 +197,40 @@ function beginPlayerTurn(s: CombatState, f: Fighter, owned: Owned, rng: Rng) {
   const c = s.cycle;
   if (s.playerTurns > 1) {
     if (c.charged && c.struck) gainRage(s, f, owned, SKILLS["bbr.headlong1"]?.rageIfStruck ?? 1, "struck during the charge");
-    if (!c.dealt && !c.took && s.rage > 0) { say(s, "you", `No blood since your last turn: −${rule("RageDecay")} Rage.`); spendRage(s, f, owned, rng, rule("RageDecay")); }
+    if (!c.dealt && !c.took && s.rage > 0) { say(s, "you", `No blood since your last turn: ${T("fail", `−${rule("RageDecay")} Rage`)}`); spendRage(s, f, owned, rng, rule("RageDecay")); }
     const overflow = s.cycle.overflow, banked = s.cycle.banked;
     if (overflow > 0) {
       s.stats.surges += 1;
       const roll = die(rng, 20), total = roll + f.endurance, dc = rule("SurgeDC");
-      if (total >= dc) say(s, "you", `Surge: ${overflow} Rage past the cap. Endurance ${roll}+${f.endurance}=${total} vs ${dc} — held.`);
+      if (total >= dc) say(s, "you", `${T("skill", "Surge")} ${T("rage", `${overflow} past the cap`)} ${T("roll", `Endurance ${roll}+${f.endurance}=${total} vs ${dc}`)} ${T("check", "held")}`);
       else {
         const loss = owned.has("bbr.redmist2") ? Math.max(1, banked) : overflow;
         s.lostControl = true; s.sanityLost += loss;
-        say(s, "you", `Surge: ${overflow} Rage past the cap. Endurance ${roll}+${f.endurance}=${total} vs ${dc} — FAILED: you lose control this turn, −${loss} Sanity.`);
+        say(s, "you", `${T("skill", "Surge")} ${T("rage", `${overflow} past the cap`)} ${T("roll", `Endurance ${roll}+${f.endurance}=${total} vs ${dc}`)} ${T("fail", "failed")} you lose control this turn, ${T("dmg", `−${loss} Sanity`)}`);
       }
     }
   }
   s.cycle = { dealt: false, took: false, overflow: 0, banked: 0, charged: false, struck: false };
-  if (s.heldQueue.length) { const part = s.heldQueue.shift()!; s.hp -= part; say(s, "you", `Unbroken: ${part} held damage lands → ${s.hp} HP`); }
+  if (s.heldQueue.length) { const part = s.heldQueue.shift()!; s.hp -= part; say(s, "you", `${T("skill", "Unbroken")} ${T("dmg", `${part} dmg`)} held damage lands → ${T("stat", `${s.hp} HP`)}`); }
   if (owned.has("bbr.thickit1") && s.playerTurns > 1 && aliveFoes(s).length >= (SKILLS["bbr.thickit1"].minFoes ?? 2))
     gainRage(s, f, owned, SKILLS["bbr.thickit1"].rage ?? 1, "Thick of It");
-  say(s, "sys", s.lostControl ? "Your turn — lost in the surge: a plain weapon attack only." : "Your turn.");
+  say(s, "sys", s.lostControl ? `${T("you", "Your turn")} ${T("fail", "lost in the surge")} a plain weapon attack only` : T("you", "Your turn"));
   checkOver(s);
 }
 
 function foeTurn(s: CombatState, f: Fighter, owned: Owned, foe: FoeState, rng: Rng) {
-  if (foe.attack <= -50) { say(s, "foe", `The ${foe.name} stands there.`); return; }   // dummies
+  if (foe.attack <= -50) { say(s, "foe", `${T("foe", foe.name)} stands there.`); return; }   // dummies
   const armourNow = s.guardDown ? Math.floor(f.armour * (eff(owned, "bbr.berserker1", "armourFactor") ?? 0.5)) : f.armour;
   const roll = d20(rng, s.open ? "adv" : ""), atk = roll + foe.attack, crit = roll === 20;
-  if ((rule("NaturalOneMisses") && roll === 1) || (!crit && atk < f.defence)) { say(s, "foe", `The ${foe.name} attacks: ${atk} vs Defence ${f.defence} — miss.`); return; }
+  if ((rule("NaturalOneMisses") && roll === 1) || (!crit && atk < f.defence)) { say(s, "foe", `${T("foe", foe.name)} attacks ${T("roll", `${roll}+${foe.attack}=${atk} vs ${f.defence}`)} ${T("miss", "miss")}`); return; }
   const dd = parseDice(foe.damage);
   const dmg = Math.max(rule("MinDamage"), rollN(rng, dd.n * (crit ? 2 : 1), dd.d) + dd.plus - armourNow);
-  if (dmg <= 0) { say(s, "foe", `The ${foe.name} hits${crit ? " (crit)" : ""} but Armour ${armourNow} stops it.`); return; }
+  if (dmg <= 0) { say(s, "foe", `${T("foe", foe.name)} ${crit ? T("crit", "crit") : T("hit", "hits")} but ${T("stat", `Armour ${armourNow}`)} stops it`); return; }
   s.cycle.took = true; s.cycle.struck = true; s.stats.taken += dmg;
   let held = 0;
   if (owned.has("bbr.hw1") && s.rage > 0) held = Math.min(dmg, Math.max(0, f.conMod) * (SKILLS["bbr.hw1"].conMultiplier ?? 2));
   s.held += held; s.hp -= dmg - held;
-  say(s, "foe", `The ${foe.name} hits${crit ? " (crit)" : ""}: ${dmg} damage${held ? `, ${held} held back (holding ${s.held})` : ""} → ${s.hp} HP`);
+  say(s, "foe", `${T("foe", foe.name)} ${crit ? T("crit", "crit") : T("hit", "hits")} ${T("roll", `${roll}+${foe.attack}=${atk} vs ${f.defence}`)} ${T("dmg", `${dmg} dmg`)}${held ? ` ${T("skill", "Held Wounds")} holds ${T("stat", held)} (holding ${s.held})` : ""} → ${T("stat", `${s.hp} HP`)}`);
   gainRage(s, f, owned, rule("RageOnTake"), "took damage");
   if (s.guardDown) gainRage(s, f, owned, eff(owned, "bbr.berserker1", "extraRagePerHit") ?? 0, "Berserker");
   if (!foe.hasHitYou && owned.has("bbr.grudge1")) gainRage(s, f, owned, eff(owned, "bbr.grudge1", "rage") ?? 1, `Grudge vs the ${foe.name}`);
@@ -235,7 +244,10 @@ export function step(prev: CombatState, f: Fighter, owned: Owned, rng: Rng): Com
   const cur = s.order[s.cursor];
   if (cur.key === YOU) { beginPlayerTurn(s, f, owned, rng); return s; }
   const foe = s.foes.find(x => x.key === cur.key);
-  if (foe && foe.hpNow > 0) foeTurn(s, f, owned, foe, rng);
+  if (foe && foe.hpNow > 0) {
+    foeTurn(s, f, owned, foe, rng);
+    s.log.push({ round: s.round, who: "sys", text: `${foe.name}'s turn ends`, kind: "turn" });
+  }
   checkOver(s);
   if (!s.result) advance(s);
   return s;
@@ -245,7 +257,7 @@ export function step(prev: CombatState, f: Fighter, owned: Owned, rng: Rng): Com
 export function endTurn(prev: CombatState): CombatState {
   if (prev.phase !== "player") return prev;
   const s = structuredClone(prev);
-  say(s, "sys", "You end your turn.");
+  s.log.push({ round: s.round, who: "sys", text: "Your turn ends", kind: "turn" });
   s.phase = "foes"; advance(s);
   return s;
 }
@@ -286,24 +298,24 @@ export function playCard(prev: CombatState, f: Fighter, owned: Owned, id: string
   const G = (n: number, why: string) => gainRage(s, f, owned, n, why);
 
   if (id === "bbr.berserker1") {
-    s.guardDown = true; say(s, "you", "Berserker: guard down until your next turn (Armour halved, extra Rage per hit).");
+    s.guardDown = true; say(s, "you", `${T("skill", "Berserker")} guard down until your next turn: ${T("stat", "Armour halved")} extra Rage per hit`);
   } else if (id === "bbr.bitedown1") {
     const steps = Math.floor(Math.min(s.rage, Math.max(2, opt.biteSpend)) / 2);   // Rage is spent in pairs
     const per = parseDice(eff(owned, "bbr.bitedown1", "healPer2Rage"));
     const heal = rollN(rng, per.n * steps, per.d) + per.plus * steps;
     s.hp = Math.min(f.hpMax, s.hp + heal);
-    say(s, "you", `Bite Down: spend ${steps * 2} Rage, heal ${heal} → ${s.hp} HP`);
+    say(s, "you", `${T("skill", "Bite Down")} spends ${T("rage", `${steps * 2} Rage`)} ${T("heal", `+${heal} HP`)} → ${T("stat", `${s.hp} HP`)}`);
     spendRage(s, f, owned, rng, steps * 2);
   } else if (id === "bbr.dti1") {
     const cost = SKILLS["bbr.dti1"].cost ?? 2; spendRage(s, f, owned, rng, cost);
     const failed = aliveFoes(s).filter(x => die(rng, 20) + x.composure < die(rng, 20) + f.intimidation).map(x => x.name);
-    say(s, "you", `Draw Them In (−${cost} Rage): ${failed.length ? `${failed.join(", ")} must attack you` : "nobody failed Composure"}.`);
+    say(s, "you", `${T("skill", "Draw Them In")} ${T("rage", `−${cost} Rage`)} ${failed.length ? `${failed.map(n => T("foe", n)).join(" ")} must attack you` : "nobody failed Composure"}`);
   } else if (id === "bbr.corpse") {
     const body = s.foes.find(x => x.hpNow <= 0 && !x.eaten)!;
     body.eaten = true;
     const heal = parseDice(SKILLS["bbr.corpse"].heal); const h = rollN(rng, heal.n, heal.d) + heal.plus;
     s.hp = Math.min(f.hpMax, s.hp + h); s.fel += SKILLS["bbr.corpse"].fel ?? 1; s.open = true;
-    say(s, "you", `Corpse-Eater on the ${body.name}: +${h} HP → ${s.hp}, +${SKILLS["bbr.corpse"].fel ?? 1} fel (total ${s.fel}). You are open until your next turn.`);
+    say(s, "you", `${T("skill", "Corpse-Eater")} on ${T("foe", body.name)} ${T("heal", `+${h} HP`)} → ${T("stat", `${s.hp} HP`)} ${T("fail", `+${SKILLS["bbr.corpse"].fel ?? 1} fel`)} (total ${s.fel}); you are open until your next turn`);
     G(SKILLS["bbr.corpse"].rage ?? 2, "Corpse-Eater");
   } else {
     strike(s, f, owned, id, targetKey, rng, opt, G);
@@ -330,7 +342,7 @@ function strike(s: CombatState, f: Fighter, owned: Owned, id: string, targetKey:
 
   const roll = d20(rng), atk = roll + f.attackBonus, crit = roll === 20;
   if ((rule("NaturalOneMisses") && roll === 1) || (!crit && atk < target.defence)) {
-    say(s, "you", `${name} at the ${target.name}: ${roll}+${f.attackBonus}=${atk} vs Defence ${target.defence} — miss.`);
+    say(s, "you", `${T("skill", name)} at ${T("foe", target.name)} ${T("roll", `${roll}+${f.attackBonus}=${atk} vs ${target.defence}`)} ${T("miss", "miss")}`);
   } else {
     const ptr = owned.has("bbr.pastred1") && rageAtSwing >= (SKILLS["bbr.pastred1"].atRage ?? 10);
     const mult = (isBought: boolean) => (crit ? 2 : 1) * (ptr && (!isBought || opt.pastRedDoublesRageDice) ? 2 : 1);
@@ -342,12 +354,12 @@ function strike(s: CombatState, f: Fighter, owned: Owned, id: string, targetKey:
     const dmg = Math.max(rule("MinDamage"), sum + f.ap - target.armour);
     target.hpNow -= dmg; s.stats.dealt += dmg;
     if (s.bank > 0) s.bank = 0;
-    say(s, "you", `${name} at the ${target.name}: ${roll}+${f.attackBonus}=${atk} vs ${target.defence}${crit ? " — CRIT" : ""}${ptr ? " — Past the Red" : ""}. ${parts.join(" + ")} + AP ${f.ap} − Armour ${target.armour} = ${dmg} → ${Math.max(0, target.hpNow)} HP left`);
+    say(s, "you", `${T("skill", name)} at ${T("foe", target.name)} ${T("roll", `${roll}+${f.attackBonus}=${atk} vs ${target.defence}`)} ${crit ? T("crit", "CRIT") : T("hit", "hit")}${ptr ? ` ${T("skill", "Past the Red")}` : ""} ${parts.map(x => T("roll", x)).join(" + ")} + ${T("stat", `AP ${f.ap}`)} − ${T("stat", `Armour ${target.armour}`)} = ${T("dmg", `${dmg} dmg`)} → ${T("stat", `${Math.max(0, target.hpNow)} HP left`)}`);
     if (dmg > 0) { s.cycle.dealt = true; G(rule("RageOnDeal"), "dealt damage"); }
-    if (target.hpNow <= 0) { say(s, "you", `The ${target.name} falls.`); G(rule("RageOnKill"), "kill"); }
+    if (target.hpNow <= 0) { say(s, "you", `${T("foe", target.name)} ${T("crit", "falls")}`); G(rule("RageOnKill"), "kill"); }
     if (id === "bbr.headlong1") G(SKILLS["bbr.headlong1"].rage ?? 1, "Headlong impact");
   }
-  if (spent > 0) { say(s, "you", `Unmake spends all ${s.rage} Rage.`); spendRage(s, f, owned, rng, s.rage); }
+  if (spent > 0) { say(s, "you", `${T("skill", "Unmake")} spends ${T("rage", `all ${s.rage} Rage`)}`); spendRage(s, f, owned, rng, s.rage); }
 }
 
 /** Which passives / reactions are lit up right now (for the tray). */

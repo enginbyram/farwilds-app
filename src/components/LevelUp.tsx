@@ -15,6 +15,35 @@ import { Badge, signed } from "./ui";
 
 export interface PendingLevelUp { from: number; to: number; snapshot: string[]; }
 
+export interface TreeAscendancy { node: string; asc: string; note: string; }
+/**
+ * Ascendancies are chosen on the tree, not on this screen: an ascendancy node owned one ring out from the
+ * class start is the first ascendancy, two rings out the second.
+ *  - "Barbarian" → Barbarian;  "Fighter II" → Fighter (go deep)
+ *  - a combination node ("Bloodrager" = Barbarian + Bloodmagic) → its other root
+ *  - a deepening node ("Carnage II") → no new ascendancy; the build stays in the first one
+ */
+export function ascendanciesFromTree(rules: Rules, model: TreeModel, ids: string[], startRing: number, asc1Hint = "") {
+  const nodes = ids.map(id => model.byId.get(id)).filter((n): n is NonNullable<typeof n> => !!n && /ascend/i.test(n.type));
+  const resolve = (name: string, first: string): { asc: string; note: string } => {
+    const exact = rules.ascendancies.find(a => a.name === name);
+    if (exact) return { asc: exact.name, note: "" };
+    const base = name.replace(/\s+(I{1,3}|IV|V)$/, "");
+    const deep = rules.ascendancies.find(a => a.name === base);
+    if (deep) return { asc: deep.name, note: base === first ? "deepens the first ascendancy" : "go deep" };
+    const combo = rules.combinations.find(c => c.name === name);
+    if (combo) return { asc: combo.rootA === first ? combo.rootB : combo.rootB === first ? combo.rootA : combo.rootB, note: `${combo.name} = ${combo.rootA} + ${combo.rootB}` };
+    return { asc: "", note: "deepens the first ascendancy" };
+  };
+  const at = (ring: number) => nodes.find(n => n.ring === ring);
+  const n1 = at(startRing + 1), n2 = at(startRing + 2);
+  const first: TreeAscendancy | null = n1 ? { node: n1.name, ...resolve(n1.name, "") } : null;
+  const a1 = first?.asc || asc1Hint;
+  const second: TreeAscendancy | null = n2 ? { node: n2.name, ...resolve(n2.name, a1) } : null;
+  if (second && second.asc === a1) { second.asc = ""; second.note = "deepens the first ascendancy"; }
+  return { first, second };
+}
+
 export function LevelUpCard({ pending, ch, onContinue, onCancel }: {
   pending: PendingLevelUp; ch: Character; onContinue: () => void; onCancel: () => void;
 }) {
@@ -47,8 +76,10 @@ export function LevelUpScreen({ rules, model, ch, sheet, pending, onConfirm, onC
   const crossing = band.inBand === 1 && band.band >= 1;
   const lv = before.levels;
 
-  const [asc1, setAsc1] = useState(sheet.asc1);
-  const [asc2, setAsc2] = useState(sheet.asc2);
+  const startRing = ch.start?.ring ?? 1;
+  const tree = ascendanciesFromTree(rules, model, ch.unlockedIds, startRing, sheet.asc1);
+  const asc1 = sheet.asc1 || tree.first?.asc || "";
+  const asc2 = sheet.asc2 || tree.second?.asc || "";
   const [sub, setSub] = useState(sheet.subdominant);
   const [skillAdd, setSkillAdd] = useState<Record<string, number>>({});
   const [attrAdd, setAttrAdd] = useState(zeroPoints());
@@ -66,7 +97,7 @@ export function LevelUpScreen({ rules, model, ch, sheet, pending, onConfirm, onC
   const skillLeft = after.skillPointsAvailable - after.skillPointsUsed;
   const attrLeft = after.attributePointsAvailable - after.pointsUsed;
   const newNodes = ch.unlockedIds.filter(id => !pending.snapshot.includes(id)).map(id => model.byId.get(id)?.name ?? id);
-  const ready = (!needAsc1 || !!asc1) && (!needAsc2 || !!asc2) && skillLeft >= 0 && attrLeft >= 0;
+  const ready = skillLeft >= 0 && attrLeft >= 0;
 
   const diffs: [string, number | string | null, number | string | null][] = [
     ["Hit Points", before.combat.hp, after.combat.hp],
@@ -78,8 +109,6 @@ export function LevelUpScreen({ rules, model, ch, sheet, pending, onConfirm, onC
     ["Skill points", before.skillPointsAvailable, after.skillPointsAvailable],
   ];
   const focusOf = (k: string) => after.attributes.find(a => a.key === k)?.focus ?? "";
-  const asc1Options = rules.ascendancies.filter(a => a.coreClass === cls);
-  const asc2Options = rules.ascendancies.filter(a => a.name !== asc1);
 
   return (
     <div className="creator levelup" style={classStyle(cls)}>
@@ -106,38 +135,20 @@ export function LevelUpScreen({ rules, model, ch, sheet, pending, onConfirm, onC
         </section>
 
         {needAsc1 && (
-          <section className="card">
-            <h2>First ascendancy · required</h2>
-            <div className="choices choices--wide">
-              {asc1Options.map(a => (
-                <button key={a.name} type="button" className={`choice${asc1 === a.name ? " choice--on" : ""}`} onClick={() => setAsc1(a.name)}>
-                  <span className="choice__top"><b>{a.name}</b><span className="mono">{a.name === cls ? "go deep" : "sundering"} · d{a.hitDie}</span></span>
-                  <span className="choice__text">{a.identity}</span>
-                  {a.forbidden && <span className="reason">Forbidden — needs the forbidden zone gate</span>}
-                </button>
-              ))}
-            </div>
-          </section>
+          <AscCard title="First ascendancy" ring={startRing + 1} taken={tree.first} rules={rules} />
         )}
 
         {needAsc2 && (
           <section className="card">
-            <h2>Second ascendancy · required</h2>
-            <select className="in" value={asc2} onChange={e => setAsc2(e.target.value)} aria-label="Second ascendancy">
-              <option value="">— choose —</option>
-              {rules.coreClasses.map(k => (
-                <optgroup key={k.name} label={`${k.name} · ${k.aptitude}`}>
-                  {asc2Options.filter(a => a.coreClass === k.name).map(a => <option key={a.name} value={a.name}>{a.name}</option>)}
-                </optgroup>
-              ))}
-            </select>
-            {asc2 && (
+            <h2>Second ascendancy · from the tree</h2>
+            {tree.second ? (
               <dl className="facts">
+                <dt>Node</dt><dd><b>{tree.second.node}</b>{tree.second.note ? <span className="mono"> · {tree.second.note}</span> : null}</dd>
                 <dt>Build name</dt><dd><b>{after.buildName}</b>{after.combination ? " (named combination)" : ""}</dd>
                 <dt>Cross-aptitude</dt><dd>{after.cross || "—"}</dd>
                 <dt>Gate needed</dt><dd>{after.gates.length ? after.gates.join(", ") : "—"}</dd>
               </dl>
-            )}
+            ) : <p className="note">Not taken yet. Unlock an ascendancy node on ring {startRing + 2} of the tree to take it.</p>}
           </section>
         )}
 
@@ -215,5 +226,21 @@ function Fragment({ label, before, after }: { label: string; before: number | st
       <dt>{label}</dt>
       <dd>{b} → <b>{a}</b>{gain ? <span className="gain"> {signed(gain)}</span> : null}</dd>
     </>
+  );
+}
+
+function AscCard({ title, ring, taken, rules }: { title: string; ring: number; taken: TreeAscendancy | null; rules: Rules }) {
+  const a = taken ? rules.ascendancies.find(x => x.name === taken.asc) : undefined;
+  return (
+    <section className="card">
+      <h2>{title} · from the tree</h2>
+      {taken ? (
+        <>
+          <p className="title">{taken.node}</p>
+          {a && <p className="mono">{taken.note || (a.name === a.coreClass ? "go deep" : "sundering")} · d{a.hitDie} · {a.maxArmour} armour</p>}
+          {a && <p className="note">{a.identity}</p>}
+        </>
+      ) : <p className="note">Not taken yet. Unlock an ascendancy node on ring {ring} of the tree to take it.</p>}
+    </section>
   );
 }

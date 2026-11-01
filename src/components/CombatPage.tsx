@@ -193,26 +193,34 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
 
       {/* ── Floating: drawer ── */}
       {drawer && (
-        <div className="cb__drawer" role="dialog" aria-label={`${drawer} actions`}>
+        <div className={`cb__drawer cb__drawer--${drawer}`} role="dialog" aria-label={`${drawer} actions`}>
           <div className="cb__drawer-head">
             <h3>{drawer === "active" ? "Main actions" : drawer === "side" ? "Side actions" : "Misc actions"}</h3>
-            <button className="btn btn--small btn--ghost" onClick={() => setDrawer("")}>Close</button>
+            {drawer === "side" && owned.has("bbr.bitedown1") && (
+              <label className="cb__inline">Bite Down spends <input type="number" min={2} step={2} value={biteSpend} onChange={e => setBiteSpend(Number(e.target.value))} /> Rage</label>)}
+            <button className="btn btn--small btn--ghost" onClick={() => setDrawer("")} aria-label="Close">×</button>
           </div>
-          <div className="cards">
+          <div className="sq-row">
             {cards(drawer).length === 0 && <p className="note">Nothing here yet. Items, movement and other actions will live in Misc.</p>}
             {cards(drawer).map(id => {
               const v = canPlay(fight, owned, id, targetKey);
               const def = SKILLS[id];
               const target = fight.foes.find(x => x.key === targetKey);
+              const title = id === ATTACK ? "Weapon attack" : def.name;
+              const targeted = ["attack", "bbr.headlong1", "bbr.unmake1"].includes(id);
               return (
-                <button key={id} className={`card-skill${v.ok ? "" : " card-skill--off"}`} disabled={!v.ok} onClick={() => play(id)}>
-                  <span className="card-skill__slot">{cardSlot(id) === "active" ? "Main" : cardSlot(id) === "side" ? "Side" : "Misc"}{def ? ` · ${def.pillar}` : ""}{upgraded(id) ? " · II" : ""}</span>
-                  <b className="card-skill__name">{id === ATTACK ? "Weapon attack" : def.name}</b>
-                  <span className="card-skill__text">{id === ATTACK ? `Strike with your ${weapon.name.toLowerCase()}: ${weapon.dice} ${signed(fighter.ap)} AP.` : def.text}</span>
-                  {id === "bbr.bitedown1" && (
-                    <span className="card-skill__opt" onClick={e => e.stopPropagation()}>Spend <input type="number" min={2} step={2} value={biteSpend} onChange={e => setBiteSpend(Number(e.target.value))} /> Rage</span>)}
-                  <span className="card-skill__foot">{v.ok ? (["attack", "bbr.headlong1", "bbr.unmake1"].includes(id) && target ? `→ ${target.name}` : "Play") : v.why}</span>
-                </button>
+                <div key={id} className="sq">
+                  <button className={`sq__btn sq__btn--${cardSlot(id)}${v.ok ? "" : " sq__btn--off"}`} disabled={!v.ok} onClick={() => play(id)} aria-label={title}>
+                    <span className="sq__glyph">{id === ATTACK ? "At" : glyph(def.name)}</span>
+                    {upgraded(id) && <i className="sq__lvl">II</i>}
+                  </button>
+                  <span className="sq__tip" role="tooltip">
+                    <b>{title}{upgraded(id) ? " II" : ""}</b>
+                    <em>{cardSlot(id) === "active" ? "Main" : cardSlot(id) === "side" ? "Side" : "Misc"}{def ? ` · ${def.pillar}` : ""}</em>
+                    {id === ATTACK ? `Strike with your ${weapon.name.toLowerCase()}: ${weapon.dice} ${signed(fighter.ap)} AP.` : def.text}
+                    <strong className={v.ok ? "" : "off"}>{v.ok ? (targeted && target ? `Click to use on ${target.name}` : "Click to use") : v.why}</strong>
+                  </span>
+                </div>
               );
             })}
           </div>
@@ -302,23 +310,22 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
 
         <div className="cb__me">
           <div className="cb__me-name"><b>{ch.name}</b><span>{setup ? "Ready" : myTurn ? "Your turn" : fight.phase === "foes" ? "Foes acting" : "Fight over"} · Round {fight.round || "—"}</span></div>
-          <Bar now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="you" label="HP" />
-          {R > 0 && (
-            <div className="cb__rage" title={`Rage ${fight.rage} / ${R} — threshold at ${rule("RageThreshold")}`}>
-              <span>Rage</span>
-              <div className="pips">{Array.from({ length: R }, (_, i) => <i key={i} className={`${i < fight.rage ? "on" : ""}${i + 1 === rule("RageThreshold") || i + 1 === R ? " mark" : ""}`} />)}</div>
-              <b>{fight.rage}</b>
-            </div>
-          )}
+          <div className="gauges">
+            <Gauge label="HP" now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="hp" />
+            {R > 0 && <Gauge label="Rage" now={fight.rage} max={R} kind="rage" segments={R} marks={[rule("RageThreshold"), R]} />}
+            {c.pools.quick > 0 && <Gauge label="Quick" now={c.pools.quick} max={c.pools.quick} kind="quick" />}
+            {c.pools.purequick !== null && c.pools.purequick > 0 && <Gauge label="Purequick" now={c.pools.purequick} max={c.pools.purequick} kind="pq" />}
+            <Gauge label="Sanity" now={Math.max(0, fighter.sanity - fight.sanityLost)} max={Math.max(1, fighter.sanity)} kind="sanity" />
+          </div>
           <div className="cb__chips">
-            {fight.held > 0 && <span className="chip" title="Held Wounds: lands when Rage hits 0">Held {fight.held}</span>}
-            {fight.heldQueue.length > 0 && <span className="chip" title="Unbroken instalments">Queued {fight.heldQueue.join("+")}</span>}
-            {fight.bank > 0 && <span className="chip" title="Red Mist bank: added to your next hit">Red Mist {fight.bank}d6</span>}
-            {fight.guardDown && <span className="chip chip--warn" title="Berserker: Armour halved">Guard down</span>}
-            {fight.open && <span className="chip chip--warn" title="Corpse-Eater: foes attack with advantage">Open</span>}
-            {fight.lostControl && <span className="chip chip--warn">Lost in the surge</span>}
-            {fight.fel > 0 && <span className="chip" title="Fel taken in">Fel {fight.fel}</span>}
-            {fight.sanityLost > 0 && <span className="chip" title="Sanity lost this fight">Sanity −{fight.sanityLost}</span>}
+            {fight.held > 0 && <span className="cb-chip" title="Held Wounds: lands when Rage hits 0">Held {fight.held}</span>}
+            {fight.heldQueue.length > 0 && <span className="cb-chip" title="Unbroken instalments">Queued {fight.heldQueue.join("+")}</span>}
+            {fight.bank > 0 && <span className="cb-chip" title="Red Mist bank: added to your next hit">Red Mist {fight.bank}d6</span>}
+            {fight.guardDown && <span className="cb-chip cb-chip--warn" title="Berserker: Armour halved">Guard down</span>}
+            {fight.open && <span className="cb-chip cb-chip--warn" title="Corpse-Eater: foes attack with advantage">Open</span>}
+            {fight.lostControl && <span className="cb-chip cb-chip--warn">Lost in the surge</span>}
+            {fight.fel > 0 && <span className="cb-chip" title="Fel taken in">Fel {fight.fel}</span>}
+            {fight.sanityLost > 0 && <span className="cb-chip" title="Sanity lost this fight">Sanity −{fight.sanityLost}</span>}
           </div>
         </div>
 
@@ -406,13 +413,59 @@ function TurnWheel({ fight, setup }: { fight: CombatState; setup: boolean }) {
 }
 const short = (s: string) => (s.length > 11 ? `${s.slice(0, 10)}…` : s);
 
+/** Turns "⟦kind|text⟧" markup from the engine into coloured pills. */
+function Rich({ text }: { text: string }) {
+  const out: React.ReactNode[] = [];
+  const re = /⟦(\w+)\|([^⟧]*)⟧/g;
+  let last = 0, m: RegExpExecArray | null, i = 0;
+  while ((m = re.exec(text))) {
+    if (m.index > last) out.push(text.slice(last, m.index));
+    out.push(<span key={i++} className={`pill pill--${m[1]}`}>{m[2]}</span>);
+    last = m.index + m[0].length;
+  }
+  if (last < text.length) out.push(text.slice(last));
+  return <>{out}</>;
+}
+
 function Log({ fight }: { fight: CombatState }) {
   const ref = useRef<HTMLOListElement>(null);
   useEffect(() => { const el = ref.current; if (el) el.scrollTop = el.scrollHeight; }, [fight.log.length]);
   return (
     <ol className="cb__log" ref={ref} aria-label="Combat log">
       {fight.log.length === 0 && <li className="log--sys">Set up the foes on the left, then press Start fight.</li>}
-      {fight.log.map((l, i) => <li key={i} className={`log--${l.who}`}><span className="mono">R{l.round}</span> {l.text}</li>)}
+      {fight.log.map((l, i) => l.kind === "turn" || l.kind === "round"
+        ? <li key={i} className={`log-div log-div--${l.kind}`}><span>{l.text}</span></li>
+        : <li key={i} className={`log--${l.who}`}><Rich text={l.text} /></li>)}
     </ol>
+  );
+}
+
+/** Radial gauge, same language as the turn wheel. Segmented when `segments` is set (Rage). */
+function Gauge({ label, now, max, kind, segments, marks = [] }: { label: string; now: number; max: number; kind: string; segments?: number; marks?: number[] }) {
+  const size = 58, c = size / 2, r = 23, w = 6;
+  const frac = Math.max(0, Math.min(1, now / Math.max(1, max)));
+  const arc = (a0: number, a1: number) => {
+    const p = (a: number) => [c + r * Math.sin(a), c - r * Math.cos(a)];
+    const [x0, y0] = p(a0), [x1, y1] = p(a1);
+    return `M ${x0} ${y0} A ${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1}`;
+  };
+  return (
+    <div className={`gauge gauge--${kind}`} title={`${label} ${now} / ${max}`}>
+      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} aria-hidden="true">
+        {segments
+          ? Array.from({ length: segments }, (_, i) => {
+              const g = 0.07, a0 = (i / segments) * 2 * Math.PI + g, a1 = ((i + 1) / segments) * 2 * Math.PI - g;
+              return <path key={i} d={arc(a0, a1)} strokeWidth={w} className={`gauge__seg${i < now ? " on" : ""}${marks.includes(i + 1) ? " mark" : ""}`} />;
+            })
+          : <>
+              <circle cx={c} cy={c} r={r} strokeWidth={w} className="gauge__track" />
+              {frac > 0 && (frac >= 0.999
+                ? <circle cx={c} cy={c} r={r} strokeWidth={w} className="gauge__fill" />
+                : <path d={arc(0, frac * 2 * Math.PI)} strokeWidth={w} className="gauge__fill" />)}
+            </>}
+        <text x={c} y={c + 4} textAnchor="middle" className="gauge__num">{now}</text>
+      </svg>
+      <span className="gauge__label">{label}</span>
+    </div>
   );
 }
