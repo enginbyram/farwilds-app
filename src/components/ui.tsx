@@ -78,6 +78,7 @@ const ICONS: Record<string, string> = {
   mark: "M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12zM12 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
   race: "M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM4 21c1-4 4-6 8-6s7 2 8 6",
   lock: "M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3",
+  die: "M12 2.5l8.5 5v9L12 21.5l-8.5-5v-9zM12 2.5l-5 8.5h10zM7 11l5 10.5L17 11M3.5 7.5L7 11M20.5 7.5L17 11",
   none: "M5 12h14",
 };
 export function Icon({ name, size = 18, className = "" }: { name: string; size?: number; className?: string }) {
