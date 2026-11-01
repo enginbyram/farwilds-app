@@ -18,7 +18,7 @@ import {
   type CombatState, type Fighter, type FoeDef, type Policy, type SimResult,
 } from "@/combat/engine";
 import { classStyle } from "./CharacterPage";
-import { signed } from "./ui";
+import { RadialGauge, signed } from "./ui";
 
 type Drawer = "" | "active" | "side" | "misc";
 const FOE_STEP_MS = 650;
@@ -142,8 +142,10 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
                   ) : (
                     <>
                       <div className="unit__top"><b>{f.name}</b>{init && <span className="unit__init" title="Initiative roll">Init {init.total}</span>}</div>
-                      <Bar now={Math.max(0, f.hpNow)} max={f.hp} kind="foe" />
-                      <div className="unit__meta">Def {f.defence} · Arm {f.armour} · Atk {signed(f.attack)} · {f.damage}{f.eaten ? " · eaten" : ""}</div>
+                      <div className="unit__body">
+                        <RadialGauge now={Math.max(0, f.hpNow)} max={f.hp} kind="foe" size={50} label="HP" />
+                        <div className="unit__meta">Def {f.defence} · Arm {f.armour}<br />Atk {signed(f.attack)} · {f.damage}{f.eaten ? " · eaten" : ""}</div>
+                      </div>
                       {targetKey === f.key && !dead && <span className="unit__tag">Target</span>}
                     </>
                   )}
@@ -173,11 +175,13 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
             <li className={`unit unit--you${myTurn ? " unit--turn" : ""}`}>
               <div className="unit__top"><b>{ch.name}</b>{fight.order.find(o => o.key === YOU) && <span className="unit__init" title="Initiative roll">Init {fight.order.find(o => o.key === YOU)!.total}</span>}</div>
               <div className="unit__meta">{c.buildName} · level {c.level}</div>
-              <Bar now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="you" />
+              <div className="unit__body">
+                <RadialGauge now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="hp" size={50} label="HP" />
               <dl className="unit__stats">
                 <dt>Defence</dt><dd>{fighter.defence}</dd><dt>Armour</dt><dd>{fighter.armour}</dd>
                 <dt>Attack</dt><dd>{signed(fighter.attackBonus)}</dd><dt>Damage</dt><dd>{weapon.dice} {signed(fighter.ap)}</dd>
               </dl>
+              </div>
               <div className="unit__gear">
                 <label>Weapon<select value={weaponName} disabled={!setup} onChange={e => setWeaponName(e.target.value)}>
                   {COMBAT.weapons.map(w => <option key={w.name} value={w.name}>{w.name} · {w.dice}</option>)}</select></label>
@@ -311,11 +315,11 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
         <div className="cb__me">
           <div className="cb__me-name"><b>{ch.name}</b><span>{setup ? "Ready" : myTurn ? "Your turn" : fight.phase === "foes" ? "Foes acting" : "Fight over"} · Round {fight.round || "—"}</span></div>
           <div className="gauges">
-            <Gauge label="HP" now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="hp" />
-            {R > 0 && <Gauge label="Rage" now={fight.rage} max={R} kind="rage" segments={R} marks={[rule("RageThreshold"), R]} />}
-            {c.pools.quick > 0 && <Gauge label="Quick" now={c.pools.quick} max={c.pools.quick} kind="quick" />}
-            {c.pools.purequick !== null && c.pools.purequick > 0 && <Gauge label="Purequick" now={c.pools.purequick} max={c.pools.purequick} kind="pq" />}
-            <Gauge label="Sanity" now={Math.max(0, fighter.sanity - fight.sanityLost)} max={Math.max(1, fighter.sanity)} kind="sanity" />
+            <RadialGauge label="HP" now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="hp" />
+            {R > 0 && <RadialGauge label="Rage" now={fight.rage} max={R} kind="rage" marks={[rule("RageThreshold"), R]} />}
+            {c.pools.quick > 0 && <RadialGauge label="Quick" now={c.pools.quick} max={c.pools.quick} kind="quick" />}
+            {c.pools.purequick !== null && c.pools.purequick > 0 && <RadialGauge label="Purequick" now={c.pools.purequick} max={c.pools.purequick} kind="pq" />}
+            <RadialGauge label="Sanity" now={Math.max(0, fighter.sanity - fight.sanityLost)} max={Math.max(1, fighter.sanity)} kind="sanity" />
           </div>
           <div className="cb__chips">
             {fight.held > 0 && <span className="cb-chip" title="Held Wounds: lands when Rage hits 0">Held {fight.held}</span>}
@@ -357,15 +361,6 @@ function glyph(name: string) {
   return w.length > 1 ? (w[0][0] + w[1][0]).toUpperCase() : w[0].slice(0, 2);
 }
 
-function Bar({ now, max, kind, label }: { now: number; max: number; kind: "you" | "foe"; label?: string }) {
-  return (
-    <div className={`hpbar hpbar--${kind}`}>
-      {label && <span className="hpbar__label">{label}</span>}
-      <div className="hpbar__track"><i style={{ width: `${Math.max(0, Math.min(1, now / Math.max(1, max))) * 100}%` }} /></div>
-      <b>{now} / {max}</b>
-    </div>
-  );
-}
 
 /** Initiative wheel: one wedge per combatant, clockwise from the top in turn order. */
 function TurnWheel({ fight, setup }: { fight: CombatState; setup: boolean }) {
@@ -437,35 +432,5 @@ function Log({ fight }: { fight: CombatState }) {
         ? <li key={i} className={`log-div log-div--${l.kind}`}><span>{l.text}</span></li>
         : <li key={i} className={`log--${l.who}`}><Rich text={l.text} /></li>)}
     </ol>
-  );
-}
-
-/** Radial gauge, same language as the turn wheel. Segmented when `segments` is set (Rage). */
-function Gauge({ label, now, max, kind, segments, marks = [] }: { label: string; now: number; max: number; kind: string; segments?: number; marks?: number[] }) {
-  const size = 58, c = size / 2, r = 23, w = 6;
-  const frac = Math.max(0, Math.min(1, now / Math.max(1, max)));
-  const arc = (a0: number, a1: number) => {
-    const p = (a: number) => [c + r * Math.sin(a), c - r * Math.cos(a)];
-    const [x0, y0] = p(a0), [x1, y1] = p(a1);
-    return `M ${x0} ${y0} A ${r} ${r} 0 ${a1 - a0 > Math.PI ? 1 : 0} 1 ${x1} ${y1}`;
-  };
-  return (
-    <div className={`gauge gauge--${kind}`} title={`${label} ${now} / ${max}`}>
-      <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} aria-hidden="true">
-        {segments
-          ? Array.from({ length: segments }, (_, i) => {
-              const g = 0.07, a0 = (i / segments) * 2 * Math.PI + g, a1 = ((i + 1) / segments) * 2 * Math.PI - g;
-              return <path key={i} d={arc(a0, a1)} strokeWidth={w} className={`gauge__seg${i < now ? " on" : ""}${marks.includes(i + 1) ? " mark" : ""}`} />;
-            })
-          : <>
-              <circle cx={c} cy={c} r={r} strokeWidth={w} className="gauge__track" />
-              {frac > 0 && (frac >= 0.999
-                ? <circle cx={c} cy={c} r={r} strokeWidth={w} className="gauge__fill" />
-                : <path d={arc(0, frac * 2 * Math.PI)} strokeWidth={w} className="gauge__fill" />)}
-            </>}
-        <text x={c} y={c + 4} textAnchor="middle" className="gauge__num">{now}</text>
-      </svg>
-      <span className="gauge__label">{label}</span>
-    </div>
   );
 }
