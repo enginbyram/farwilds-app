@@ -29,6 +29,47 @@ The database is **`src/data/tree/`**: nodes, gem texts, clusters, links and worl
 - **Import .xlsx** (header button, or drag a file onto the map) still opens an old workbook for viewing. **Back to JSON database** returns. Nothing is written to either.
 - `tools/xlsx_to_json.py` converts a workbook into the JSON files for good.
 
+## Character, Creator and Level up
+
+**Creator** makes a level-1 character: 1 Origin (name, race, mark or power, dominant affinity) → 2 Class →
+3 Attributes → 4 Review → Create. Every character starts with a Deep well. Choosing no mark or power gives 2 free attribute points.
+In the README table below, "Change unlock / refund rules" still means the tree; character numbers are in `rules.json`.
+
+**Character** is read-only: points are spent only through the Creator and Level up. Hover any score, modifier,
+skill or stat to see where it comes from. Main attributes (race or class gives 2) have a gold outline, Side (gives 1) grey.
+The page takes its colours from the core class (`CLASS_THEME` in `src/config/settings.ts`).
+
+**Level up**: the button sends you to the Tree with one new keystone point (tree points = level). Unlock a node, press
+Continue, and the Level Up screen shows what the level gives: first ascendancy at ring 1, second at ring 2, the subdominant
+affinity from Ascendancy III, +2 skill points per ascension, and AttributePointsPerLevel attribute points (0 until decided).
+Cancel refunds the node.
+
+- Armour, weapon AP, Leech and "gear & passives" are filled automatically from gear and tree passives
+  (`External` in `src/rules/compute.ts`). Until then they read 0.
+- **Save character** downloads `<name>.farwilds.json`; **Load character** reads it back (older files are converted).
+
+### Dev mode
+
+Opens a left sidebar (Character, Creator and Level Up pages) with every rules table, and makes the Character page's identity fields editable (level, race, class, ascendancies…) for testing. Edits apply live and stay in this browser;
+cells that differ from the defaults are highlighted.
+
+- **From workbook (.xlsx)** reads the Data sheet of the Character Builder workbook — keep editing numbers in Excel if you prefer.
+- **Export / Import rules** move a rules set as `farwilds-rules.json`. **Reset** returns to the defaults.
+- **The rules file is `src/data/rules.json`** — edit it by hand like the tree JSON. When the file changes, browsers set their saved Dev-mode copy aside and use the file. To keep Dev-mode edits for good, Export rules and copy the tables into `rules.json`.
+- Numbers live in the rules; **formulas** live in `src/rules/compute.ts`.
+
+```
+src/rules/types.ts          rules + character sheet shapes
+src/data/rules.json         ★ THE RULES — every number (params, classes, ascendancies, races, marks…)
+src/rules/defaults.ts       loads rules.json
+src/rules/compute.ts        every formula
+src/rules/fromWorkbook.ts   rules from the Builder workbook's Data sheet
+src/hooks/useRules.ts       rules state, kept in the browser
+src/hooks/useSheet.ts       character sheet state, kept in the browser
+src/data/characterFile.ts   JSON save / load format
+src/components/CharacterPage.tsx, CharacterCreator.tsx, LevelUp.tsx, DevPanel.tsx, ui.tsx
+```
+
 ## Where things live
 
 ```
@@ -82,7 +123,8 @@ farwilds-tree/
 | Change the layout rules | `src/model/buildModel.ts` |
 | Change how route cost works | `src/model/routing.ts` |
 | Change unlock / refund rules | `src/model/character.ts` |
-| Change total skill points | `TOTAL_SKILL_POINTS` in `settings.ts` |
+| Change creator points, HP, pools, Rage… | `src/data/rules.json` → `params` (or Dev mode) |
+| Tree points | equal the character level (Level up adds one) |
 | Add a sidebar card | a new function in `Panels.tsx`, then place it in `App.tsx` |
 
 ## Modes
