@@ -23,7 +23,7 @@ import openpyxl
 warnings.filterwarnings("ignore")  # openpyxl complains about data-validation extensions
 
 GEAR = Path(__file__).resolve().parent.parent / "src" / "data" / "gear.json"
-NUMBER_KEYS = ("weight_kg", "armour", "attack_power", "reach_m", "str_need")
+NUMBER_KEYS = ("weight_kg", "armour", "attack_power", "reach_m", "range_m", "range_long_m", "str_need")
 TEXT_KEYS = ("damage", "damage_type", "armor_type", "description")
 BOOL_KEYS = ("stealth_disadvantage",)
 GRIPS = {"two-handed": "Two-handed", "versatile": "Versatile"}  # written in the slot column by mistake → property

@@ -314,11 +314,13 @@
       },
       "weight_kg": 0.5,
       "reach_m": 2,
+      "range_m": 8,
+      "range_long_m": 24,
       "damage": "1d4",
       "damage_type": "piercing",
       "properties": [
         "Versatile",
-        "Thrown (Range 20/60)"
+        "Thrown"
       ]
     },
     {
@@ -349,11 +351,13 @@
       },
       "weight_kg": 1,
       "reach_m": 2,
+      "range_m": 8,
+      "range_long_m": 24,
       "damage": "1d6",
       "damage_type": "slashing",
       "properties": [
         "Versatile",
-        "Thrown (Range 20/60)"
+        "Thrown"
       ]
     },
     {
@@ -367,10 +371,12 @@
       },
       "weight_kg": 1,
       "reach_m": 2,
+      "range_m": 12,
+      "range_long_m": 48,
       "damage": "1d6",
       "damage_type": "piercing",
       "properties": [
-        "Thrown (Range 30/120)"
+        "Thrown"
       ]
     },
     {
@@ -384,11 +390,13 @@
       },
       "weight_kg": 1,
       "reach_m": 2,
+      "range_m": 8,
+      "range_long_m": 24,
       "damage": "1d4",
       "damage_type": "bludgeoning",
       "properties": [
         "Versatile",
-        "Thrown (Range 20/60)"
+        "Thrown"
       ]
     },
     {
@@ -453,11 +461,13 @@
       },
       "weight_kg": 1.5,
       "reach_m": 2,
+      "range_m": 8,
+      "range_long_m": 24,
       "damage": "1d6",
       "damage_type": "piercing",
       "properties": [
         "Two-handed",
-        "Thrown (Range 20/60)"
+        "Thrown"
       ]
     },
     {
@@ -472,10 +482,12 @@
       "stackable": true,
       "weight_kg": 0.1,
       "reach_m": 2,
+      "range_m": 8,
+      "range_long_m": 24,
       "damage": "1d4",
       "damage_type": "piercing",
       "properties": [
-        "Thrown (Range 20/60)"
+        "Thrown"
       ]
     },
     {
@@ -488,10 +500,12 @@
         "coin": "gp"
       },
       "weight_kg": 2.5,
+      "range_m": 32,
+      "range_long_m": 128,
       "damage": "1d8",
       "damage_type": "piercing",
       "properties": [
-        "Ammunition (Range 80/320; Bolt)",
+        "Ammunition (Bolt)",
         "Loading"
       ]
     },
@@ -505,10 +519,12 @@
         "coin": "gp"
       },
       "weight_kg": 1,
+      "range_m": 32,
+      "range_long_m": 128,
       "damage": "1d6",
       "damage_type": "piercing",
       "properties": [
-        "Ammunition (Range 80/320; Arrow)"
+        "Ammunition (Arrow)"
       ]
     },
     {
@@ -521,10 +537,12 @@
         "coin": "sp"
       },
       "weight_kg": 0.5,
+      "range_m": 12,
+      "range_long_m": 48,
       "damage": "1d4",
       "damage_type": "bludgeoning",
       "properties": [
-        "Ammunition (Range 30/120; Bullet)"
+        "Ammunition (Bullet)"
       ]
     },
     {
@@ -789,11 +807,13 @@
       "weight_kg": 2,
       "attack_power": 2,
       "reach_m": 2,
+      "range_m": 8,
+      "range_long_m": 24,
       "damage": "1d8",
       "damage_type": "piercing",
       "properties": [
         "Two-handed",
-        "Thrown (Range 20/60)"
+        "Thrown"
       ]
     },
     {
@@ -860,10 +880,12 @@
         "coin": "gp"
       },
       "weight_kg": 0.5,
-      "damage": "1d1",
+      "range_m": 10,
+      "range_long_m": 40,
+      "damage": "1",
       "damage_type": "piercing",
       "properties": [
-        "Ammunition (Range 25/100; Needle)",
+        "Ammunition (Needle)",
         "Loading"
       ]
     },
@@ -878,10 +900,12 @@
       },
       "weight_kg": 1.5,
       "attack_power": 1,
+      "range_m": 12,
+      "range_long_m": 48,
       "damage": "1d6",
       "damage_type": "piercing",
       "properties": [
-        "Ammunition (Range 30/120; Bolt)",
+        "Ammunition (Bolt)",
         "Loading"
       ]
     },
@@ -896,10 +920,12 @@
       },
       "weight_kg": 8,
       "attack_power": 2,
+      "range_m": 40,
+      "range_long_m": 160,
       "damage": "1d10",
       "damage_type": "piercing",
       "properties": [
-        "Ammunition (Range 100/400; Bolt)",
+        "Ammunition (Bolt)",
         "Heavy"
       ]
     },
@@ -914,10 +940,12 @@
       },
       "weight_kg": 1,
       "attack_power": 2,
+      "range_m": 60,
+      "range_long_m": 240,
       "damage": "1d8",
       "damage_type": "piercing",
       "properties": [
-        "Ammunition (Range 150/600; Arrow)",
+        "Ammunition (Arrow)",
         "Heavy"
       ]
     },
@@ -932,10 +960,12 @@
       },
       "weight_kg": 4.5,
       "attack_power": 2,
+      "range_m": 16,
+      "range_long_m": 48,
       "damage": "1d12",
       "damage_type": "piercing",
       "properties": [
-        "Ammunition (Range 40/120; Bullet)",
+        "Ammunition (Bullet)",
         "Loading"
       ]
     },
@@ -950,10 +980,12 @@
       },
       "weight_kg": 1.5,
       "attack_power": 1,
+      "range_m": 12,
+      "range_long_m": 36,
       "damage": "1d10",
       "damage_type": "piercing",
       "properties": [
-        "Ammunition (Range 30/90; Bullet)",
+        "Ammunition (Bullet)",
         "Loading"
       ]
     },

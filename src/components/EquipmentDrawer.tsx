@@ -30,6 +30,8 @@ function itemLines(it: CatalogItem, priceCp?: number): (string | [string, string
     ...(it.armour !== undefined ? [["Armour", it.armour] as [string, number]] : []),
     ...(it.attack_power !== undefined ? [["Attack Power", it.attack_power] as [string, number]] : []),
     ...(it.reach_m !== undefined ? [["Reach", `${it.reach_m} m`] as [string, string]] : []),
+    ...(it.range_m !== undefined ? [["Range", `${it.range_m} m`] as [string, string]] : []),
+    ...(it.range_long_m !== undefined ? [["Long range", `${it.range_long_m} m (disadvantage)`] as [string, string]] : []),
     ...(it.armor_type ? [["Type", it.armor_type] as [string, string]] : []),
     ...(it.str_need !== undefined ? [["Strength needed", it.str_need] as [string, number]] : []),
     ...(it.stealth_disadvantage ? ["Disadvantage on Stealth while worn"] : []),
@@ -128,7 +130,8 @@ export function EquipmentDrawer({ mode, sh, onClose, onMessage, style }: {
             const p = priceOf(it), base = toCopper(it.price);
             const trend = p < base ? " down" : p > base ? " up" : "";
             const on = picked.has(it.id);
-            const meta = [categoryLabel(it.category), slotLabel(it.slot), it.damage && `${it.damage}${it.damage_type ? ` ${it.damage_type}` : ""}`].filter(Boolean).join(" · ");
+            const meta = [categoryLabel(it.category), slotLabel(it.slot), it.damage && `${it.damage}${it.damage_type ? ` ${it.damage_type}` : ""}`,
+              it.range_m !== undefined && `${it.range_m}/${it.range_long_m ?? it.range_m} m`].filter(Boolean).join(" · ");
             const name = (
               <Hint lines={itemLines(it, mode === "buy" ? p : undefined)} className="shop__name">
                 <b>{it.name}</b><small>{meta}</small>

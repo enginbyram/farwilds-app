@@ -1,8 +1,13 @@
 """Build the equipment workbook template from src/data/gear.json (slots, coins).
 
     python tools/make_equipment_template.py src/data/gear.json Farwilds_Equipment_Template.xlsx
+    python tools/make_equipment_template.py src/data/gear.json Farwilds_Equipment.xlsx --from old.xlsx
+
+--from copies the rows of an existing workbook into a fresh template (columns matched by header
+name), so an old list picks up new columns and gets its dropdowns back.
 """
-import json, sys
+import json, sys, warnings
+warnings.filterwarnings("ignore")
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.worksheet.datavalidation import DataValidation
@@ -10,6 +15,7 @@ from openpyxl.utils import get_column_letter
 
 gear = json.load(open(sys.argv[1]))
 out = sys.argv[2]
+SRC = sys.argv[sys.argv.index("--from") + 1] if "--from" in sys.argv else None
 CATS = [("weapon","Weapons","Melee weapons"),("firearm","Firearms","Powder-, rune- or Quick-fired guns"),
         ("ammunition","Ammunition","Arrows, bolts, shot"),("armour","Armour","Worn pieces that give Armour"),
         ("shield","Shields","Off-hand gear with its own armour points"),("clothing","Clothing","Worn pieces without armour"),
@@ -32,6 +38,8 @@ COLS = [  # header, width, required, note
  ("damage",8,False,"Dice, e.g. 1d8."),
  ("damage_type",13,False,"From the list."),
  ("reach_m",8,False,"Reach in metres (grid square = 2 m)."),
+ ("range_m",8,False,"Ranged and thrown: normal range in metres. Attacks within it roll normally."),
+ ("range_long_m",10,False,"Long range in metres. Beyond range_m up to this: disadvantage. Beyond: no attack. D&D feet → metres by squares: ft ÷ 5 × 2."),
  ("armor_type",13,False,"Light Armor, Medium Armor, Heavy Armor or Garment."),
  ("str_need",8,False,"Strength score needed to wear it without penalty."),
  ("stealth_disadvantage",10,False,"yes = disadvantage on Stealth while worn."),
@@ -58,7 +66,16 @@ SAMPLES_RAW = [
  ["healing-draught","Healing draught","consumable","",50,"gp","yes",0.2,"","","","","","","","Divine healing in a bottle.",""],
 ]
 
-SAMPLES = [r[:13] + ["", "", ""] + r[13:] for r in SAMPLES_RAW]
+SAMPLES = [r[:13] + ["", "", "", "", ""] + r[13:] for r in SAMPLES_RAW]
+if SRC:
+    from openpyxl import load_workbook
+    old = load_workbook(SRC, data_only=True)["Equipment"]
+    oh = [str(c.value).strip().lower() if c.value is not None else "" for c in old[1]]
+    names = [c[0] for c in COLS]
+    lost = [h for h in oh if h and h not in names]
+    if lost: print("columns not in the template, dropped:", lost)
+    SAMPLES = [[r[oh.index(n)] if n in oh else "" for n in names]
+               for r in old.iter_rows(min_row=2, values_only=True) if any(v not in (None, "") for v in r)]
 ARMOR_TYPES = ["Light Armor", "Medium Armor", "Heavy Armor", "Garment"]
 
 wb = Workbook()
@@ -98,7 +115,7 @@ rm = wb.create_sheet("Read me", 0)
 rm.column_dimensions["A"].width = 16; rm.column_dimensions["B"].width = 90
 lines = [("FARWILDS EQUIPMENT LIST",""),("",""),
  ("What","One row per item on the Equipment sheet. The app's Add and Purchase drawers list these items."),
- ("Samples","The rows already there are samples so the app has something to show. Replace or delete them."),
+ ("Rows","Start a new list from the sample rows, or rebuild an old list onto this template with --from (see tools/)."),
  ("Weight","weight_kg feeds encumbrance: carry capacity = Strength score × CarryPerSTR kg (8 by default)."),
  ("Gold headers","Required columns. Dark headers are optional; leave blank when not settled."),
  ("Lists","Category, slot, coin, damage type and yes/no come from the Lists sheet (dropdowns)."),

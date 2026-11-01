@@ -41,7 +41,11 @@ python tools/equipment_xlsx_to_json.py Farwilds_Equipment.xlsx --into src/data/e
 Bad rows are listed by row number and skipped; ids with spaces or commas are slugged, and a grip written in
 the slot column (two-handed, versatile) is read as `mainhand` + that property — both with a note to fix the workbook. A blank template comes from
 `python tools/make_equipment_template.py src/data/gear.json Farwilds_Equipment_Template.xlsx`
-(re-run it after changing slots or coins). Gear slots, coin values (placeholder 1 gp = 10 sp = 100 cp)
+(re-run it after changing slots or coins). Add `--from old.xlsx` to rebuild an existing list onto the current
+template: rows are copied by column name, new columns appear empty and the dropdowns come back.
+
+Ranged and thrown weapons carry `range_m` / `range_long_m`: within range a normal roll, up to long range with
+disadvantage, beyond it no attack (proposed). D&D feet convert by grid squares: ft ÷ 5 × 2 m (20/60 ft → 8/24 m). Gear slots, coin values (placeholder 1 gp = 10 sp = 100 cp)
 and bag size live in **`src/data/gear.json`**.
 
 **Encumbrance:** capacity = Strength score × `CarryPerSTR` (rules param, 8 kg; editable in Dev mode); load = the

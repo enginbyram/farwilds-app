@@ -11,7 +11,7 @@ export interface CatalogItem {
   id: string; name: string; category: string; slot?: string;
   price: { amount: number; coin: string };
   stackable?: boolean; weight_kg?: number; armour?: number; attack_power?: number;
-  damage?: string; damage_type?: string; reach_m?: number;
+  damage?: string; damage_type?: string; reach_m?: number; range_m?: number; range_long_m?: number;
   armor_type?: string; str_need?: number; stealth_disadvantage?: boolean;
   properties?: string[]; bonuses?: string[]; description?: string;
 }
