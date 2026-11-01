@@ -1,0 +1,34 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "src/data/tree/nodes/*.json"
+      ],
+      "url": "./src/data/tree/schema/nodes.schema.json"
+    },
+    {
+      "fileMatch": [
+        "src/data/tree/gems/*.json"
+      ],
+      "url": "./src/data/tree/schema/gems.schema.json"
+    },
+    {
+      "fileMatch": [
+        "src/data/tree/links.json"
+      ],
+      "url": "./src/data/tree/schema/links.schema.json"
+    },
+    {
+      "fileMatch": [
+        "src/data/tree/clusters.json"
+      ],
+      "url": "./src/data/tree/schema/clusters.schema.json"
+    },
+    {
+      "fileMatch": [
+        "src/data/tree/world.json"
+      ],
+      "url": "./src/data/tree/schema/world.schema.json"
+    }
+  ]
+}
