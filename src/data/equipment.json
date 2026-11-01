@@ -44,22 +44,264 @@
   ],
   "items": [
     {
-      "id": "longsword",
-      "name": "Longsword",
+      "id": "iron-helm",
+      "name": "Iron helm",
+      "category": "armour",
+      "slot": "head",
+      "price": {
+        "amount": 8,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "armour": 2,
+      "armor_type": "Medium Armor"
+    },
+    {
+      "id": "leather-boots",
+      "name": "Leather boots",
+      "category": "armour",
+      "slot": "feet",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "armour": 1,
+      "armor_type": "Garment"
+    },
+    {
+      "id": "travelling-cloak",
+      "name": "Travelling cloak",
+      "category": "clothing",
+      "slot": "back",
+      "price": {
+        "amount": 5,
+        "coin": "sp"
+      },
+      "weight_kg": 1,
+      "armour": 1,
+      "armor_type": "Garment"
+    },
+    {
+      "id": "signet-ring",
+      "name": "Signet ring",
+      "category": "jewellery",
+      "slot": "ring1",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 0,
+      "armor_type": "Garment"
+    },
+    {
+      "id": "padded-armor",
+      "name": "Padded Armor",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "stealth_disadvantage": true,
+      "weight_kg": 4,
+      "armour": 5,
+      "armor_type": "Light Armor"
+    },
+    {
+      "id": "leather-armor",
+      "name": "Leather Armor",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 5,
+      "armour": 5,
+      "armor_type": "Light Armor"
+    },
+    {
+      "id": "studded-l-armor",
+      "name": "Studded Leather Armor",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 45,
+        "coin": "gp"
+      },
+      "weight_kg": 6,
+      "armour": 6,
+      "armor_type": "Light Armor"
+    },
+    {
+      "id": "hide-armor",
+      "name": "Hide Armor",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 6,
+      "armour": 6,
+      "armor_type": "Medium Armor"
+    },
+    {
+      "id": "chain-shirt",
+      "name": "Chain Shirt",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 50,
+        "coin": "gp"
+      },
+      "weight_kg": 10,
+      "armour": 7,
+      "armor_type": "Medium Armor"
+    },
+    {
+      "id": "scale-mail",
+      "name": "Scale Mail",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 50,
+        "coin": "gp"
+      },
+      "stealth_disadvantage": true,
+      "weight_kg": 22,
+      "armour": 8,
+      "armor_type": "Medium Armor"
+    },
+    {
+      "id": "breastplate",
+      "name": "Breastplate",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 400,
+        "coin": "gp"
+      },
+      "weight_kg": 10,
+      "armour": 8,
+      "armor_type": "Medium Armor"
+    },
+    {
+      "id": "half-p-armor",
+      "name": "Half Plate Armor",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 750,
+        "coin": "gp"
+      },
+      "stealth_disadvantage": true,
+      "weight_kg": 20,
+      "armour": 9,
+      "armor_type": "Medium Armor"
+    },
+    {
+      "id": "ring-mail",
+      "name": "Ring Mail",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 30,
+        "coin": "gp"
+      },
+      "stealth_disadvantage": true,
+      "weight_kg": 20,
+      "armour": 14,
+      "str_need": 12,
+      "armor_type": "Heavy Armor"
+    },
+    {
+      "id": "chain-mail",
+      "name": "Chain Mail",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 75,
+        "coin": "gp"
+      },
+      "stealth_disadvantage": true,
+      "weight_kg": 27,
+      "armour": 16,
+      "str_need": 13,
+      "armor_type": "Heavy Armor"
+    },
+    {
+      "id": "splint-armor",
+      "name": "Splint Armor",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 200,
+        "coin": "gp"
+      },
+      "stealth_disadvantage": true,
+      "weight_kg": 30,
+      "armour": 17,
+      "str_need": 15,
+      "armor_type": "Heavy Armor"
+    },
+    {
+      "id": "plate-armor",
+      "name": "Plate Armor",
+      "category": "armour",
+      "slot": "chest",
+      "price": {
+        "amount": 1500,
+        "coin": "gp"
+      },
+      "stealth_disadvantage": true,
+      "weight_kg": 32,
+      "armour": 18,
+      "str_need": 15,
+      "armor_type": "Heavy Armor"
+    },
+    {
+      "id": "wooden-shield",
+      "name": "Wooden shield",
+      "category": "shield",
+      "slot": "offhand",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "armour": 1,
+      "armor_type": "Light Armor"
+    },
+    {
+      "id": "iron-shield",
+      "name": "Iron shield",
+      "category": "shield",
+      "slot": "offhand",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "stealth_disadvantage": true,
+      "weight_kg": 4,
+      "armour": 2,
+      "str_need": 12,
+      "armor_type": "Medium Armor"
+    },
+    {
+      "id": "club",
+      "name": "Club",
       "category": "weapon",
       "slot": "mainhand",
       "price": {
-        "amount": 15,
-        "coin": "gp"
+        "amount": 1,
+        "coin": "sp"
       },
-      "weight_kg": 1.5,
+      "weight_kg": 1,
       "reach_m": 2,
-      "damage": "1d8",
-      "damage_type": "slashing",
-      "description": "A straight double-edged blade.",
-      "properties": [
-        "versatile"
-      ]
+      "damage": "1d4",
+      "damage_type": "bludgeoning"
     },
     {
       "id": "dagger",
@@ -75,8 +317,182 @@
       "damage": "1d4",
       "damage_type": "piercing",
       "properties": [
-        "light",
-        "thrown"
+        "Versatile",
+        "Thrown (Range 20/60)"
+      ]
+    },
+    {
+      "id": "greatclub",
+      "name": "Greatclub",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 2,
+        "coin": "sp"
+      },
+      "weight_kg": 4.5,
+      "reach_m": 2,
+      "damage": "1d8",
+      "damage_type": "bludgeoning",
+      "properties": [
+        "Two-handed"
+      ]
+    },
+    {
+      "id": "handaxe",
+      "name": "Handaxe",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "reach_m": 2,
+      "damage": "1d6",
+      "damage_type": "slashing",
+      "properties": [
+        "Versatile",
+        "Thrown (Range 20/60)"
+      ]
+    },
+    {
+      "id": "javelin",
+      "name": "Javelin",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 5,
+        "coin": "sp"
+      },
+      "weight_kg": 1,
+      "reach_m": 2,
+      "damage": "1d6",
+      "damage_type": "piercing",
+      "properties": [
+        "Thrown (Range 30/120)"
+      ]
+    },
+    {
+      "id": "light-hammer",
+      "name": "Light Hammer",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "reach_m": 2,
+      "damage": "1d4",
+      "damage_type": "bludgeoning",
+      "properties": [
+        "Versatile",
+        "Thrown (Range 20/60)"
+      ]
+    },
+    {
+      "id": "mace",
+      "name": "Mace",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "reach_m": 2,
+      "damage": "1d6",
+      "damage_type": "bludgeoning",
+      "properties": [
+        "Versatile"
+      ]
+    },
+    {
+      "id": "quarterstaff",
+      "name": "Quarterstaff",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 2,
+        "coin": "sp"
+      },
+      "weight_kg": 2,
+      "reach_m": 2,
+      "damage": "1d6",
+      "damage_type": "bludgeoning",
+      "properties": [
+        "Two-handed"
+      ]
+    },
+    {
+      "id": "sickle",
+      "name": "Sickle",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "reach_m": 2,
+      "damage": "1d4",
+      "damage_type": "slashing",
+      "properties": [
+        "Versatile"
+      ]
+    },
+    {
+      "id": "spear",
+      "name": "Spear",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5,
+      "reach_m": 2,
+      "damage": "1d6",
+      "damage_type": "piercing",
+      "properties": [
+        "Two-handed",
+        "Thrown (Range 20/60)"
+      ]
+    },
+    {
+      "id": "dart",
+      "name": "Dart",
+      "category": "weapon",
+      "slot": "ranged",
+      "price": {
+        "amount": 5,
+        "coin": "cp"
+      },
+      "stackable": true,
+      "weight_kg": 0.1,
+      "reach_m": 2,
+      "damage": "1d4",
+      "damage_type": "piercing",
+      "properties": [
+        "Thrown (Range 20/60)"
+      ]
+    },
+    {
+      "id": "light-crossbow",
+      "name": "Light Crossbow",
+      "category": "weapon",
+      "slot": "ranged",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5,
+      "damage": "1d8",
+      "damage_type": "piercing",
+      "properties": [
+        "Ammunition (Range 80/320; Bolt)",
+        "Loading"
       ]
     },
     {
@@ -92,110 +508,1224 @@
       "damage": "1d6",
       "damage_type": "piercing",
       "properties": [
-        "two-handed"
+        "Ammunition (Range 80/320; Arrow)"
+      ]
+    },
+    {
+      "id": "sling",
+      "name": "Sling",
+      "category": "weapon",
+      "slot": "ranged",
+      "price": {
+        "amount": 1,
+        "coin": "sp"
+      },
+      "weight_kg": 0.5,
+      "damage": "1d4",
+      "damage_type": "bludgeoning",
+      "properties": [
+        "Ammunition (Range 30/120; Bullet)"
+      ]
+    },
+    {
+      "id": "battleaxe",
+      "name": "Battleaxe",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "attack_power": 2,
+      "reach_m": 2,
+      "damage": "1d8",
+      "damage_type": "slashing",
+      "properties": [
+        "Two-handed"
+      ]
+    },
+    {
+      "id": "flail",
+      "name": "Flail",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "attack_power": 2,
+      "reach_m": 2,
+      "damage": "1d8",
+      "damage_type": "bludgeoning",
+      "properties": [
+        "Two-handed"
+      ]
+    },
+    {
+      "id": "glaive",
+      "name": "Glaive",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 20,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5,
+      "attack_power": 2,
+      "reach_m": 4,
+      "damage": "1d10",
+      "damage_type": "slashing",
+      "properties": [
+        "Two-handed",
+        "Heavy"
+      ]
+    },
+    {
+      "id": "greataxe",
+      "name": "Greataxe",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 30,
+        "coin": "gp"
+      },
+      "weight_kg": 3,
+      "attack_power": 2,
+      "reach_m": 2,
+      "damage": "1d12",
+      "damage_type": "slashing",
+      "properties": [
+        "Two-handed",
+        "Heavy"
+      ]
+    },
+    {
+      "id": "greatsword",
+      "name": "Greatsword",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 50,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5,
+      "attack_power": 2,
+      "reach_m": 2,
+      "damage": "2d6",
+      "damage_type": "slashing",
+      "properties": [
+        "Two-handed",
+        "Heavy"
+      ]
+    },
+    {
+      "id": "halberd",
+      "name": "Halberd",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 20,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5,
+      "attack_power": 2,
+      "reach_m": 4,
+      "damage": "1d10",
+      "damage_type": "slashing",
+      "properties": [
+        "Two-handed",
+        "Heavy"
+      ]
+    },
+    {
+      "id": "lance",
+      "name": "Lance",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5,
+      "attack_power": 2,
+      "reach_m": 4,
+      "damage": "1d10",
+      "damage_type": "piercing",
+      "properties": [
+        "Two-handed",
+        "Heavy"
+      ]
+    },
+    {
+      "id": "longsword",
+      "name": "Longsword",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 15,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5,
+      "attack_power": 1,
+      "reach_m": 2,
+      "damage": "1d8",
+      "damage_type": "slashing"
+    },
+    {
+      "id": "maul",
+      "name": "Maul",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 4.5,
+      "attack_power": 2,
+      "reach_m": 2,
+      "damage": "2d6",
+      "damage_type": "bludgeoning",
+      "properties": [
+        "Two-handed",
+        "Heavy"
+      ]
+    },
+    {
+      "id": "morningstar",
+      "name": "Morningstar",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 15,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "attack_power": 1,
+      "reach_m": 2,
+      "damage": "1d8",
+      "damage_type": "piercing"
+    },
+    {
+      "id": "pike",
+      "name": "Pike",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 8,
+      "attack_power": 2,
+      "reach_m": 4,
+      "damage": "1d10",
+      "damage_type": "piercing",
+      "properties": [
+        "Two-handed",
+        "Heavy"
+      ]
+    },
+    {
+      "id": "rapier",
+      "name": "Rapier",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "attack_power": 1,
+      "reach_m": 2,
+      "damage": "1d8",
+      "damage_type": "piercing"
+    },
+    {
+      "id": "scimitar",
+      "name": "Scimitar",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5,
+      "attack_power": 1,
+      "reach_m": 2,
+      "damage": "1d6",
+      "damage_type": "slashing",
+      "properties": [
+        "Versatile"
+      ]
+    },
+    {
+      "id": "shortsword",
+      "name": "Shortsword",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "attack_power": 1,
+      "reach_m": 2,
+      "damage": "1d6",
+      "damage_type": "piercing",
+      "properties": [
+        "Versatile"
+      ]
+    },
+    {
+      "id": "trident",
+      "name": "Trident",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "attack_power": 2,
+      "reach_m": 2,
+      "damage": "1d8",
+      "damage_type": "piercing",
+      "properties": [
+        "Two-handed",
+        "Thrown (Range 20/60)"
+      ]
+    },
+    {
+      "id": "warhammer",
+      "name": "Warhammer",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 15,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "attack_power": 1,
+      "reach_m": 2,
+      "damage": "1d8",
+      "damage_type": "bludgeoning",
+      "properties": [
+        "Versatile"
+      ]
+    },
+    {
+      "id": "war-pick",
+      "name": "War Pick",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "attack_power": 1,
+      "reach_m": 2,
+      "damage": "1d8",
+      "damage_type": "piercing",
+      "properties": [
+        "Versatile"
+      ]
+    },
+    {
+      "id": "whip",
+      "name": "Whip",
+      "category": "weapon",
+      "slot": "mainhand",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5,
+      "attack_power": 1,
+      "reach_m": 4,
+      "damage": "1d4",
+      "damage_type": "slashing",
+      "properties": [
+        "Versatile"
+      ]
+    },
+    {
+      "id": "blowgun",
+      "name": "Blowgun",
+      "category": "weapon",
+      "slot": "ranged",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 0.5,
+      "damage": "1d1",
+      "damage_type": "piercing",
+      "properties": [
+        "Ammunition (Range 25/100; Needle)",
+        "Loading"
+      ]
+    },
+    {
+      "id": "hand-crossbow",
+      "name": "Hand Crossbow",
+      "category": "weapon",
+      "slot": "ranged",
+      "price": {
+        "amount": 75,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5,
+      "attack_power": 1,
+      "damage": "1d6",
+      "damage_type": "piercing",
+      "properties": [
+        "Ammunition (Range 30/120; Bolt)",
+        "Loading"
+      ]
+    },
+    {
+      "id": "heavy-crossbow",
+      "name": "Heavy Crossbow",
+      "category": "weapon",
+      "slot": "ranged",
+      "price": {
+        "amount": 50,
+        "coin": "gp"
+      },
+      "weight_kg": 8,
+      "attack_power": 2,
+      "damage": "1d10",
+      "damage_type": "piercing",
+      "properties": [
+        "Ammunition (Range 100/400; Bolt)",
+        "Heavy"
+      ]
+    },
+    {
+      "id": "longbow",
+      "name": "Longbow",
+      "category": "weapon",
+      "slot": "ranged",
+      "price": {
+        "amount": 50,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "attack_power": 2,
+      "damage": "1d8",
+      "damage_type": "piercing",
+      "properties": [
+        "Ammunition (Range 150/600; Arrow)",
+        "Heavy"
+      ]
+    },
+    {
+      "id": "musket",
+      "name": "Musket",
+      "category": "firearm",
+      "slot": "ranged",
+      "price": {
+        "amount": 500,
+        "coin": "gp"
+      },
+      "weight_kg": 4.5,
+      "attack_power": 2,
+      "damage": "1d12",
+      "damage_type": "piercing",
+      "properties": [
+        "Ammunition (Range 40/120; Bullet)",
+        "Loading"
+      ]
+    },
+    {
+      "id": "pistol",
+      "name": "Pistol",
+      "category": "firearm",
+      "slot": "ranged",
+      "price": {
+        "amount": 250,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5,
+      "attack_power": 1,
+      "damage": "1d10",
+      "damage_type": "piercing",
+      "properties": [
+        "Ammunition (Range 30/90; Bullet)",
+        "Loading"
       ]
     },
     {
       "id": "arrow",
       "name": "Arrow",
       "category": "ammunition",
+      "slot": "ranged",
       "price": {
         "amount": 5,
         "coin": "cp"
       },
       "stackable": true,
-      "weight_kg": 0.05
+      "weight_kg": 0.1
     },
     {
-      "id": "wooden-shield",
-      "name": "Wooden shield",
-      "category": "shield",
-      "slot": "offhand",
+      "id": "bolt",
+      "name": "Bolt",
+      "category": "ammunition",
       "price": {
-        "amount": 10,
+        "amount": 5,
         "coin": "gp"
       },
-      "weight_kg": 3
+      "stackable": true,
+      "weight_kg": 0.1
     },
     {
-      "id": "iron-helm",
-      "name": "Iron helm",
-      "category": "armour",
-      "slot": "head",
-      "price": {
-        "amount": 8,
-        "coin": "gp"
-      },
-      "weight_kg": 2
-    },
-    {
-      "id": "chain-shirt",
-      "name": "Chain shirt",
-      "category": "armour",
-      "slot": "chest",
-      "price": {
-        "amount": 50,
-        "coin": "gp"
-      },
-      "weight_kg": 9
-    },
-    {
-      "id": "leather-boots",
-      "name": "Leather boots",
-      "category": "armour",
-      "slot": "feet",
-      "price": {
-        "amount": 2,
-        "coin": "gp"
-      },
-      "weight_kg": 1
-    },
-    {
-      "id": "travelling-cloak",
-      "name": "Travelling cloak",
-      "category": "clothing",
-      "slot": "back",
+      "id": "bullet-firearm",
+      "name": "Bullet, Firearm",
+      "category": "ammunition",
       "price": {
         "amount": 5,
         "coin": "sp"
       },
-      "weight_kg": 1
+      "stackable": true,
+      "weight_kg": 0.1
     },
     {
-      "id": "signet-ring",
-      "name": "Signet ring",
-      "category": "jewellery",
-      "slot": "ring1",
+      "id": "bullet-sling",
+      "name": "Bullet, Sling",
+      "category": "ammunition",
+      "price": {
+        "amount": 1,
+        "coin": "cp"
+      },
+      "stackable": true,
+      "weight_kg": 0.1
+    },
+    {
+      "id": "needle",
+      "name": "Needle",
+      "category": "ammunition",
       "price": {
         "amount": 5,
-        "coin": "gp"
+        "coin": "cp"
       },
-      "weight_kg": 0
+      "stackable": true,
+      "weight_kg": 0.1
     },
     {
-      "id": "thieves-tools",
-      "name": "Thieves' tools",
-      "category": "tool",
+      "id": "acid",
+      "name": "Acid",
+      "category": "consumable",
       "price": {
         "amount": 25,
         "coin": "gp"
       },
+      "stackable": true,
       "weight_kg": 0.5,
-      "description": "For lockpicking."
+      "description": "When you take the Attack action, you can replace one of your attacks with throwing a vial of Acid. Target one creature or object you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or take 2d6 Acid damage."
     },
     {
-      "id": "rope",
-      "name": "Rope (15 m)",
+      "id": "alchemists-fire",
+      "name": "Alchemist's Fire",
+      "category": "consumable",
+      "price": {
+        "amount": 50,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 0.5,
+      "description": "When you take the Attack action, you can replace one of your attacks with throwing a flask of Alchemist’s Fire. Target one creature or object you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or take 1d4 Fire damage and start burning (see the rules glossary)."
+    },
+    {
+      "id": "antitoxin",
+      "name": "Antitoxin",
+      "category": "consumable",
+      "price": {
+        "amount": 50,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "description": "As a Bonus Action, you can drink a vial of Antitoxin to gain Advantage on saving throws to avoid or end the Poisoned condition for 1 hour."
+    },
+    {
+      "id": "backpack",
+      "name": "Backpack",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "description": "A Backpack holds up to 30 pounds within 1 cubic foot. It can also serve as a saddlebag."
+    },
+    {
+      "id": "ball-bearings",
+      "name": "Ball Bearings",
       "category": "gear",
       "price": {
         "amount": 1,
         "coin": "gp"
       },
-      "weight_kg": 5
+      "stackable": true,
+      "weight_kg": 1,
+      "description": "As a Utilize action, you can spill Ball Bearings from their pouch. They spread to cover a level, 10-foot-square area within 10 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 10 Dexterity saving throw or have the Prone condition. It takes 10 minutes to recover the Ball Bearings."
     },
     {
-      "id": "torch",
-      "name": "Torch",
+      "id": "barrel",
+      "name": "Barrel",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 31.5,
+      "description": "A Barrel holds up to 40 gallons of liquid or up to 4 cubic feet of dry goods."
+    },
+    {
+      "id": "basket",
+      "name": "Basket",
+      "category": "gear",
+      "price": {
+        "amount": 4,
+        "coin": "sp"
+      },
+      "weight_kg": 1,
+      "description": "A Basket holds up to 40 pounds within 2 cubic feet."
+    },
+    {
+      "id": "bedroll",
+      "name": "Bedroll",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "weight_kg": 3,
+      "description": "A Bedroll sleeps one Small or Medium creature. While in a Bedroll, you automatically succeed on saving throws against extreme cold (see the Dungeon Master’s Guide)."
+    },
+    {
+      "id": "bell",
+      "name": "Bell",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "description": "When rung as a Utilize action, a Bell produces a sound that can be heard up to 60 feet away."
+    },
+    {
+      "id": "blanket",
+      "name": "Blanket",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "sp"
+      },
+      "weight_kg": 1.5,
+      "description": "While wrapped in a blanket, you have Advantage on saving throws against extreme cold (see the Dungeon Master’s Guide)."
+    },
+    {
+      "id": "block-and-tackle",
+      "name": "Block and Tackle",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 2,
+      "description": "A Block and Tackle allows you to hoist up to four times the weight you can normally lift."
+    },
+    {
+      "id": "book",
+      "name": "Book",
+      "category": "gear",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 2,
+      "description": "A Book contains fiction or nonfiction. If you consult an accurate nonfiction Book about its topic, you gain a +5 bonus to Intelligence (Arcana, History, Nature, or Religion) checks you make about that topic."
+    },
+    {
+      "id": "bottle-glass",
+      "name": "Bottle, Glass",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 1,
+      "description": "A Glass Bottle holds up to 1½ pints."
+    },
+    {
+      "id": "bucket",
+      "name": "Bucket",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "cp"
+      },
+      "weight_kg": 1,
+      "description": "A Bucket holds up to half a cubic foot of contents."
+    },
+    {
+      "id": "burglars-pack",
+      "name": "Burglar's Pack",
+      "category": "gear",
+      "price": {
+        "amount": 16,
+        "coin": "gp"
+      },
+      "weight_kg": 19,
+      "description": "A Burglar’s Pack contains the following items: Backpack, Ball Bearings, Bell, 10 Candles, Crowbar, Hooded Lantern, 7 flasks of Oil, 5 days of Rations, Rope, Tinderbox, and Waterskin."
+    },
+    {
+      "id": "caltrops",
+      "name": "Caltrops",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 1,
+      "description": "As a Utilize action, you can spread Caltrops from their bag to cover a 5-foot-square area within 5 feet of yourself. A creature that enters this area for the first time on a turn must succeed on a DC 15 Dexterity saving throw or take 1 Piercing damage and have its Speed reduced to 0 until the start of its next turn. It takes 10 minutes to recover the Caltrops."
+    },
+    {
+      "id": "candle",
+      "name": "Candle",
+      "category": "consumable",
+      "price": {
+        "amount": 1,
+        "coin": "cp"
+      },
+      "stackable": true,
+      "description": "For 1 hour, a lit Candle sheds Bright Light in a 5-foot radius and Dim Light for an additional 5 feet."
+    },
+    {
+      "id": "case-crossbow-bolt",
+      "name": "Case, Crossbow Bolt",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 0.5,
+      "description": "A Crossbow Bolt Case holds up to 20 Bolts."
+    },
+    {
+      "id": "case-map-or-scroll",
+      "name": "Case, Map or Scroll",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 0.5,
+      "description": "A Map or Scroll Case holds up to 10 sheets of paper or 5 sheets of parchment."
+    },
+    {
+      "id": "chain",
+      "name": "Chain",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 4.5,
+      "description": "As a Utilize action, you can wrap a Chain around an unwilling creature within 5 feet of yourself that has the Grappled, Incapacitated, or Restrained condition if you succeed on a DC 13 Strength (Athletics) check. If the creature’s legs are bound, the creature has the Restrained condition until it escapes. Escaping the Chain requires the creature to make a successful DC 18 Dexterity (Acrobatics) check as an action. Bursting the Chain requires a successful DC 20 Strength (Athletics) check as an action."
+    },
+    {
+      "id": "chest",
+      "name": "Chest",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 11,
+      "description": "A Chest holds up to 12 cubic feet of contents."
+    },
+    {
+      "id": "climbers-kit",
+      "name": "Climber's Kit",
+      "category": "gear",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "weight_kg": 5.5,
+      "description": "A Climber’s Kit includes boot tips, gloves, pitons, and a harness. As a Utilize action, you can use the Climber’s Kit to anchor yourself; when you do, you can’t fall more than 25 feet from the anchor point, and you can’t move more than 25 feet from there without undoing the anchor as a Bonus Action."
+    },
+    {
+      "id": "clothes-fine",
+      "name": "Clothes, Fine",
+      "category": "clothing",
+      "price": {
+        "amount": 15,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5,
+      "description": "Fine Clothes are made of expensive fabrics and adorned with expertly crafted details. Some events and locations admit only people wearing these clothes."
+    },
+    {
+      "id": "clothes-travelers",
+      "name": "Clothes, Traveler's",
+      "category": "clothing",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "description": "Traveler’s Clothes are resilient garments designed for travel in various environments."
+    },
+    {
+      "id": "component-pouch",
+      "name": "Component Pouch",
+      "category": "gear",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "description": "A Component Pouch is watertight and filled with compartments that hold all the free Material components of your spells."
+    },
+    {
+      "id": "crowbar",
+      "name": "Crowbar",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "description": "Using a Crowbar gives you Advantage on Strength checks where the Crowbar’s leverage can be applied."
+    },
+    {
+      "id": "diplomats-pack",
+      "name": "Diplomat's Pack",
+      "category": "gear",
+      "price": {
+        "amount": 39,
+        "coin": "gp"
+      },
+      "weight_kg": 17.5,
+      "description": "A Diplomat’s Pack contains the following items: Chest, Fine Clothes, Ink, 5 Ink Pens, Lamp, 2 Map or Scroll Cases, 4 flasks of Oil, 5 sheets of Paper, 5 sheets of Parchment, Perfume, and Tinderbox."
+    },
+    {
+      "id": "dungeoneers-pack",
+      "name": "Dungeoneer's Pack",
+      "category": "gear",
+      "price": {
+        "amount": 12,
+        "coin": "gp"
+      },
+      "weight_kg": 25,
+      "description": "A Dungeoneer’s Pack contains the following items: Backpack, Caltrops, Crowbar, 2 flasks of Oil, 10 days of Rations, Rope, Tinderbox, 10 Torches, and Waterskin."
+    },
+    {
+      "id": "entertainers-pack",
+      "name": "Entertainer's Pack",
+      "category": "gear",
+      "price": {
+        "amount": 40,
+        "coin": "gp"
+      },
+      "weight_kg": 26,
+      "description": "An Entertainer’s Pack contains the following items: Backpack, Bedroll, Bell, Bullseye Lantern, 3 Costumes, Mirror, 8 flasks of Oil, 9 days of Rations, Tinderbox, and Waterskin."
+    },
+    {
+      "id": "explorers-pack",
+      "name": "Explorer's Pack",
+      "category": "gear",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 25,
+      "description": "An Explorer’s Pack contains the following items: Backpack, Bedroll, 2 flasks of Oil, 10 days of Rations, Rope, Tinderbox, 10 Torches, and Waterskin."
+    },
+    {
+      "id": "flask",
+      "name": "Flask",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "cp"
+      },
+      "stackable": true,
+      "weight_kg": 0.5,
+      "description": "A Flask holds up to 1 pint."
+    },
+    {
+      "id": "grappling-hook",
+      "name": "Grappling Hook",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 2,
+      "description": "As a Utilize action, you can throw the Grappling Hook at a railing, a ledge, or another catch within 50 feet of yourself, and the hook catches on if you succeed on a DC 13 Dexterity (Acrobatics) check. If you tied a Rope to the hook, you can then climb it."
+    },
+    {
+      "id": "healers-kit",
+      "name": "Healer's Kit",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5,
+      "description": "A Healer’s Kit has ten uses. As a Utilize action, you can expend one of its uses to stabilize an Unconscious creature that has 0 Hit Points without needing to make a Wisdom (Medicine) check."
+    },
+    {
+      "id": "holy-water",
+      "name": "Holy Water",
+      "category": "gear",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 0.5,
+      "description": "When you take the Attack action, you can replace one of your attacks with throwing a flask of Holy Water. Target one creature you can see within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or take 2d8 Radiant damage if it is a Fiend or an Undead."
+    },
+    {
+      "id": "hunting-trap",
+      "name": "Hunting Trap",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 11,
+      "description": "As a Utilize action, you can set a Hunting Trap, which is a sawtooth steel ring that snaps shut when a creature steps on a pressure plate in the center. The trap is affixed by a heavy chain to an immobile object, such as a tree or a spike driven into the ground. A creature that steps on the plate must succeed on a DC 13 Dexterity saving throw or take 1d4 Piercing damage and have its Speed reduced to 0 until the start of its next turn. Thereafter, until the creature breaks free of the trap, its movement is limited by the length of the chain (typically 3 feet). A creature can use its action to make a DC 13 Strength (Athletics) check, freeing itself or another creature within its reach on a success. Each failed check deals 1 Piercing damage to the trapped creature."
+    },
+    {
+      "id": "ink",
+      "name": "Ink",
+      "category": "gear",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "description": "Ink comes in a 1-ounce bottle, which provides enough ink to write about 500 pages."
+    },
+    {
+      "id": "ink-pen",
+      "name": "Ink Pen",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "cp"
+      },
+      "stackable": true,
+      "description": "Using Ink, an Ink Pen is used to write or draw."
+    },
+    {
+      "id": "jug",
+      "name": "Jug",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "cp"
+      },
+      "weight_kg": 2,
+      "description": "A Jug holds up to 1 gallon."
+    },
+    {
+      "id": "ladder",
+      "name": "Ladder",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "sp"
+      },
+      "weight_kg": 11,
+      "description": "A Ladder is 10 feet tall. You must climb to move up or down it."
+    },
+    {
+      "id": "lamp",
+      "name": "Lamp",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "sp"
+      },
+      "weight_kg": 0.5,
+      "description": "A Lamp burns Oil as fuel to cast Bright Light in a 15-foot radius and Dim Light for an additional 30 feet."
+    },
+    {
+      "id": "lantern-bullseye",
+      "name": "Lantern, Bullseye",
+      "category": "gear",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "description": "A Bullseye Lantern burns Oil as fuel to cast Bright Light in a 60-foot Cone and Dim Light for an additional 60 feet."
+    },
+    {
+      "id": "lantern-hooded",
+      "name": "Lantern, Hooded",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 1,
+      "description": "A Hooded Lantern burns Oil as fuel to cast Bright Light in a 30-foot radius and Dim Light for an additional 30 feet. As a Bonus Action, you can lower the hood, reducing the light to Dim Light in a 5-foot radius, or raise it again."
+    },
+    {
+      "id": "lock",
+      "name": "Lock",
+      "category": "gear",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 0.5,
+      "description": "A Lock comes with a key. Without the key, a creature can use Thieves’ Tools to pick this Lock with a successful DC 15 Dexterity (Sleight of Hand) check."
+    },
+    {
+      "id": "magnifying-glass",
+      "name": "Magnifying Glass",
+      "category": "gear",
+      "price": {
+        "amount": 100,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "description": "A Magnifying Glass grants Advantage on any ability check made to appraise or inspect a highly detailed item. Lighting a fire with a Magnifying Glass requires light as bright as sunlight to focus, tinder to ignite, and about 5 minutes for the fire to ignite."
+    },
+    {
+      "id": "manacles",
+      "name": "Manacles",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 2.5,
+      "description": "As a Utilize action, you can use Manacles to bind an unwilling Small or Medium creature within 5 feet of yourself that has the Grappled, Incapacitated, or Restrained condition if you succeed on a DC 13 Dexterity (Sleight of Hand) check. While bound, a creature has Disadvantage on attack rolls, and the creature is Restrained if the Manacles are attached to a chain or hook that is fixed in place. Escaping the Manacles requires a successful DC 20 Dexterity (Sleight of Hand) check as an action. Bursting them requires a successful DC 25 Strength (Athletics) check as an action. Each set of Manacles comes with a key. Without the key, a creature can use Thieves’ Tools to pick the Manacles’ lock with a successful DC 15 Dexterity (Sleight of Hand) check."
+    },
+    {
+      "id": "map",
+      "name": "Map",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 0,
+      "description": "If you consult an accurate Map, you gain a +5 bonus to Wisdom (Survival) checks you make to find your way in the place represented on it."
+    },
+    {
+      "id": "mirror",
+      "name": "Mirror",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 0.5,
+      "description": "A handheld steel Mirror is useful for personal cosmetics but also for peeking around corners and reflecting light as a signal."
+    },
+    {
+      "id": "net",
+      "name": "Net",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 1.5,
+      "description": "When you take the Attack action, you can replace one of your attacks with throwing a Net. Target a creature you can see within 15 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or have the Restrained condition until it escapes. The target succeeds automatically if it is Huge or larger. To escape, the target or a creature within 5 feet of it must take an action to make a DC 10 Strength (Athletics) check, freeing the Restrained creature on a success. Destroying the Net (AC 10; 5 HP; Immunity to Bludgeoning, Poison, and Psychic damage) also frees the target, ending the effect."
+    },
+    {
+      "id": "oil",
+      "name": "Oil",
+      "category": "consumable",
+      "price": {
+        "amount": 1,
+        "coin": "sp"
+      },
+      "stackable": true,
+      "weight_kg": 0.5,
+      "description": "You can douse a creature, object, or space with Oil or use it as fuel, as detailed below. Dousing a Creature or an Object. When you take the Attack action, you can replace one of your attacks with throwing an Oil flask. Target one creature or object within 20 feet of yourself. The target must succeed on a Dexterity saving throw (DC 8 plus your Dexterity modifier and Proficiency Bonus) or be covered in oil. If the target takes Fire damage before the oil dries (after 1 minute), the target takes an extra 5 Fire damage from burning oil. Dousing a Space. You can take the Utilize action to pour an Oil flask on level ground to cover a 5-foot-square area within 5 feet of yourself. If lit, the oil burns until the end of the turn 2 rounds from when the oil was lit (or 12 seconds) and deals 5 Fire damage to any creature that enters the area or ends its turn there. A creature can take this damage only once per turn. Fuel. Oil serves as fuel for Lamps and Lanterns. Once lit, a flask of Oil burns for 6 hours in a Lamp or Lantern. That duration doesn’t need to be consecutive; you can extinguish the burning Oil (as a Utilize action) and rekindle it again until it has burned for a total of 6 hours."
+    },
+    {
+      "id": "paper",
+      "name": "Paper",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "sp"
+      },
+      "stackable": true,
+      "weight_kg": 0,
+      "description": "One sheet of Paper can hold about 250 handwritten words."
+    },
+    {
+      "id": "parchment",
+      "name": "Parchment",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "sp"
+      },
+      "stackable": true,
+      "weight_kg": 0,
+      "description": "One sheet of Parchment can hold about 250 handwritten words."
+    },
+    {
+      "id": "perfume",
+      "name": "Perfume",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 0,
+      "description": "Perfume comes in a 4-ounce vial. For 1 hour after applying Perfume to yourself, you have Advantage on Charisma (Persuasion) checks made to influence an Indifferent Humanoid within 5 feet of yourself."
+    },
+    {
+      "id": "poison-basic",
+      "name": "Poison, Basic",
+      "category": "consumable",
+      "price": {
+        "amount": 100,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 0,
+      "description": "As a Bonus Action, you can use a vial of Basic Poison to coat one weapon or up to three pieces of ammunition. A creature that takes Piercing or Slashing damage from the poisoned weapon or ammunition takes an extra 1d4 Poison damage. Once applied, the poison retains potency for 1 minute or until its damage is dealt, whichever comes first."
+    },
+    {
+      "id": "pole",
+      "name": "Pole",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "cp"
+      },
+      "stackable": true,
+      "weight_kg": 3,
+      "description": "A Pole is 10 feet long. You can use it to touch something up to 10 feet away. If you must make a Strength (Athletics) check as part of a High or Long Jump, you can use the Pole to vault, giving yourself Advantage on the check."
+    },
+    {
+      "id": "pot-iron",
+      "name": "Pot, Iron",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 4.5,
+      "description": "An Iron Pot holds up to 1 gallon."
+    },
+    {
+      "id": "pouch",
+      "name": "Pouch",
+      "category": "gear",
+      "price": {
+        "amount": 5,
+        "coin": "sp"
+      },
+      "stackable": true,
+      "weight_kg": 0.5,
+      "description": "A Pouch holds up to 6 pounds within one-fifth of a cubic foot."
+    },
+    {
+      "id": "priests-pack",
+      "name": "Priest's Pack",
+      "category": "gear",
+      "price": {
+        "amount": 33,
+        "coin": "gp"
+      },
+      "weight_kg": 13,
+      "description": "A Priest’s Pack contains the following items: Backpack, Blanket, Holy Water, Lamp, 7 days of Rations, Robe, and Tinderbox."
+    },
+    {
+      "id": "quiver",
+      "name": "Quiver",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "weight_kg": 0.5,
+      "description": "A Quiver holds up to 20 Arrows."
+    },
+    {
+      "id": "ram-portable",
+      "name": "Ram, Portable",
+      "category": "gear",
+      "price": {
+        "amount": 4,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 16,
+      "description": "You can use a Portable Ram to break down doors. When doing so, you gain a +4 bonus to the Strength check. One other character can help you use the ram, giving you Advantage on this check."
+    },
+    {
+      "id": "rations",
+      "name": "Rations",
+      "category": "consumable",
+      "price": {
+        "amount": 5,
+        "coin": "sp"
+      },
+      "stackable": true,
+      "weight_kg": 1,
+      "description": "Rations consist of travel-ready food, including jerky, dried fruit, hardtack, and nuts. See “Malnutrition” in the rules glossary for the risks of not eating."
+    },
+    {
+      "id": "robe",
+      "name": "Robe",
+      "category": "clothing",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "weight_kg": 2
+    },
+    {
+      "id": "rope",
+      "name": "Rope",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 2
+    },
+    {
+      "id": "sack",
+      "name": "Sack",
       "category": "gear",
       "price": {
         "amount": 1,
@@ -205,27 +1735,463 @@
       "weight_kg": 0.5
     },
     {
-      "id": "rations",
-      "name": "Rations (1 day)",
-      "category": "consumable",
+      "id": "scholars-pack",
+      "name": "Scholar's Pack",
+      "category": "gear",
+      "price": {
+        "amount": 40,
+        "coin": "gp"
+      },
+      "weight_kg": 10,
+      "description": "A Scholar’s Pack contains the following items: Backpack, Book, Ink, Ink Pen, Lamp, 10 flasks of Oil, 10 sheets of Parchment, and Tinderbox."
+    },
+    {
+      "id": "shovel",
+      "name": "Shovel",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 2,
+      "description": "Working for 1 hour, you can use a Shovel to dig a hole that is 5 feet on each side in soil or similar material."
+    },
+    {
+      "id": "spikes-iron",
+      "name": "Spikes, Iron",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 2,
+      "description": "Iron Spikes come in bundles of ten. As a Utilize action, you can use a blunt object, such as a Light Hammer, to hammer a spike into wood, earth, or a similar material. You can do so to jam a door shut or to then tie a Rope or Chain to the Spike."
+    },
+    {
+      "id": "spyglass",
+      "name": "Spyglass",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "weight_kg": 0.5,
+      "description": "Objects viewed through a Spyglass are magnified to twice their size."
+    },
+    {
+      "id": "string",
+      "name": "String",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "sp"
+      },
+      "stackable": true,
+      "description": "String is 10 feet long. You can tie a knot in it as a Utilize action."
+    },
+    {
+      "id": "tent",
+      "name": "Tent",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 9,
+      "description": "A Tent sleeps up to two Small or Medium creatures."
+    },
+    {
+      "id": "tinderbox",
+      "name": "Tinderbox",
+      "category": "gear",
       "price": {
         "amount": 5,
         "coin": "sp"
       },
       "stackable": true,
-      "weight_kg": 1
+      "weight_kg": 0.5,
+      "description": "A Tinderbox is a small container holding flint, fire steel, and tinder (usually dry cloth soaked in light oil) used to kindle a fire. Using it to light a Candle, Lamp, Lantern, or Torch—or anything else with exposed fuel—takes a Bonus Action. Lighting any other fire takes 1 minute."
     },
     {
-      "id": "healing-draught",
-      "name": "Healing draught",
-      "category": "consumable",
+      "id": "vial",
+      "name": "Vial",
+      "category": "gear",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "stackable": true,
+      "description": "A Vial holds up to 4 ounces."
+    },
+    {
+      "id": "waterskin",
+      "name": "Waterskin",
+      "category": "gear",
+      "price": {
+        "amount": 2,
+        "coin": "sp"
+      },
+      "stackable": true,
+      "description": "A Waterskin holds up to 4 pints. If you don’t drink sufficient water, you risk dehydration (see the rules glossary)."
+    },
+    {
+      "id": "alchemists-supplies",
+      "name": "Alchemist's Supplies",
+      "category": "tool",
       "price": {
         "amount": 50,
         "coin": "gp"
       },
-      "stackable": true,
-      "weight_kg": 0.2,
-      "description": "Divine healing in a bottle."
+      "weight_kg": 4
+    },
+    {
+      "id": "brewers-supplies",
+      "name": "Brewer's Supplies",
+      "category": "tool",
+      "price": {
+        "amount": 20,
+        "coin": "gp"
+      },
+      "weight_kg": 4
+    },
+    {
+      "id": "calligraphers-supplies",
+      "name": "Calligrapher's Supplies",
+      "category": "tool",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 2
+    },
+    {
+      "id": "carpenters-tools",
+      "name": "Carpenter's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 8,
+        "coin": "gp"
+      },
+      "weight_kg": 3
+    },
+    {
+      "id": "cartographers-tools",
+      "name": "Cartographer's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 15,
+        "coin": "gp"
+      },
+      "weight_kg": 3
+    },
+    {
+      "id": "cobblers-tools",
+      "name": "Cobbler's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5
+    },
+    {
+      "id": "cooks-utensils",
+      "name": "Cook's Utensils",
+      "category": "tool",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "weight_kg": 3.5
+    },
+    {
+      "id": "glassblowers-tools",
+      "name": "Glassblower's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 30,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5
+    },
+    {
+      "id": "jewelers-tools",
+      "name": "Jeweler's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "weight_kg": 1
+    },
+    {
+      "id": "leatherworkers-tools",
+      "name": "Leatherworker's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5
+    },
+    {
+      "id": "masons-tools",
+      "name": "Mason's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 3.5
+    },
+    {
+      "id": "painters-supplies",
+      "name": "Painter's Supplies",
+      "category": "tool",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5
+    },
+    {
+      "id": "potters-tools",
+      "name": "Potter's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 10,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5
+    },
+    {
+      "id": "smiths-tools",
+      "name": "Smith's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 20,
+        "coin": "gp"
+      },
+      "weight_kg": 3.5
+    },
+    {
+      "id": "tinkers-tools",
+      "name": "Tinker's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 50,
+        "coin": "gp"
+      },
+      "weight_kg": 4.5
+    },
+    {
+      "id": "weavers-tools",
+      "name": "Weaver's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5
+    },
+    {
+      "id": "woodcarvers-tools",
+      "name": "Woodcarver's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5
+    },
+    {
+      "id": "disguise-kit",
+      "name": "Disguise Kit",
+      "category": "tool",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5
+    },
+    {
+      "id": "forgery-kit",
+      "name": "Forgery Kit",
+      "category": "tool",
+      "price": {
+        "amount": 15,
+        "coin": "gp"
+      },
+      "weight_kg": 2
+    },
+    {
+      "id": "herbalism-kit",
+      "name": "Herbalism Kit",
+      "category": "tool",
+      "price": {
+        "amount": 5,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5
+    },
+    {
+      "id": "navigators-tools",
+      "name": "Navigator's Tools",
+      "category": "tool",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "weight_kg": 1
+    },
+    {
+      "id": "poisoners-kit",
+      "name": "Poisoner's Kit",
+      "category": "tool",
+      "price": {
+        "amount": 50,
+        "coin": "gp"
+      },
+      "weight_kg": 1
+    },
+    {
+      "id": "thieves-tools",
+      "name": "Thieves' Tools",
+      "category": "tool",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "weight_kg": 0.5
+    },
+    {
+      "id": "dice",
+      "name": "Dice",
+      "category": "tool",
+      "price": {
+        "amount": 1,
+        "coin": "sp"
+      }
+    },
+    {
+      "id": "dragonchess",
+      "name": "Dragonchess",
+      "category": "tool",
+      "price": {
+        "amount": 1,
+        "coin": "gp"
+      }
+    },
+    {
+      "id": "playing-cards",
+      "name": "Playing Cards",
+      "category": "tool",
+      "price": {
+        "amount": 5,
+        "coin": "sp"
+      }
+    },
+    {
+      "id": "bagpipes",
+      "name": "Bagpipes",
+      "category": "tool",
+      "price": {
+        "amount": 30,
+        "coin": "gp"
+      },
+      "weight_kg": 2.5
+    },
+    {
+      "id": "drum",
+      "name": "Drum",
+      "category": "tool",
+      "price": {
+        "amount": 6,
+        "coin": "gp"
+      },
+      "weight_kg": 1.5
+    },
+    {
+      "id": "dulcimer",
+      "name": "Dulcimer",
+      "category": "tool",
+      "price": {
+        "amount": 25,
+        "coin": "gp"
+      },
+      "weight_kg": 4.5
+    },
+    {
+      "id": "flute",
+      "name": "Flute",
+      "category": "tool",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 0.5
+    },
+    {
+      "id": "horn",
+      "name": "Horn",
+      "category": "tool",
+      "price": {
+        "amount": 3,
+        "coin": "gp"
+      },
+      "weight_kg": 1
+    },
+    {
+      "id": "lute",
+      "name": "Lute",
+      "category": "tool",
+      "price": {
+        "amount": 35,
+        "coin": "gp"
+      },
+      "weight_kg": 1
+    },
+    {
+      "id": "lyre",
+      "name": "Lyre",
+      "category": "tool",
+      "price": {
+        "amount": 30,
+        "coin": "gp"
+      },
+      "weight_kg": 1
+    },
+    {
+      "id": "pan-flute",
+      "name": "Pan Flute",
+      "category": "tool",
+      "price": {
+        "amount": 12,
+        "coin": "gp"
+      },
+      "weight_kg": 1
+    },
+    {
+      "id": "shawm",
+      "name": "Shawm",
+      "category": "tool",
+      "price": {
+        "amount": 2,
+        "coin": "gp"
+      },
+      "weight_kg": 0.5
+    },
+    {
+      "id": "viol",
+      "name": "Viol",
+      "category": "tool",
+      "price": {
+        "amount": 30,
+        "coin": "gp"
+      },
+      "weight_kg": 0.5
     }
   ]
 }

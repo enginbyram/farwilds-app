@@ -19,6 +19,7 @@
   --danger: #b3261e;       /* warnings, "can't unlock" reasons */
   --success: #2e7d4f;      /* Unlock button, unlocked counters */
   --on-success: #ffffff;   /* text on the Unlock button */
+  --price-up: #b08a00;     /* Purchase drawer: a raised price (a lowered one uses --danger) */
 
   /* aptitude/* (mapped in src/config/settings.ts → APTITUDE_COLOR) */
   --apt-body: #b4532e;
@@ -52,7 +53,7 @@
     --bg: #12161d; --panel: #181d26; --line: #2c3340;
     --ink: #e7e4dc; --muted: #9aa1ad;
     --brass: #d9a54a; --route: #f2b43a; --danger: #ef5b52;
-    --success: #4cb07a; --on-success: #0d1a13;
+    --success: #4cb07a; --on-success: #0d1a13; --price-up: #e8c547;
     --apt-body: #e07a52; --apt-wisdom: #4cc0a3; --apt-charisma: #e070a0;
     --apt-intellect: #9b8cf0; --apt-centre: #9aa0a8; --forbidden: #ef5b52;
     color-scheme: dark;
@@ -62,7 +63,7 @@
   --bg: #12161d; --panel: #181d26; --line: #2c3340;
   --ink: #e7e4dc; --muted: #9aa1ad;
   --brass: #d9a54a; --route: #f2b43a; --danger: #ef5b52;
-  --success: #4cb07a; --on-success: #0d1a13;
+  --success: #4cb07a; --on-success: #0d1a13; --price-up: #e8c547;
   --apt-body: #e07a52; --apt-wisdom: #4cc0a3; --apt-charisma: #e070a0;
   --apt-intellect: #9b8cf0; --apt-centre: #9aa0a8; --forbidden: #ef5b52;
   color-scheme: dark;

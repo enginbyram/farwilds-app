@@ -21,7 +21,8 @@
     {"key": "PoolStepLevels", "value": 2, "unit": "levels", "status": "Settled", "note": "See PoolPerStep. +2 every 2 levels: level 3 +2, level 5 +4, and so on."},
     {"key": "RageMax", "value": 10, "unit": "Rage", "status": "Settled", "note": "Rage scale: rests at 0, thresholds at 5 and 10; gains past 10 are a surge (Barbarian Pathway, 31 Oct)."},
     {"key": "SanityBase", "value": 10, "unit": "Sanity", "status": "Settled", "note": "Sanity = SanityBase + Endurance + SanityPerLevel × (level − 1). Mental endurance; Bloodmagic wears it down."},
-    {"key": "SanityPerLevel", "value": 1, "unit": "Sanity", "status": "Proposed", "note": "Sanity gained per level after the first, as the well grows."}
+    {"key": "SanityPerLevel", "value": 1, "unit": "Sanity", "status": "Proposed", "note": "Sanity gained per level after the first, as the well grows."},
+    {"key": "CarryPerSTR", "value": 8, "unit": "kg", "status": "Settled", "note": "Carry capacity per point of Strength score. Capacity = STR score × this."}
   ],
   "attributes": [
     {"name": "Strength", "short": "STR", "aptitude": "Body"},

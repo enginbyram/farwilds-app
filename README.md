@@ -38,14 +38,18 @@ python tools/equipment_xlsx_to_json.py Farwilds_Equipment.xlsx                  
 python tools/equipment_xlsx_to_json.py Farwilds_Equipment.xlsx --into src/data/equipment.json  # write
 ```
 
-Bad rows are listed by row number and skipped. A blank template comes from
+Bad rows are listed by row number and skipped; ids with spaces or commas are slugged, and a grip written in
+the slot column (two-handed, versatile) is read as `mainhand` + that property — both with a note to fix the workbook. A blank template comes from
 `python tools/make_equipment_template.py src/data/gear.json Farwilds_Equipment_Template.xlsx`
 (re-run it after changing slots or coins). Gear slots, coin values (placeholder 1 gp = 10 sp = 100 cp)
 and bag size live in **`src/data/gear.json`**.
 
+**Encumbrance:** capacity = Strength score × `CarryPerSTR` (rules param, 8 kg; editable in Dev mode); load = the
+catalog `weight_kg` of everything worn and carried. The Equipment card's radial gauge turns red when over.
+
 On the Character page, **Equipment → Add** opens the catalog in the left column: tick items, *Add to bag* (free).
 **Purchase** opens the same list with prices: − / + moves a price by one unit of its coin, the cart and the
-changed prices are forgotten when the drawer closes, and *Pay* takes the total from the purse (with change).
+changed prices are forgotten when the drawer closes (lowered shows red, raised yellow), and *Pay* takes the total from the purse (with change).
 
 ## Character, Creator and Level up
 

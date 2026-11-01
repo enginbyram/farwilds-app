@@ -22,7 +22,7 @@ COLS = [  # header, width, required, note
  ("id",14,True,"Unique, lowercase, no spaces: longsword, leather-boots. Never change it once used — saved characters point to it."),
  ("name",22,True,"Display name."),
  ("category",14,True,"From the list (Lists sheet)."),
- ("slot",11,False,"Gear slot it is worn in. Blank = carried only (bag)."),
+ ("slot",11,False,"Gear slot it is worn in (weapons: mainhand, offhand or ranged). Blank = carried only. Grip goes in properties."),
  ("price",8,True,"Default price, whole number."),
  ("coin",6,True,"gp, sp or cp."),
  ("stackable",9,False,"yes = many in one bag cell (arrows, rations)."),
@@ -32,12 +32,15 @@ COLS = [  # header, width, required, note
  ("damage",8,False,"Dice, e.g. 1d8."),
  ("damage_type",13,False,"From the list."),
  ("reach_m",8,False,"Reach in metres (grid square = 2 m)."),
- ("properties",22,False,"Comma-separated tags: two-handed, light, thrown, finesse…"),
+ ("armor_type",13,False,"Light Armor, Medium Armor, Heavy Armor or Garment."),
+ ("str_need",8,False,"Strength score needed to wear it without penalty."),
+ ("stealth_disadvantage",10,False,"yes = disadvantage on Stealth while worn."),
+ ("properties",22,False,"Comma-separated tags: Two-handed, Versatile (either hand), Light, Thrown (Range…), Heavy, Loading…"),
  ("bonuses",24,False,"Flat bonuses, comma-separated: STR +1, Stealth -2, Leech +1"),
  ("description",40,False,"Short text shown on hover."),
  ("notes",24,False,"Your notes; not shown in the app."),
 ]
-SAMPLES = [
+SAMPLES_RAW = [
  ["longsword","Longsword","weapon","mainhand",15,"gp","",1.5,"","", "1d8","slashing",2,"versatile","","A straight double-edged blade.",""],
  ["dagger","Dagger","weapon","mainhand",2,"gp","",0.5,"","","1d4","piercing",2,"light, thrown","","",""],
  ["shortbow","Shortbow","weapon","ranged",25,"gp","",1,"","","1d6","piercing","","two-handed","","",""],
@@ -55,6 +58,9 @@ SAMPLES = [
  ["healing-draught","Healing draught","consumable","",50,"gp","yes",0.2,"","","","","","","","Divine healing in a bottle.",""],
 ]
 
+SAMPLES = [r[:13] + ["", "", ""] + r[13:] for r in SAMPLES_RAW]
+ARMOR_TYPES = ["Light Armor", "Medium Armor", "Heavy Armor", "Garment"]
+
 wb = Workbook()
 ws = wb.active; ws.title = "Equipment"
 head = PatternFill("solid", fgColor="1D2430"); req = PatternFill("solid", fgColor="9A6B1F")
@@ -70,7 +76,7 @@ ws.freeze_panes = "C2"
 ws.auto_filter.ref = f"A1:{get_column_letter(len(COLS))}{len(SAMPLES)+1}"
 # Lists
 ls = wb.create_sheet("Lists")
-lists = {"category":[c[0] for c in CATS],"slot":SLOTS,"coin":COINS,"damage_type":DMG,"yes/no":["yes","no"]}
+lists = {"category":[c[0] for c in CATS],"slot":SLOTS,"coin":COINS,"damage_type":DMG,"yes/no":["yes","no"],"armor_type":ARMOR_TYPES}
 for i,(k,vals) in enumerate(lists.items(),1):
     ls.cell(1,i,k).font = Font(bold=True)
     for j,v in enumerate(vals,2): ls.cell(j,i,v)
@@ -83,7 +89,8 @@ def dv(col, listcol, n):
     d.error = "Pick a value from the list (Lists sheet)."; ws.add_data_validation(d); d.add(f"{col}2:{col}2000")
 idx = {h:get_column_letter(i) for i,(h,*_) in enumerate(COLS,1)}
 dv(idx["category"],"A",len(lists["category"])); dv(idx["slot"],"B",len(SLOTS)); dv(idx["coin"],"C",len(COINS))
-dv(idx["damage_type"],"D",len(DMG)); dv(idx["stackable"],"E",2)
+dv(idx["damage_type"],"D",len(DMG)); dv(idx["stackable"],"E",2); dv(idx["stealth_disadvantage"],"E",2)
+dv(idx["armor_type"],"F",len(ARMOR_TYPES))
 num = DataValidation(type="whole", operator="greaterThanOrEqual", formula1="0", allow_blank=False); num.error="Whole number, 0 or more."
 ws.add_data_validation(num); num.add(f"{idx['price']}2:{idx['price']}2000")
 # Read me
@@ -91,7 +98,8 @@ rm = wb.create_sheet("Read me", 0)
 rm.column_dimensions["A"].width = 16; rm.column_dimensions["B"].width = 90
 lines = [("FARWILDS EQUIPMENT LIST",""),("",""),
  ("What","One row per item on the Equipment sheet. The app's Add and Purchase drawers list these items."),
- ("Samples","The 15 rows already there are samples so the app has something to show. Replace or delete them."),
+ ("Samples","The rows already there are samples so the app has something to show. Replace or delete them."),
+ ("Weight","weight_kg feeds encumbrance: carry capacity = Strength score × CarryPerSTR kg (8 by default)."),
  ("Gold headers","Required columns. Dark headers are optional; leave blank when not settled."),
  ("Lists","Category, slot, coin, damage type and yes/no come from the Lists sheet (dropdowns)."),
  ("Prices","Whole numbers in one coin: 15 gp, 5 sp, 1 cp. Rates are set in src/data/gear.json (placeholder 1 gp = 10 sp = 100 cp)."),

@@ -3,7 +3,7 @@
  * (tree node → Level Up screen) or the Creator. Dev mode turns the identity fields into inputs.
  *
  * Layout:  top bar  [ Data | Affinities | Stats (HP + pools + icons) | Hit Die | Points ]
- *          body     [ Attributes / Skills | Gear | Wealth / Equipment ]  — three equal thirds
+ *          body     [ Attributes / Skills | Gear | Equipment (purse, valuables, load, bag) ]  — three equal thirds
  *          dev      [ Identity | Checks ]  (Dev mode only, under the body)
  * Colours follow the core class (CLASS_THEME in config/settings.ts).
  */
@@ -13,7 +13,7 @@ import type { SheetState } from "@/hooks/useSheet";
 import type { Computed } from "@/rules/compute";
 import type { Rules } from "@/rules/types";
 import type { ShopMode } from "./EquipmentDrawer";
-import { BagPanel, GearPanel, WealthPanel } from "./Inventory";
+import { EquipmentPanel, GearPanel } from "./Inventory";
 import { Badge, Hint, Icon, RadialGauge, signed } from "./ui";
 
 function Select({ value, options, onChange, label, blank }: {
@@ -202,8 +202,7 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
         </div>
 
         <div className="char__third">
-          <WealthPanel sh={sh} devMode={devMode} />
-          <BagPanel sh={sh} devMode={devMode} onShop={onShop} />
+          <EquipmentPanel sh={sh} c={c} rules={rules} devMode={devMode} onShop={onShop} />
         </div>
       </div>
 

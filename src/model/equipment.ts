@@ -12,6 +12,7 @@ export interface CatalogItem {
   price: { amount: number; coin: string };
   stackable?: boolean; weight_kg?: number; armour?: number; attack_power?: number;
   damage?: string; damage_type?: string; reach_m?: number;
+  armor_type?: string; str_need?: number; stealth_disadvantage?: boolean;
   properties?: string[]; bonuses?: string[]; description?: string;
 }
 export interface Category { id: string; label: string }
@@ -28,6 +29,12 @@ const CATEGORY_ICON: Record<string, string> = {
 };
 export const itemIcon = (it: { category?: string; kind?: string; slot?: string }) =>
   CATEGORY_ICON[it.category ?? it.kind ?? ""] ?? "other";
+
+// ── Weight ──
+/** Weight of one bag/slot entry (its quantity included). Items not from the catalog weigh nothing yet. */
+export const itemWeight = (it: Item) => (catalogItem(it.ref)?.weight_kg ?? 0) * (it.qty ?? 1);
+export const carriedWeight = (s: { bag: Item[]; equipped: Record<string, Item> }) =>
+  [...s.bag, ...Object.values(s.equipped)].reduce((t, it) => t + itemWeight(it), 0);
 
 // ── Money ──
 export const COINS_DESC = [...gear.coins].sort((a, b) => b.value - a.value);

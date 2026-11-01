@@ -23,8 +23,18 @@ import openpyxl
 warnings.filterwarnings("ignore")  # openpyxl complains about data-validation extensions
 
 GEAR = Path(__file__).resolve().parent.parent / "src" / "data" / "gear.json"
-NUMBER_KEYS = ("weight_kg", "armour", "attack_power", "reach_m")
-TEXT_KEYS = ("damage", "damage_type", "description")
+NUMBER_KEYS = ("weight_kg", "armour", "attack_power", "reach_m", "str_need")
+TEXT_KEYS = ("damage", "damage_type", "armor_type", "description")
+BOOL_KEYS = ("stealth_disadvantage",)
+GRIPS = {"two-handed": "Two-handed", "versatile": "Versatile"}  # written in the slot column by mistake → property
+
+
+def slugify(v: str) -> str:
+    return re.sub(r"[^a-z0-9]+", "-", v.lower().replace("'", "").replace("’", "")).strip("-")
+
+
+def yes(v) -> bool:
+    return text(v).lower() in ("yes", "y", "true", "1")
 LIST_KEYS = ("properties", "bonuses")
 
 
@@ -68,13 +78,18 @@ def main() -> int:
         if not any(text(v) for v in r):
             continue
         iid, name = text(get("id")).lower(), text(get("name"))
-        why = []
-        if not re.fullmatch(r"[a-z0-9][a-z0-9-]*", iid): why.append("id must be lowercase letters, digits and dashes")
+        why, extra_props = [], []
+        if iid and not re.fullmatch(r"[a-z0-9][a-z0-9-]*", iid):
+            problems.append(f"row {n}: id '{iid}' used as '{slugify(iid)}' (fix it in the workbook)"); iid = slugify(iid)
+        if not iid: why.append("id is empty")
         if iid in seen: why.append(f"duplicate id '{iid}'")
         if not name: why.append("name is empty")
         cat = text(get("category")).lower()
         if cat_ids and cat not in cat_ids: why.append(f"unknown category '{cat}'")
         slot = text(get("slot")).lower()
+        if slot in GRIPS:
+            problems.append(f"row {n}: slot '{slot}' read as mainhand + property {GRIPS[slot]}")
+            extra_props.append(GRIPS[slot]); slot = "mainhand"
         if slot and slot not in slots: why.append(f"unknown slot '{slot}'")
         coin = text(get("coin")).lower()
         if coin not in coins: why.append(f"coin must be one of {sorted(coins)}")
@@ -90,7 +105,9 @@ def main() -> int:
         item = {"id": iid, "name": name, "category": cat}
         if slot: item["slot"] = slot
         item["price"] = {"amount": int(price), "coin": coin}
-        if text(get("stackable")).lower() in ("yes", "y", "true", "1"): item["stackable"] = True
+        if yes(get("stackable")): item["stackable"] = True
+        for k in BOOL_KEYS:
+            if yes(get(k)): item[k] = True
         for k in NUMBER_KEYS:
             try:
                 v = number(get(k))
@@ -101,10 +118,11 @@ def main() -> int:
             if text(get(k)): item[k] = text(get(k))
         for k in LIST_KEYS:
             parts = [p.strip() for p in text(get(k)).split(",") if p.strip()]
+            if k == "properties": parts = [p for p in extra_props if p not in parts] + parts
             if parts: item[k] = parts
         items.append(item)
 
-    print(f"{len(items)} items, {len(categories)} categories, {len(problems)} problems")
+    print(f"{len(items)} items, {len(categories)} categories, {len(problems)} notes")
     for p in problems:
         print("  " + p)
     if a.into:

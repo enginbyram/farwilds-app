@@ -3,7 +3,8 @@
  * Equipment card's Add and Purchase buttons. One catalog list, two modes:
  *
  *   add  — tick items, then "Add to bag". Free; for the DM or for starting gear.
- *   buy  — each item shows its default price with − / + (one unit of its coin, e.g. ±1 gp).
+ *   buy  — each item shows its default price with − / + (one unit of its coin, e.g. ±1 gp);
+ *          a lowered price shows red, a raised one yellow.
  *          Adjusted prices and the cart live only while the drawer is open; closing forgets them.
  *          Pay takes the total from the purse (with change) and puts the items in the bag.
  *
@@ -29,6 +30,10 @@ function itemLines(it: CatalogItem, priceCp?: number): (string | [string, string
     ...(it.armour !== undefined ? [["Armour", it.armour] as [string, number]] : []),
     ...(it.attack_power !== undefined ? [["Attack Power", it.attack_power] as [string, number]] : []),
     ...(it.reach_m !== undefined ? [["Reach", `${it.reach_m} m`] as [string, string]] : []),
+    ...(it.armor_type ? [["Type", it.armor_type] as [string, string]] : []),
+    ...(it.str_need !== undefined ? [["Strength needed", it.str_need] as [string, number]] : []),
+    ...(it.stealth_disadvantage ? ["Disadvantage on Stealth while worn"] : []),
+    ...(it.weight_kg !== undefined ? [["Weight", `${it.weight_kg} kg`] as [string, string]] : []),
     ...(it.properties?.length ? [it.properties.join(", ")] : []),
     ...(it.bonuses?.length ? [it.bonuses.join(", ")] : []),
     ...(it.stackable ? ["Stacks in one bag cell"] : []),
@@ -120,7 +125,8 @@ export function EquipmentDrawer({ mode, sh, onClose, onMessage, style }: {
         <ul className="shop__list">
           {list.length === 0 && <li className="empty">Nothing in this category.</li>}
           {list.map(it => {
-            const p = priceOf(it), changed = p !== toCopper(it.price);
+            const p = priceOf(it), base = toCopper(it.price);
+            const trend = p < base ? " down" : p > base ? " up" : "";
             const on = picked.has(it.id);
             const meta = [categoryLabel(it.category), slotLabel(it.slot), it.damage && `${it.damage}${it.damage_type ? ` ${it.damage_type}` : ""}`].filter(Boolean).join(" · ");
             const name = (
@@ -139,7 +145,7 @@ export function EquipmentDrawer({ mode, sh, onClose, onMessage, style }: {
               <li key={it.id} className="shop__row">
                 <Icon name={itemIcon(it)} size={20} />
                 {name}
-                <span className={`shop__adjust${changed ? " changed" : ""}`}>
+                <span className={`shop__adjust${trend}`}>
                   <button type="button" className="btn btn--ghost btn--small" onClick={() => nudge(it, -1)} disabled={p === 0} aria-label={`Lower price by 1 ${it.price.coin}`}><Icon name="minus" size={14} /></button>
                   <Hint lines={[["Default", formatMoney(toCopper(it.price))], `Step: 1 ${it.price.coin}`, "Not saved when the drawer closes"]}><span className="shop__price">{formatMoney(p)}</span></Hint>
                   <button type="button" className="btn btn--ghost btn--small" onClick={() => nudge(it, 1)} aria-label={`Raise price by 1 ${it.price.coin}`}><Icon name="plus" size={14} /></button>
