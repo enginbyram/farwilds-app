@@ -13,7 +13,9 @@
     {"key": "RageThreshold", "value": 5, "status": "Settled", "note": "First threshold: Blooded and other threshold nodes switch on."},
     {"key": "SurgeDC", "value": 12, "status": "Proposed", "note": "Endurance check (d20 + Endurance) against this, once per turn, when Rage went past the cap that turn. Fail: lose control next turn and lose Sanity equal to the overflow. Once-per-turn is Claude's proposal; the doc says each gain past the cap."},
     {"key": "UnbrokenDC", "value": 12, "status": "Proposed", "note": "Endurance check for Unbroken when Rage hits 0."},
-    {"key": "MaxTurns", "value": 30, "status": "Proposed", "note": "A fight still going after this many turns counts as a draw."}
+    {"key": "InitiativeDie", "value": 20, "status": "Settled", "note": "At the start of a fight everyone rolls this for initiative. Highest acts first; turns go clockwise round the wheel."},
+    {"key": "InitiativeAddsDex", "value": 0, "status": "Proposed", "note": "1 = add the DEX modifier (Initiative) to the roll. 0 for now: plain d20."},
+    {"key": "MaxTurns", "value": 30, "status": "Proposed", "note": "A fight still going after this many rounds counts as a draw."}
   ],
 
   "skills": {

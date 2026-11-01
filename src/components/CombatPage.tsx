@@ -1,24 +1,31 @@
 /**
- * Combat page: your character against configurable foes, turn by turn, plus a simulator that
- * plays 1,000 fights with an autopilot. Engine: src/combat/engine.ts. Numbers: src/data/combat.json.
+ * Combat screen.
+ *   left third   — foes (click one to target it; add foes at the bottom)
+ *   centre third — the turn wheel (initiative order, clockwise) and the combat log
+ *   right third  — you and your allies
+ *   bottom bar   — End turn, your HP and Rage, the Main / Side / Misc drawers, the passives tray
+ * Drawers, the tray and the Dev tools float over the screen and never push anything.
+ * Engine: src/combat/engine.ts. Numbers: src/data/combat.json.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Computed } from "@/rules/compute";
 import { paramGetter } from "@/rules/compute";
 import type { Rules } from "@/rules/types";
 import type { Character } from "@/hooks/useCharacter";
 import {
-  COMBAT, SKILLS, DEFAULT_POLICY, autoChoice, options, parseDice, playTurn, simulate, startFight,
-  type ActiveChoice, type CombatState, type Fighter, type FoeDef, type Policy, type SideChoice, type SimResult,
+  ATTACK, COMBAT, DEFAULT_POLICY, SKILLS, YOU, autoTurn, canPlay, cardSlot, endTurn, newFight, parseDice, passiveState,
+  playCard, rollInitiative, rule, simulate, step,
+  type CombatState, type Fighter, type FoeDef, type Policy, type SimResult,
 } from "@/combat/engine";
 import { classStyle } from "./CharacterPage";
-import { Hint, signed } from "./ui";
+import { signed } from "./ui";
 
-const rule = (k: string) => COMBAT.rules.find(r => r.key === k)?.value ?? 0;
+type Drawer = "" | "active" | "side" | "misc";
+const FOE_STEP_MS = 650;
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const one = (x: number) => (Math.round(x * 10) / 10).toString();
 
-export function CombatPage({ rules, c, ch }: { rules: Rules; c: Computed; ch: Character }) {
+export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Computed; ch: Character; devMode: boolean }) {
   const p = paramGetter(rules);
   const skillIds = Object.keys(SKILLS);
   const onTree = useMemo(() => new Set([...ch.owned].map(n => n.id).filter(id => id in SKILLS)), [ch.owned]);
@@ -27,11 +34,12 @@ export function CombatPage({ rules, c, ch }: { rules: Rules; c: Computed; ch: Ch
   const [owned, setOwned] = useState<Set<string>>(() => new Set(onTree));
   const [weaponName, setWeaponName] = useState(COMBAT.weapons[0].name);
   const [armourName, setArmourName] = useState(() => {
-    const maxOrder = Math.max(...[c.asc1Eff, c.asc2Eff].map(a => rules.armour.find(x => x.name === rules.ascendancies.find(r => r.name === a)?.maxArmour)?.order ?? 0));
+    const maxOrder = Math.max(0, ...[c.asc1Eff, c.asc2Eff].map(a => rules.armour.find(x => x.name === rules.ascendancies.find(r => r.name === a)?.maxArmour)?.order ?? 0));
     return rules.armour.find(a => a.order === maxOrder)?.name ?? "None";
   });
   const [foes, setFoes] = useState<FoeDef[]>(() => [COMBAT.foes[0], COMBAT.foes[0]].map(f => ({ ...f })));
   const [pastRedDoubles, setPastRedDoubles] = useState(false);
+  const [biteSpend, setBiteSpend] = useState(4);
 
   const weapon = COMBAT.weapons.find(w => w.name === weaponName) ?? COMBAT.weapons[0];
   const armourWorn = rules.armour.find(a => a.name === armourName);
@@ -45,6 +53,7 @@ export function CombatPage({ rules, c, ch }: { rules: Rules; c: Computed; ch: Ch
     armour: (armourWorn?.value ?? 0) + c.combat.armour,
     attackBonus: mods.STR ?? 0,
     ap: Math.floor((mods.STR ?? 0) * (p("APMeleeSTR") + weapon.ap) + (mods.DEX ?? 0) * (p("APMeleeDEX") + weapon.ap)),
+    initiative: c.combat.initiative,
     weapon: parseDice(weapon.dice),
     endurance: skill("Endurance"), intimidation: skill("Intimidation"), conMod: mods.CON ?? 0,
     sanity: c.pools.sanity,
@@ -52,175 +61,358 @@ export function CombatPage({ rules, c, ch }: { rules: Rules; c: Computed; ch: Ch
   };
 
   // ── Fight ──
-  const [fight, setFight] = useState<CombatState>(() => startFight(fighter, foes));
-  const [active, setActive] = useState<ActiveChoice>("attack");
-  const [side, setSide] = useState<SideChoice>("");
-  const [sideFirst, setSideFirst] = useState(true);
-  const [biteSpend, setBiteSpend] = useState(4);
-  const opts = options(fight, owned);
-  const opt = { pastRedDoublesRageDice: pastRedDoubles };
-  const reset = () => { setFight(startFight(fighter, foes)); setActive("attack"); setSide(""); };
-  const play = (auto: boolean) => setFight(s => playTurn(s, fighter, owned,
-    auto ? autoChoice(s, fighter, owned, policy) : { active, side, sideFirst, biteSpend }, Math.random, opt));
+  const [fight, setFight] = useState<CombatState>(() => newFight(fighter, foes));
+  const [targetKey, setTargetKey] = useState("foe0");
+  const [drawer, setDrawer] = useState<Drawer>("");
+  const [tray, setTray] = useState(false);
+  const [devOpen, setDevOpen] = useState(false);
+  const opt = { pastRedDoublesRageDice: pastRedDoubles, biteSpend };
+  const setup = fight.phase === "setup";
 
-  // ── Simulator ──
+  // Rebuild the (unstarted) fight when foes or gear change.
+  useEffect(() => { if (setup) setFight(newFight(fighter, foes)); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [foes, weaponName, armourName, owned, setup]);
+  // Foes act one by one, so the wheel can be followed.
+  useEffect(() => {
+    if (fight.phase !== "foes") return;
+    const t = setTimeout(() => setFight(s => step(s, fighter, owned, Math.random)), fight.order[fight.cursor]?.key === YOU ? 120 : FOE_STEP_MS);
+    return () => clearTimeout(t);
+  });
+  // Keep a living target.
+  useEffect(() => {
+    if (!fight.foes.some(x => x.key === targetKey && x.hpNow > 0)) {
+      const next = fight.foes.find(x => x.hpNow > 0); if (next) setTargetKey(next.key);
+    }
+  }, [fight.foes, targetKey]);
+  // Esc closes whatever floats.
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => { if (e.key === "Escape") { setDrawer(""); setTray(false); setDevOpen(false); } };
+    window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
+  }, []);
+
+  const start = () => { setDrawer(""); setFight(rollInitiative(newFight(fighter, foes), fighter, Math.random)); };
+  const reset = () => { setDrawer(""); setFight(newFight(fighter, foes)); };
+  const play = (id: string) => { setFight(s => playCard(s, fighter, owned, id, targetKey, Math.random, opt)); setDrawer(""); };
+  const autopilot = () => setFight(s => autoTurn(s, fighter, owned, policy, Math.random, opt));
+
+  // ── Dev: simulator ──
   const [policy, setPolicy] = useState<Policy>(DEFAULT_POLICY);
   const [sim, setSim] = useState<{ off: SimResult; on: SimResult } | null>(null);
   const runSim = () => setSim({
-    off: simulate(fighter, foes, owned, policy, { pastRedDoublesRageDice: false }, 1000, 7),
-    on: simulate(fighter, foes, owned, policy, { pastRedDoublesRageDice: true }, 1000, 7),
+    off: simulate(fighter, foes, owned, policy, false, 1000, 7),
+    on: simulate(fighter, foes, owned, policy, true, 1000, 7),
   });
 
-  const toggle = (id: string) => setOwned(o => { const n = new Set(o); if (n.has(id)) n.delete(id); else n.add(id); return n; });
   const setFoe = (i: number, k: keyof FoeDef, v: string) => setFoes(fs => fs.map((f, j) => j !== i ? f : { ...f, [k]: k === "name" || k === "damage" ? v : Number(v) }));
-  const pillars = [...new Set(skillIds.map(id => SKILLS[id].pillar))];
-  const name = (id: string) => (id === "attack" ? "Weapon attack" : id === "" ? "None" : SKILLS[id]?.name ?? id);
-  const R = fighter.rageMax || 10;
+  const toggle = (id: string) => setOwned(o => { const n = new Set(o); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+
+  // Cards in each drawer: owned skills of that slot (+ the plain weapon attack under Main).
+  const cards = (slot: Drawer) => [
+    ...(slot === "active" ? [ATTACK] : []),
+    ...skillIds.filter(id => owned.has(id) && cardSlot(id) === slot && ["active", "side", "misc"].includes(SKILLS[id].action)),
+  ];
+  const trayIds = skillIds.filter(id => owned.has(id) && (SKILLS[id].action === "passive" || SKILLS[id].action === "reaction"));
+  const lit = passiveState(fight, owned, fighter);
+  const upgraded = (id: string) => skillIds.some(u => SKILLS[u].upgrades === id && owned.has(u));
+  const R = fighter.rageMax;
+  const myTurn = fight.phase === "player";
+  const slotLeft = (slot: "active" | "side") => myTurn && !fight.used[slot];
 
   return (
-    <div className="char combat" style={classStyle(ch.className)}>
-      <div className="combat__grid">
-        {/* ── Fighter ── */}
-        <section className="card">
-          <h2>Fighter</h2>
-          <p className="title">{ch.name}</p>
-          <p className="mono muted">{c.buildName} · level {c.level}</p>
-          <div className="combat__form">
-            <label>Weapon<select value={weaponName} onChange={e => setWeaponName(e.target.value)}>
-              {COMBAT.weapons.map(w => <option key={w.name} value={w.name}>{w.name} · {w.dice}</option>)}</select></label>
-            <label>Armour worn<select value={armourName} onChange={e => setArmourName(e.target.value)}>
-              {rules.armour.map(a => <option key={a.name} value={a.name}>{a.name} · {a.value}</option>)}</select></label>
-          </div>
-          <dl className="combat__stats">
-            <dt>Hit Points</dt><dd>{fighter.hpMax}</dd>
-            <dt><Hint lines={[["DefenceBase", rule("DefenceBase")], ["Agility", signed(skill("Agility"))], "Proposed rule — tune in combat.json"]}>Defence</Hint></dt><dd>{fighter.defence}</dd>
-            <dt>Armour</dt><dd>{fighter.armour}</dd>
-            <dt><Hint lines={["d20 + STR modifier vs the foe's Defence", "Proposed rule"]}>Attack</Hint></dt><dd>{signed(fighter.attackBonus)}</dd>
-            <dt>Damage</dt><dd>{weapon.dice} {signed(fighter.ap)} AP</dd>
-            <dt>Endurance</dt><dd>{signed(fighter.endurance)}</dd>
-            <dt>Rage cap</dt><dd>{fighter.rageMax || "—"}</dd>
-          </dl>
-          {!c.pools.rage && hasRageSkills && <p className="note">This character has no Rage yet (take Barbarian at ring 1). Rage skills are on for testing.</p>}
-        </section>
-
+    <div className="cb" style={classStyle(ch.className)}>
+      <div className="cb__main">
         {/* ── Foes ── */}
-        <section className="card">
-          <h2>Foes</h2>
-          <div className="combat__foes">
-            <span>Name</span><span>HP</span><span>Def</span><span>Arm</span><span>Atk</span><span>Damage</span><span />
-            {foes.map((f, i) => (
-              <div className="combat__foe" key={i}>
-                <input aria-label="Foe name" value={f.name} onChange={e => setFoe(i, "name", e.target.value)} />
-                {(["hp", "defence", "armour", "attack"] as const).map(k => (
-                  <input key={k} aria-label={k} type="number" value={f[k]} onChange={e => setFoe(i, k, e.target.value)} />))}
-                <input aria-label="damage" value={f.damage} onChange={e => setFoe(i, "damage", e.target.value)} />
-                <button className="btn btn--small btn--ghost" aria-label="Remove foe" onClick={() => setFoes(fs => fs.filter((_, j) => j !== i))} disabled={foes.length === 1}>×</button>
-              </div>
-            ))}
-          </div>
-          <div className="combat__row">
-            <select aria-label="Add foe" value="" onChange={e => { const d = COMBAT.foes.find(x => x.name === e.target.value); if (d) setFoes(fs => [...fs, { ...d }]); }}>
-              <option value="">Add a foe…</option>
+        <section className="cb__col">
+          <h2 className="cb__h">Foes <span>{fight.foes.filter(x => x.hpNow > 0).length} standing</span></h2>
+          <ul className="cb__list">
+            {fight.foes.map((f, i) => {
+              const dead = f.hpNow <= 0, init = fight.order.find(o => o.key === f.key);
+              const isTurn = fight.order[fight.cursor]?.key === f.key && fight.phase === "foes";
+              return (
+                <li key={f.key} className={`unit unit--foe${targetKey === f.key && !dead ? " unit--target" : ""}${dead ? " unit--dead" : ""}${isTurn ? " unit--turn" : ""}`}
+                  onClick={() => !dead && !setup && setTargetKey(f.key)}>
+                  {setup ? (
+                    <div className="unit__edit">
+                      <input aria-label="Foe name" value={foes[i]?.name ?? ""} onChange={e => setFoe(i, "name", e.target.value)} />
+                      <button className="unit__x" aria-label="Remove foe" onClick={() => setFoes(fs => fs.filter((_, j) => j !== i))} disabled={foes.length === 1}>×</button>
+                      {(["hp", "defence", "armour", "attack"] as const).map(k => (
+                        <label key={k}>{k === "hp" ? "HP" : k === "defence" ? "Def" : k === "armour" ? "Arm" : "Atk"}
+                          <input type="number" value={foes[i]?.[k] ?? 0} onChange={e => setFoe(i, k, e.target.value)} /></label>))}
+                      <label>Dmg<input value={foes[i]?.damage ?? ""} onChange={e => setFoe(i, "damage", e.target.value)} /></label>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="unit__top"><b>{f.name}</b>{init && <span className="unit__init" title="Initiative roll">Init {init.total}</span>}</div>
+                      <Bar now={Math.max(0, f.hpNow)} max={f.hp} kind="foe" />
+                      <div className="unit__meta">Def {f.defence} · Arm {f.armour} · Atk {signed(f.attack)} · {f.damage}{f.eaten ? " · eaten" : ""}</div>
+                      {targetKey === f.key && !dead && <span className="unit__tag">Target</span>}
+                    </>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
+          {setup && (
+            <select className="cb__add" aria-label="Add a foe" value="" onChange={e => { const d = COMBAT.foes.find(x => x.name === e.target.value); if (d) setFoes(fs => [...fs, { ...d }]); }}>
+              <option value="">+ Add a foe…</option>
               {COMBAT.foes.map(f => <option key={f.name} value={f.name}>{f.name}</option>)}
             </select>
-            <button className="btn btn--small" onClick={reset}>Start a new fight with these</button>
-          </div>
-          <p className="note">Foe numbers are placeholders until the bestiary exists.</p>
+          )}
+          {setup && <p className="note">Foe numbers are placeholders until the bestiary exists.</p>}
         </section>
 
-        {/* ── Skills ── */}
-        <section className="card">
-          <h2>Skills in play</h2>
-          <div className="combat__row">
-            <button className="btn btn--small" onClick={() => setOwned(new Set(onTree))}>Match my tree ({onTree.size} ●)</button>
-            <button className="btn btn--small btn--ghost" onClick={() => setOwned(new Set(skillIds))}>All</button>
-            <button className="btn btn--small btn--ghost" onClick={() => setOwned(new Set())}>None</button>
-          </div>
-          {pillars.map(pl => (
-            <div key={pl}>
-              <h3>{pl}</h3>
-              <ul className="combat__skills">
-                {skillIds.filter(id => SKILLS[id].pillar === pl).map(id => (
-                  <li key={id}>
-                    <label>
-                      <input type="checkbox" checked={owned.has(id)} onChange={() => toggle(id)} />
-                      <Hint lines={[SKILLS[id].text]}>{SKILLS[id].name}</Hint>
-                    </label>
-                    <span className="mono muted" title={onTree.has(id) ? "Unlocked on your tree" : undefined}>{SKILLS[id].action}{onTree.has(id) ? " ●" : ""}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+        {/* ── Turn wheel + log ── */}
+        <section className="cb__col cb__centre">
+          <TurnWheel fight={fight} setup={setup} />
+          <Log fight={fight} />
+        </section>
+
+        {/* ── Party ── */}
+        <section className="cb__col">
+          <h2 className="cb__h">Party</h2>
+          <ul className="cb__list">
+            <li className={`unit unit--you${myTurn ? " unit--turn" : ""}`}>
+              <div className="unit__top"><b>{ch.name}</b>{fight.order.find(o => o.key === YOU) && <span className="unit__init" title="Initiative roll">Init {fight.order.find(o => o.key === YOU)!.total}</span>}</div>
+              <div className="unit__meta">{c.buildName} · level {c.level}</div>
+              <Bar now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="you" />
+              <dl className="unit__stats">
+                <dt>Defence</dt><dd>{fighter.defence}</dd><dt>Armour</dt><dd>{fighter.armour}</dd>
+                <dt>Attack</dt><dd>{signed(fighter.attackBonus)}</dd><dt>Damage</dt><dd>{weapon.dice} {signed(fighter.ap)}</dd>
+              </dl>
+              <div className="unit__gear">
+                <label>Weapon<select value={weaponName} disabled={!setup} onChange={e => setWeaponName(e.target.value)}>
+                  {COMBAT.weapons.map(w => <option key={w.name} value={w.name}>{w.name} · {w.dice}</option>)}</select></label>
+                <label>Armour<select value={armourName} disabled={!setup} onChange={e => setArmourName(e.target.value)}>
+                  {rules.armour.map(a => <option key={a.name} value={a.name}>{a.name} · {a.value}</option>)}</select></label>
+              </div>
+            </li>
+            <li className="unit unit--empty">No allies yet. Friendly characters will join here.</li>
+          </ul>
+          {!c.pools.rage && hasRageSkills && <p className="note">No Rage on this character yet (take Barbarian at ring 1). Rage skills are on for testing.</p>}
         </section>
       </div>
 
-      <div className="combat__grid combat__grid--wide">
-        {/* ── Fight ── */}
-        <section className="card">
-          <h2>Fight · turn {fight.turn}{fight.result ? ` · ${fight.result.toUpperCase()}` : ""}</h2>
-          <div className="combat__bars">
-            <div className="bar"><span>HP</span><div className="bar__track"><i style={{ width: `${Math.max(0, fight.hp) / fighter.hpMax * 100}%` }} /></div><b>{Math.max(0, fight.hp)} / {fighter.hpMax}</b></div>
-            <div className="bar bar--rage"><span>Rage</span>
-              <div className="rage">{Array.from({ length: R }, (_, i) => <i key={i} className={`${i < fight.rage ? "on" : ""}${i + 1 === rule("RageThreshold") || i + 1 === R ? " mark" : ""}`} />)}</div>
-              <b>{fight.rage} / {R}</b></div>
-            <p className="mono muted">Held {fight.held}{fight.heldQueue.length ? ` (+${fight.heldQueue.join(", ")} queued)` : ""} · Red Mist {fight.bank}d6 · Fel {fight.fel} · Sanity −{fight.sanityLost}{fight.lostControl ? " · LOST CONTROL next turn" : ""}</p>
-            <ul className="combat__foelist">{fight.foes.map(f => <li key={f.id} className={f.hpNow <= 0 ? "dead" : ""}>{f.name}: {Math.max(0, f.hpNow)} / {f.hp}{f.eaten ? " (eaten)" : ""}</li>)}</ul>
+      {/* ── Floating: drawer ── */}
+      {drawer && (
+        <div className="cb__drawer" role="dialog" aria-label={`${drawer} actions`}>
+          <div className="cb__drawer-head">
+            <h3>{drawer === "active" ? "Main actions" : drawer === "side" ? "Side actions" : "Misc actions"}</h3>
+            <button className="btn btn--small btn--ghost" onClick={() => setDrawer("")}>Close</button>
           </div>
-          <div className="combat__choices">
-            <fieldset><legend>Active card</legend>
-              {opts.active.map(o => <label key={o.id} className={o.ok ? "" : "off"}><input type="radio" name="active" checked={active === o.id} disabled={!o.ok} onChange={() => setActive(o.id)} />{name(o.id)}{!o.ok && o.why ? <em> — {o.why}</em> : null}</label>)}
-            </fieldset>
-            <fieldset><legend>Side card</legend>
-              {opts.side.map(o => <label key={o.id || "none"} className={o.ok ? "" : "off"}><input type="radio" name="side" checked={side === o.id} disabled={!o.ok} onChange={() => setSide(o.id)} />{name(o.id)}{!o.ok && o.why ? <em> — {o.why}</em> : null}</label>)}
-              <label><input type="checkbox" checked={sideFirst} onChange={e => setSideFirst(e.target.checked)} />Side card before Active</label>
-              {owned.has("bbr.bitedown1") && <label>Bite Down spends <input type="number" min={2} step={2} value={biteSpend} onChange={e => setBiteSpend(Number(e.target.value))} /> Rage</label>}
-            </fieldset>
+          <div className="cards">
+            {cards(drawer).length === 0 && <p className="note">Nothing here yet. Items, movement and other actions will live in Misc.</p>}
+            {cards(drawer).map(id => {
+              const v = canPlay(fight, owned, id, targetKey);
+              const def = SKILLS[id];
+              const target = fight.foes.find(x => x.key === targetKey);
+              return (
+                <button key={id} className={`card-skill${v.ok ? "" : " card-skill--off"}`} disabled={!v.ok} onClick={() => play(id)}>
+                  <span className="card-skill__slot">{cardSlot(id) === "active" ? "Main" : cardSlot(id) === "side" ? "Side" : "Misc"}{def ? ` · ${def.pillar}` : ""}{upgraded(id) ? " · II" : ""}</span>
+                  <b className="card-skill__name">{id === ATTACK ? "Weapon attack" : def.name}</b>
+                  <span className="card-skill__text">{id === ATTACK ? `Strike with your ${weapon.name.toLowerCase()}: ${weapon.dice} ${signed(fighter.ap)} AP.` : def.text}</span>
+                  {id === "bbr.bitedown1" && (
+                    <span className="card-skill__opt" onClick={e => e.stopPropagation()}>Spend <input type="number" min={2} step={2} value={biteSpend} onChange={e => setBiteSpend(Number(e.target.value))} /> Rage</span>)}
+                  <span className="card-skill__foot">{v.ok ? (["attack", "bbr.headlong1", "bbr.unmake1"].includes(id) && target ? `→ ${target.name}` : "Play") : v.why}</span>
+                </button>
+              );
+            })}
           </div>
-          <div className="combat__row">
-            <button className="btn btn--class" onClick={() => play(false)} disabled={!!fight.result}>Play turn</button>
-            <button className="btn" onClick={() => play(true)} disabled={!!fight.result}>Autopilot turn</button>
-            <button className="btn btn--ghost" onClick={reset}>Reset fight</button>
-            <label className="check"><input type="checkbox" checked={pastRedDoubles} onChange={e => setPastRedDoubles(e.target.checked)} />Past the Red doubles dice bought with Rage</label>
-          </div>
-          <ol className="combat__log" reversed>
-            {[...fight.log].reverse().map((l, i) => <li key={i} className={`log--${l.who}`}><span className="mono">T{l.turn}</span> {l.text}</li>)}
-          </ol>
-        </section>
+        </div>
+      )}
 
-        {/* ── Simulator ── */}
-        <section className="card">
-          <h2>Simulate 1,000 fights</h2>
-          <p className="note">The autopilot plays every turn by these rules, against the foes above.</p>
-          <div className="combat__form">
+      {/* ── Floating: passives & reactions tray (bottom right, grows upward) ── */}
+      {tray && (
+        <ul className="cb__tray" aria-label="Passives and reactions">
+          {trayIds.length === 0 && <li className="cb__tray-empty">No passives or reactions</li>}
+          {trayIds.map(id => (
+            <li key={id} className={`aura aura--${SKILLS[id].pillar.toLowerCase()}${lit[id] ? " aura--on" : ""}`} tabIndex={0}>
+              <span className="aura__glyph">{glyph(SKILLS[id].name)}{upgraded(id) && <i>II</i>}</span>
+              <span className="aura__tip" role="tooltip">
+                <b>{SKILLS[id].name}{upgraded(id) ? " II" : ""}</b>
+                <em>{SKILLS[id].action === "reaction" ? "Reaction" : "Passive"} · {SKILLS[id].pillar}{lit[id] ? " · active now" : ""}</em>
+                {SKILLS[id].text}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {/* ── Floating: Dev tools ── */}
+      {devMode && devOpen && (
+        <aside className="cb__dev">
+          <div className="cb__drawer-head"><h3>Dev tools</h3><button className="btn btn--small btn--ghost" onClick={() => setDevOpen(false)}>Close</button></div>
+          <h4>Skills in play</h4>
+          <div className="cb__row">
+            <button className="btn btn--small" onClick={() => setOwned(new Set(onTree))}>Match my tree ({onTree.size})</button>
+            <button className="btn btn--small btn--ghost" onClick={() => setOwned(new Set(skillIds))}>All</button>
+            <button className="btn btn--small btn--ghost" onClick={() => setOwned(new Set())}>None</button>
+          </div>
+          <ul className="cb__skills">
+            {skillIds.map(id => (
+              <li key={id}><label><input type="checkbox" checked={owned.has(id)} onChange={() => toggle(id)} />{SKILLS[id].name}</label>
+                <span className="mono">{SKILLS[id].action}{onTree.has(id) ? " ●" : ""}</span></li>))}
+          </ul>
+          <label className="cb__check"><input type="checkbox" checked={pastRedDoubles} onChange={e => setPastRedDoubles(e.target.checked)} />Past the Red also doubles dice bought with Rage</label>
+          <button className="btn btn--small" onClick={autopilot} disabled={!myTurn}>Autopilot this turn</button>
+
+          <h4>Simulate 1,000 fights</h4>
+          <p className="note">The autopilot plays every turn by these rules, against the foes on the left.</p>
+          <div className="cb__form">
             <label><input type="checkbox" checked={policy.headlong} onChange={e => setPolicy({ ...policy, headlong: e.target.checked })} /> Open with Headlong</label>
             <label><input type="checkbox" checked={policy.berserker} onChange={e => setPolicy({ ...policy, berserker: e.target.checked })} /> Berserker every turn</label>
-            <label>Unmake at Rage <input type="number" min={0} max={R} value={policy.unmakeAt} onChange={e => setPolicy({ ...policy, unmakeAt: Number(e.target.value) })} /></label>
+            <label>Unmake at Rage <input type="number" min={0} value={policy.unmakeAt} onChange={e => setPolicy({ ...policy, unmakeAt: Number(e.target.value) })} /></label>
             <label>Bite Down under HP % <input type="number" min={0} max={100} value={policy.biteBelowPct} onChange={e => setPolicy({ ...policy, biteBelowPct: Number(e.target.value) })} /></label>
             <label>Bite Down spends <input type="number" min={2} step={2} value={policy.biteSpend} onChange={e => setPolicy({ ...policy, biteSpend: Number(e.target.value) })} /></label>
             <label>Corpse-Eater under HP % <input type="number" min={0} max={100} value={policy.corpseBelowPct} onChange={e => setPolicy({ ...policy, corpseBelowPct: Number(e.target.value) })} /></label>
           </div>
           <button className="btn btn--class" onClick={runSim}>Run</button>
           {sim && (
-            <table className="combat__sim">
-              <thead><tr><th /><th>Past the Red: base dice only</th><th>…and Rage-bought dice</th></tr></thead>
+            <table className="cb__sim">
+              <thead><tr><th /><th>Past the Red: base dice</th><th>+ Rage dice</th></tr></thead>
               <tbody>
                 {([
-                  ["Win rate", (r: SimResult) => pct(r.winRate)],
-                  ["Loss rate", (r: SimResult) => pct(r.lossRate)],
-                  ["Average turns", (r: SimResult) => one(r.avgTurns)],
-                  ["Damage per turn", (r: SimResult) => one(r.dmgPerTurn)],
-                  ["HP left after a win", (r: SimResult) => one(r.avgHpLeft)],
-                  ["Peak Rage", (r: SimResult) => one(r.avgPeakRage)],
-                  ["Surges per fight", (r: SimResult) => one(r.surgesPerFight)],
-                  ["Sanity lost per fight", (r: SimResult) => one(r.sanityPerFight)],
-                  ["Fel per fight", (r: SimResult) => one(r.felPerFight)],
+                  ["Win rate", (r: SimResult) => pct(r.winRate)], ["Loss rate", (r: SimResult) => pct(r.lossRate)],
+                  ["Rounds", (r: SimResult) => one(r.avgRounds)], ["Damage per turn", (r: SimResult) => one(r.dmgPerTurn)],
+                  ["HP left after a win", (r: SimResult) => one(r.avgHpLeft)], ["Peak Rage", (r: SimResult) => one(r.avgPeakRage)],
+                  ["Surges per fight", (r: SimResult) => one(r.surgesPerFight)], ["Sanity lost", (r: SimResult) => one(r.sanityPerFight)],
+                  ["Fel gained", (r: SimResult) => one(r.felPerFight)],
                 ] as const).map(([label, f]) => <tr key={label}><th>{label}</th><td>{f(sim.off)}</td><td>{f(sim.on)}</td></tr>)}
               </tbody>
             </table>
           )}
-        </section>
-      </div>
+        </aside>
+      )}
+
+      {/* ── Result banner ── */}
+      {fight.result && (
+        <div className={`cb__result cb__result--${fight.result}`}>
+          <b>{fight.result === "win" ? "Victory" : fight.result === "loss" ? "Defeat" : "Draw"}</b>
+          <span>Round {fight.round} · {fight.stats.dealt} damage dealt · {fight.stats.taken} taken</span>
+          <button className="btn btn--class" onClick={reset}>New fight</button>
+        </div>
+      )}
+
+      {/* ── Bottom bar ── */}
+      <footer className="cb__bar">
+        <div className="cb__bar-left">
+          {setup && <button className="btn btn--class btn--big" onClick={start} disabled={!foes.length}>Start fight</button>}
+          {!setup && fight.phase !== "over" && <button className="btn btn--class btn--big" onClick={() => { setDrawer(""); setFight(s => endTurn(s)); }} disabled={!myTurn}>{myTurn ? "End turn" : "Foes acting…"}</button>}
+          {fight.phase === "over" && <button className="btn btn--class btn--big" onClick={reset}>New fight</button>}
+          {!setup && fight.phase !== "over" && <button className="btn btn--small btn--ghost" onClick={reset} title="Abandon this fight">Reset</button>}
+        </div>
+
+        <div className="cb__me">
+          <div className="cb__me-name"><b>{ch.name}</b><span>{setup ? "Ready" : myTurn ? "Your turn" : fight.phase === "foes" ? "Foes acting" : "Fight over"} · Round {fight.round || "—"}</span></div>
+          <Bar now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="you" label="HP" />
+          {R > 0 && (
+            <div className="cb__rage" title={`Rage ${fight.rage} / ${R} — threshold at ${rule("RageThreshold")}`}>
+              <span>Rage</span>
+              <div className="pips">{Array.from({ length: R }, (_, i) => <i key={i} className={`${i < fight.rage ? "on" : ""}${i + 1 === rule("RageThreshold") || i + 1 === R ? " mark" : ""}`} />)}</div>
+              <b>{fight.rage}</b>
+            </div>
+          )}
+          <div className="cb__chips">
+            {fight.held > 0 && <span className="chip" title="Held Wounds: lands when Rage hits 0">Held {fight.held}</span>}
+            {fight.heldQueue.length > 0 && <span className="chip" title="Unbroken instalments">Queued {fight.heldQueue.join("+")}</span>}
+            {fight.bank > 0 && <span className="chip" title="Red Mist bank: added to your next hit">Red Mist {fight.bank}d6</span>}
+            {fight.guardDown && <span className="chip chip--warn" title="Berserker: Armour halved">Guard down</span>}
+            {fight.open && <span className="chip chip--warn" title="Corpse-Eater: foes attack with advantage">Open</span>}
+            {fight.lostControl && <span className="chip chip--warn">Lost in the surge</span>}
+            {fight.fel > 0 && <span className="chip" title="Fel taken in">Fel {fight.fel}</span>}
+            {fight.sanityLost > 0 && <span className="chip" title="Sanity lost this fight">Sanity −{fight.sanityLost}</span>}
+          </div>
+        </div>
+
+        <div className="cb__drawers">
+          {([["active", "Main"], ["side", "Side"], ["misc", "Misc"]] as const).map(([slot, label]) => (
+            <button key={slot} className={`slot${drawer === slot ? " slot--open" : ""}${slot !== "misc" && slotLeft(slot) ? " slot--ready" : ""}`}
+              onClick={() => setDrawer(d => (d === slot ? "" : slot))} aria-expanded={drawer === slot}>
+              <span>{label}</span>
+              <small>{slot === "misc" ? `${cards("misc").length}` : !myTurn ? "—" : fight.used[slot] ? "used" : "1 left"}</small>
+            </button>
+          ))}
+        </div>
+
+        <div className="cb__bar-right">
+          {devMode && <button className={`btn btn--small${devOpen ? " btn--dev" : ""}`} onClick={() => setDevOpen(o => !o)}>Dev tools</button>}
+          <button className={`tray-btn${tray ? " tray-btn--open" : ""}`} onClick={() => setTray(t => !t)} aria-expanded={tray} title="Passives and reactions">
+            <span className="tray-btn__grid">{trayIds.slice(0, 4).map(id => <i key={id} className={lit[id] ? "on" : ""} />)}</span>
+            <span>{trayIds.length}</span>
+          </button>
+        </div>
+      </footer>
     </div>
+  );
+}
+
+/** Two letters for a skill's tray symbol: "Held Wounds" → "HW", "Blooded" → "Bl". */
+function glyph(name: string) {
+  const w = name.replace(/\bII\b/, "").trim().split(/\s+/).filter(x => !/^(the|of|it)$/i.test(x));
+  return w.length > 1 ? (w[0][0] + w[1][0]).toUpperCase() : w[0].slice(0, 2);
+}
+
+function Bar({ now, max, kind, label }: { now: number; max: number; kind: "you" | "foe"; label?: string }) {
+  return (
+    <div className={`hpbar hpbar--${kind}`}>
+      {label && <span className="hpbar__label">{label}</span>}
+      <div className="hpbar__track"><i style={{ width: `${Math.max(0, Math.min(1, now / Math.max(1, max))) * 100}%` }} /></div>
+      <b>{now} / {max}</b>
+    </div>
+  );
+}
+
+/** Initiative wheel: one wedge per combatant, clockwise from the top in turn order. */
+function TurnWheel({ fight, setup }: { fight: CombatState; setup: boolean }) {
+  const size = 300, cx = size / 2, cy = size / 2, R = 136, r = 92;
+  const order = fight.order;
+  const n = Math.max(1, order.length);
+  const pt = (rad: number, a: number) => [cx + rad * Math.sin(a), cy - rad * Math.cos(a)];
+  const wedge = (i: number) => {
+    const gap = n > 1 ? 0.025 : 0, a0 = (i / n) * 2 * Math.PI + gap, a1 = ((i + 1) / n) * 2 * Math.PI - gap;
+    const large = a1 - a0 > Math.PI ? 1 : 0;
+    const [x0, y0] = pt(R, a0), [x1, y1] = pt(R, a1), [x2, y2] = pt(r, a1), [x3, y3] = pt(r, a0);
+    if (n === 1) return `M ${cx} ${cy - R} A ${R} ${R} 0 1 1 ${cx - 0.01} ${cy - R} L ${cx - 0.01} ${cy - r} A ${r} ${r} 0 1 0 ${cx} ${cy - r} Z`;
+    return `M ${x0} ${y0} A ${R} ${R} 0 ${large} 1 ${x1} ${y1} L ${x2} ${y2} A ${r} ${r} 0 ${large} 0 ${x3} ${y3} Z`;
+  };
+  const cur = order[fight.cursor];
+  const curAngle = ((fight.cursor + 0.5) / n) * 2 * Math.PI;
+  const [px, py] = pt(R + 10, curAngle);
+  return (
+    <div className="wheel-wrap">
+      <svg viewBox={`0 0 ${size} ${size}`} className="turnwheel" role="img" aria-label="Turn order">
+        <circle cx={cx} cy={cy} r={R + 4} className="tw__ring" />
+        <circle cx={cx} cy={cy} r={r - 4} className="tw__ring" />
+        {setup && <circle cx={cx} cy={cy} r={(R + r) / 2} className="tw__idle" />}
+        {order.map((o, i) => {
+          const foe = fight.foes.find(x => x.key === o.key);
+          const dead = !!foe && foe.hpNow <= 0;
+          const mid = ((i + 0.5) / n) * 2 * Math.PI, [lx, ly] = pt((R + r) / 2, mid);
+          const isCur = i === fight.cursor && !fight.result;
+          return (
+            <g key={o.key} className={`tw__seg tw__seg--${o.side}${dead ? " tw__seg--dead" : ""}${isCur ? " tw__seg--cur" : ""}`}>
+              <path d={wedge(i)} />
+              <text x={lx} y={ly - 3} textAnchor="middle" className="tw__name">{o.side === "you" ? "You" : short(o.name)}</text>
+              <text x={lx} y={ly + 11} textAnchor="middle" className="tw__init">{o.total}</text>
+            </g>
+          );
+        })}
+        {!setup && cur && !fight.result && <circle cx={px} cy={py} r={5} className="tw__pointer" />}
+        <text x={cx} y={cy - 6} textAnchor="middle" className="tw__round">{setup ? "Ready" : `Round ${fight.round}`}</text>
+        <text x={cx} y={cy + 14} textAnchor="middle" className="tw__who">
+          {setup ? "Start the fight to roll initiative" : fight.result ? fight.result.toUpperCase() : cur?.side === "you" ? "Your turn" : `${cur?.name ?? ""}'s turn`}
+        </text>
+      </svg>
+    </div>
+  );
+}
+const short = (s: string) => (s.length > 11 ? `${s.slice(0, 10)}…` : s);
+
+function Log({ fight }: { fight: CombatState }) {
+  const ref = useRef<HTMLOListElement>(null);
+  useEffect(() => { const el = ref.current; if (el) el.scrollTop = el.scrollHeight; }, [fight.log.length]);
+  return (
+    <ol className="cb__log" ref={ref} aria-label="Combat log">
+      {fight.log.length === 0 && <li className="log--sys">Set up the foes on the left, then press Start fight.</li>}
+      {fight.log.map((l, i) => <li key={i} className={`log--${l.who}`}><span className="mono">R{l.round}</span> {l.text}</li>)}
+    </ol>
   );
 }

@@ -74,14 +74,14 @@ src/components/CharacterPage.tsx, CharacterCreator.tsx, LevelUp.tsx, DevPanel.ts
 
 **Combat** puts the current character against foes you set up, to test skills.
 
-- **Fighter**: stats come from the Character page. Pick a weapon and the armour worn.
-- **Foes**: edit HP, Defence, Armour, attack bonus and damage dice inline, or add presets.
-- **Skills in play**: starts from the nodes you own on the tree (● = on your tree); tick any others to test them.
-- **Fight**: choose an Active card and a Side card each turn, or press *Autopilot turn*. Passives and Reactions fire on their own. The log shows every roll.
-- **Simulate**: the autopilot plays 1,000 fights and compares *Past the Red doubles only base dice* with *…also Rage-bought dice*.
+- **Left: foes.** Edit their numbers before the fight; add more with *+ Add a foe* at the bottom. During the fight, click a foe to target it.
+- **Centre: the turn wheel and the log.** *Start fight* rolls initiative (d20) for everyone; the wheel shows the order clockwise from the top, and the dot marks whose turn it is. Foes act one at a time.
+- **Right: the party** — you (pick weapon and armour before the fight) and, later, allies.
+- **Bottom bar:** *End turn*, your HP and Rage, and the **Main / Side / Misc** drawers. On your turn play up to one Main and one Side card, then End turn. The button at the far right opens the **passives and reactions** tray: lit symbols are active right now; hover one to read it.
+- **Dev mode → Dev tools:** skills in play (start from the tree, tick any others), the Past the Red option, autopilot, and the 1,000-fight simulator.
 
-Data: **`src/data/combat.json`** — `rules` (Defence, Rage gains, surge DC…), `skills` (each tree node's numbers, keyed by node id), `weapons`, `foes`. Rules marked *Proposed* are placeholders to tune.
-Engine: `src/combat/engine.ts` (pure TypeScript). A new skill needs its numbers in `combat.json` and its behaviour in `playTurn`.
+Data: **`src/data/combat.json`** — `rules` (Defence, initiative, Rage gains, surge DC…), `skills` (each tree node's numbers, keyed by node id), `weapons`, `foes`. Rules marked *Proposed* are placeholders to tune.
+Engine: `src/combat/engine.ts` (pure TypeScript). A new skill needs its numbers in `combat.json` and its behaviour in the engine.
 
 ## Where things live
 
