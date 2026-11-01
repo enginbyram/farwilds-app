@@ -7,7 +7,7 @@
 import { useMemo, useState } from "react";
 import { DEFAULT_SHEET } from "@/hooks/useSheet";
 import { attributeFocus, computeCharacter, creationBudget, paramGetter, startingWell } from "@/rules/compute";
-import { Badge, signed } from "./ui";
+import { Badge, RadialGauge, signed } from "./ui";
 import { ATTR_KEYS, type AttrKey, type AttrPoints, type CharacterSheet, type Rules, zeroPoints } from "@/rules/types";
 
 export interface NewCharacter { name: string; coreClass: string; sheet: CharacterSheet; }
@@ -151,7 +151,7 @@ export function CharacterCreator({ rules, onCreate, onCancel }: { rules: Rules; 
       {step === 2 && (
         <section className="card creator__body">
           <div className="creator__budget">
-            <div><b className={left === 0 ? "ok" : ""}>{left}</b><span>points left of {budget}</span></div>
+            <div className="creator__budgetnum"><RadialGauge now={left} max={budget} kind="points" size={56} title={`${left} of ${budget} points left`} /><span>points left of {budget}</span></div>
             <p className="note">{p("CreationPoints")} points{budget > p("CreationPoints") ? ` + ${budget - p("CreationPoints")} free (no mark)` : ""}; up to {maxPer} per attribute, on top of race, mark and class. Focus: Main where race or class gives 2, Side where it gives 1.</p>
             <button className="btn btn--small btn--ghost" onClick={() => set("points", zeroPoints())} disabled={c.pointsUsed === 0}>Clear</button>
           </div>

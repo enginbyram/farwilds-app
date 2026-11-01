@@ -2,11 +2,11 @@
 import type { Route, TreeModel, TreeNode } from "@/data/types";
 import type { Character } from "@/hooks/useCharacter";
 import { clusterRuleText, type NextSteps } from "@/model/character";
+import { RadialGauge } from "./ui";
 
 // ── 1. Character ────────────────────────────────────────────
 export function CharacterCard({ model, ch, classLocked }: { model: TreeModel; ch: Character; classLocked?: boolean }) {
   const classes = [...model.classes.values()].filter(c => c.name !== "Centre");
-  const pct = Math.min(100, (ch.used / ch.total) * 100);
   return (
     <section className="card character">
       <input className="character__name" value={ch.name} aria-label="Character name"
@@ -19,12 +19,12 @@ export function CharacterCard({ model, ch, classLocked }: { model: TreeModel; ch
         </select>
         <button className="btn btn--small btn--ghost" onClick={ch.reset} disabled={ch.used === 0} title="Refund every node">Reset</button>
       </div>
-      <div className="numbers">
+      <div className="numbers numbers--gauge">
+        <RadialGauge now={ch.left} max={ch.total} kind="points" size={54} title={`${ch.left} of ${ch.total} tree points left`} />
         <div><b>{ch.left}</b><span>points left</span></div>
         <div><b>{ch.used}</b><span>used</span></div>
         <div><b>{ch.total}</b><span>total (= level)</span></div>
       </div>
-      <div className="meter" role="meter" aria-valuemin={0} aria-valuemax={ch.total} aria-valuenow={ch.used}><i style={{ width: `${pct}%` }} /></div>
     </section>
   );
 }
