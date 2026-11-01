@@ -1,0 +1,65 @@
+/**
+ * The character being built: name, class, and the set of unlocked node ids.
+ * Saved in the browser (localStorage) per workbook, so a reload keeps your build.
+ */
+import { useEffect, useMemo, useState } from "react";
+import { DEFAULT_CHARACTER_NAME, TOTAL_SKILL_POINTS } from "@/config/settings";
+import type { TreeModel, TreeNode } from "@/data/types";
+import { canRefund, canUnlock, pointsUsed } from "@/model/character";
+
+interface Saved { name: string; className: string; unlocked: string[]; }
+
+const load = (key: string): Saved | null => {
+  try { const s = localStorage.getItem(key); return s ? (JSON.parse(s) as Saved) : null; } catch { return null; }
+};
+
+export function useCharacter(model: TreeModel, workbookKey: string) {
+  const storageKey = `farwilds.character.${workbookKey}`;
+  const firstClass = [...model.classes.values()].find(c => c.name !== "Centre")?.name ?? "";
+  const [name, setName] = useState(DEFAULT_CHARACTER_NAME);
+  const [className, setClassName] = useState(firstClass);
+  const [unlockedIds, setUnlockedIds] = useState<string[]>([]);
+  // Which save the state above came from. Nothing is written until it has been loaded,
+  // so a fresh (empty) state can never overwrite a saved build.
+  const [loadedKey, setLoadedKey] = useState("");
+
+  // Load when the data source changes (JSON database / an imported workbook).
+  useEffect(() => {
+    const saved = load(storageKey);
+    setName(saved?.name ?? DEFAULT_CHARACTER_NAME);
+    setClassName(saved && model.classes.has(saved.className) ? saved.className : firstClass);
+    setUnlockedIds(saved?.unlocked ?? []);
+    setLoadedKey(storageKey);
+    // Only on a new source — editing the JSON rebuilds the model but keeps the build you have.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storageKey]);
+
+  useEffect(() => {
+    if (loadedKey !== storageKey) return;
+    try { localStorage.setItem(storageKey, JSON.stringify({ name, className, unlocked: unlockedIds })); } catch { /* storage blocked */ }
+  }, [loadedKey, storageKey, name, className, unlockedIds]);
+
+  const start: TreeNode | null = model.byId.get(model.classes.get(className)?.startNodeId ?? "") ?? null;
+  const owned = useMemo(() => {
+    const s = new Set<TreeNode>(model.nodes.filter(n => n.isCentre));  // the centre is always owned
+    if (start) s.add(start);
+    unlockedIds.forEach(id => { const n = model.byId.get(id); if (n) s.add(n); });
+    return s;
+  }, [model, start, unlockedIds]);
+
+  const used = pointsUsed(owned, start);
+  const total = TOTAL_SKILL_POINTS;
+  const left = total - used;
+
+  return {
+    name, setName, className, start, owned, used, total, left,
+    setClassName: (c: string) => { setClassName(c); setUnlockedIds([]); },  // new class = fresh build
+    reset: () => setUnlockedIds([]),
+    unlockVerdict: (n: TreeNode) => canUnlock(n, owned, left),
+    refundVerdict: (n: TreeNode) => canRefund(n, owned, start),
+    unlock: (n: TreeNode) => { if (canUnlock(n, owned, left).ok) setUnlockedIds(ids => [...ids, n.id]); },
+    refund: (n: TreeNode) => { if (canRefund(n, owned, start).ok) setUnlockedIds(ids => ids.filter(id => id !== n.id)); },
+  };
+}
+
+export type Character = ReturnType<typeof useCharacter>;

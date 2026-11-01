@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Farwilds extra links",
+  "description": "Only connections 'parent' doesn't already draw.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "from",
+      "to"
+    ],
+    "additionalProperties": false,
+    "patternProperties": {
+      "^_": {}
+    },
+    "properties": {
+      "from": {
+        "type": [
+          "string",
+          "number"
+        ]
+      },
+      "to": {
+        "type": [
+          "string",
+          "number"
+        ]
+      },
+      "type": {
+        "description": "normal = solid, gate = dotted, locked = dashed. 'requirement' is not used here — use the node's 'requires'.",
+        "anyOf": [
+          {
+            "enum": [
+              "normal",
+              "gate",
+              "locked"
+            ]
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "notes": {
+        "type": "string"
+      }
+    }
+  }
+}

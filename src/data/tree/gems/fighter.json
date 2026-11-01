@@ -1,0 +1,156 @@
+{
+  "fig.start": {
+    "_name": "Fighter I",
+    "description": "Fighters share an unparalleled mastery with weapons and armor, and a thorough knowledge of the skills of combat. They are well acquainted with death, both meting it out and staring it defiantly in the face.",
+    "bonuses": []
+  },
+  "fig.wmg1": {
+    "_name": "Weapon Mastery",
+    "description": "You adopt a particular style of fighting as your specialty. You can't take a Fighting Style option more than once.",
+    "bonuses": []
+  },
+  "fig.wmg2": {
+    "_name": "Defense",
+    "description": "While you are wearing armor, you gain a bonus to Armor Rating.",
+    "bonuses": [{
+      "effect": "ar",
+      "value": 2,
+      "when": "every 10 AR"
+    }]
+  },
+  "fig.wmg3": {
+    "_name": "Greatweapon Fighting",
+    "description": "",
+    "bonuses": []
+  },
+  "fig.wmg4": {
+    "_name": "Thrown Weapon Fighting",
+    "description": "",
+    "bonuses": []
+  },
+  "fig.wmg5": {
+    "_name": "Two-Weapon Fighting",
+    "description": "",
+    "bonuses": []
+  },
+  "fig.wmg6": {
+    "_name": "Archery",
+    "description": "",
+    "bonuses": []
+  },
+  "fig.secondw1": {
+    "_name": "Second Wind",
+    "description": "You have a limited well of stamina that you can draw on to protect yourself from harm. On your turn, you can use a bonus action to regain hit points equal to 1d10 + your fighter level. Once you use this feature, you must finish a short or long rest before you can use it again.",
+    "bonuses": []
+  },
+  "fig.asi1": {
+    "_name": "Ability Score Improvement",
+    "description": "",
+    "bonuses": []
+  },
+  "fig.actions1": {
+    "_name": "Action Surge",
+    "description": "you can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action. Once you use this feature, you must finish a short or long rest before you can use it again.",
+    "bonuses": []
+  },
+  "bbr.headlong1": {
+    "_name": "Headlong",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.unmake1": {
+    "_name": "Unmake",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.blooded1": {
+    "_name": "Blooded",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.berserker1": {
+    "_name": "Berserker",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.pastred1": {
+    "_name": "Past the Red",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.thickit1": {
+    "_name": "Thick of It",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.bitedown1": {
+    "_name": "Bite Down",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.grudge1": {
+    "_name": "Grudge",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.dti1": {
+    "_name": "Draw Them In",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.hw1": {
+    "_name": "Held Wounds",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.corpse": {
+    "_name": "Corpse-Eater",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.bitedown2": {
+    "_name": "Bite Down II",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.grudge2": {
+    "_name": "Grudge II",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.ironmind": {
+    "_name": "Iron Mind",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.unbroken": {
+    "_name": "Unbroken",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.headlong2": {
+    "_name": "Headlong II",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.unmake2": {
+    "_name": "Unmake II",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.blooded2": {
+    "_name": "Blooded II",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.berserker2": {
+    "_name": "Berserker II",
+    "description": "",
+    "bonuses": []
+  },
+  "bbr.redmist2": {
+    "_name": "Red Mist",
+    "description": "",
+    "bonuses": []
+  }
+}

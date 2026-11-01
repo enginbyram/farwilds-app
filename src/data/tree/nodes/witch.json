@@ -1,0 +1,10 @@
+[
+  {"id": "wit.start", "name": "Witch start", "type": "starter socket", "class": "Witch", "ring": 1, "slot": 1},
+  {"id": "wit.ma1", "name": "Witch MA 1", "type": "ascendency", "parent": "wit.start", "ring": 2, "slot": 1},
+  {"id": "wrl.start", "name": "Warlock SM", "type": "ascendency", "parent": "wit.start", "ring": 2, "slot": 2},
+  {"id": "bma.start", "name": "Bloodmagic SM", "type": "ascendency", "parent": "wit.start", "ring": 2, "slot": 3, "requirement": "forbidden", "notes": "Added: needed as Root B of Bloodrager"},
+  {"id": "hex.start", "name": "Hexblade SM", "type": "ascendency", "parent": "wrl.start", "requires": "fig.ma1", "ring": 3, "slot": 1},
+  {"id": "occ.start", "name": "Occultist SM", "type": "ascendency", "parent": "wit.ma1", "requires": "arc.ma1", "ring": 3, "slot": 1},
+  {"id": "htc.start", "name": "Heretic SM", "type": "ascendency", "parent": "wrl.start", "requires": "cle.ma1", "ring": 3, "slot": 2},
+  {"id": "hdg.start", "name": "Hedgewitch SM", "type": "ascendency", "parent": "wit.ma1", "requires": "dru.ma1", "ring": 3, "slot": 2}
+]

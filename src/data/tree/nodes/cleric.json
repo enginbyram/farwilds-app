@@ -1,0 +1,14 @@
+[
+  {"id": "cle.start", "name": "Cleric start", "type": "starter socket", "class": "Cleric", "ring": 1, "slot": 1},
+  {"id": "cle.ma1", "name": "Cleric MA 1", "type": "ascendency", "parent": "cle.start", "ring": 2, "slot": 1},
+  {"id": "inq.start", "name": "Inquisitor SM", "type": "ascendency", "parent": "cle.start", "ring": 2, "slot": 2},
+  {"id": "ora.start", "name": "Oracle SM", "type": "ascendency", "parent": "cle.start", "ring": 2, "slot": 3},
+  {"id": "pal.start", "name": "Paladin SM", "type": "ascendency", "parent": "cle.start", "ring": 2, "slot": 4},
+  {"id": "wpt.start", "name": "Warpriest SM", "type": "ascendency", "parent": "pal.start", "requires": "bbr.start", "ring": 3, "slot": 1},
+  {"id": "pre.start", "name": "Preacher SM", "type": "ascendency", "parent": "cle.ma1", "requires": "her.start", "ring": 3, "slot": 1},
+  {"id": "dk.start", "name": "Death Knight SM", "type": "ascendency", "parent": "pal.start", "requires": "bmg.start", "ring": 3, "slot": 2},
+  {"id": "502205", "name": "Witchhunter SM", "type": "ascendency", "parent": "inq.start", "requires": "inv.start", "ring": 3, "slot": 1},
+  {"id": "504203", "name": "Antipaladin SM", "type": "ascendency", "parent": "pal.start", "requires": "vig.start", "ring": 3, "slot": 3},
+  {"id": "504602", "name": "Crusader SM", "type": "ascendency", "parent": "pal.start", "requires": "her.start", "ring": 3, "slot": 4},
+  {"id": "503601", "name": "Teller SM", "type": "ascendency", "parent": "ora.start", "requires": "bar.ma1", "ring": 3, "slot": 1}
+]

@@ -1,0 +1,9 @@
+[
+  {"id": "bar.start", "name": "Bard start", "type": "starter socket", "class": "Bard", "ring": 1, "slot": 1},
+  {"id": "bar.ma1", "name": "Bard MA 1", "type": "ascendency", "parent": "bar.start", "ring": 2, "slot": 1},
+  {"id": "her.start", "name": "Herald SM", "type": "ascendency", "parent": "bar.start", "ring": 2, "slot": 2},
+  {"id": "spy.start", "name": "Spymaster SM", "type": "ascendency", "parent": "bar.start", "ring": 2, "slot": 3},
+  {"id": "ska.start", "name": "Skald SM", "type": "ascendency", "parent": "bar.start", "ring": 2, "slot": 4},
+  {"id": "602101", "name": "Commander SM", "type": "ascendency", "parent": "her.start", "requires": "fig.ma1", "ring": 3, "slot": 1},
+  {"id": "603204", "name": "Shadowhand SM", "type": "ascendency", "parent": "spy.start", "requires": "asa.start", "ring": 3, "slot": 1}
+]

@@ -1,0 +1,160 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Farwilds world setup",
+  "type": "object",
+  "required": [
+    "classes",
+    "aptitudes",
+    "rings",
+    "nodeTypes"
+  ],
+  "properties": {
+    "classes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "aptitude": {
+            "type": "string"
+          },
+          "wedgeStart": {
+            "type": "number"
+          },
+          "wedgeWidth": {
+            "type": "number"
+          },
+          "startNode": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "aptitudes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "order": {
+            "type": "number"
+          },
+          "angleStart": {
+            "type": "number"
+          },
+          "angleWidth": {
+            "type": "number"
+          },
+          "gateNode": {
+            "type": "string"
+          },
+          "opposite": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "rings": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "ring",
+          "radius"
+        ],
+        "properties": {
+          "ring": {
+            "type": "integer"
+          },
+          "name": {
+            "type": "string"
+          },
+          "radius": {
+            "type": "number"
+          },
+          "role": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "nodeTypes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "shape": {
+            "enum": [
+              "circle",
+              "diamond",
+              "hexagon"
+            ]
+          },
+          "size": {
+            "type": "number"
+          },
+          "cost": {
+            "type": "number"
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "ascendancies": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "coreClass": {
+            "type": "string"
+          },
+          "forbidden": {
+            "type": "boolean"
+          },
+          "notes": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "effects": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "unit": {
+            "type": "string",
+            "description": "'%' adds a percent sign to the value."
+          },
+          "description": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "builds": {
+      "type": "array"
+    }
+  }
+}

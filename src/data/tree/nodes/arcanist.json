@@ -1,0 +1,12 @@
+[
+  {"id": "arc.start", "name": "Arcanist start", "type": "starter socket", "class": "Arcanist", "ring": 1, "slot": 1},
+  {"id": "arc.ma1", "name": "Arcanist MA 1", "type": "ascendency", "parent": "arc.start", "ring": 2, "slot": 1},
+  {"id": "con.start", "name": "Conjurer SM", "type": "ascendency", "parent": "arc.start", "ring": 2, "slot": 2},
+  {"id": "bsg.start", "name": "Battlesage SM", "type": "ascendency", "parent": "arc.start", "ring": 2, "slot": 3},
+  {"id": "bmg.start", "name": "Blackmagic SM", "type": "ascendency", "parent": "arc.start", "ring": 2, "slot": 4, "requirement": "forbidden", "notes": "Added: needed as Root B of Death Knight"},
+  {"id": "spl.start", "name": "Spellblade SM", "type": "ascendency", "parent": "bsg.start", "requires": "fig.ma1", "ring": 3, "slot": 1},
+  {"id": "the.start", "name": "Theurge SM", "type": "ascendency", "parent": "arc.ma1", "requires": "cle.ma1", "ring": 3, "slot": 1},
+  {"id": "aar.start", "name": "Arcane Archer SM", "type": "ascendency", "parent": "con.start", "requires": "ran.ma1", "ring": 3, "slot": 1},
+  {"id": "lrm.start", "name": "Loremaster SM", "type": "ascendency", "parent": "arc.ma1", "requires": "bar.ma1", "ring": 3, "slot": 2},
+  {"id": "802302", "name": "Summoner SM", "type": "ascendency", "parent": "con.start", "requires": "bms.start", "ring": 3, "slot": 2}
+]

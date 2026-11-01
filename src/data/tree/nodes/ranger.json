@@ -1,0 +1,6 @@
+[
+  {"id": "ran.start", "name": "Ranger start", "type": "starter socket", "class": "Ranger", "ring": 1, "slot": 1},
+  {"id": "ran.ma1", "name": "Ranger MA 1", "type": "ascendency", "parent": "ran.start", "ring": 2, "slot": 1},
+  {"id": "bms.start", "name": "Beastmaster SM", "type": "ascendency", "parent": "ran.start", "ring": 2, "slot": 2},
+  {"id": "hnt.start", "name": "Hunter SM", "type": "ascendency", "parent": "ran.ma1", "requires": "bbr.start", "ring": 3, "slot": 1}
+]

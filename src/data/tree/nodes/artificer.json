@@ -1,0 +1,12 @@
+[
+  {"id": "art.start", "name": "Artificer start", "type": "starter socket", "class": "Artificer", "ring": 1, "slot": 1},
+  {"id": "art.ma1", "name": "Artificer MA 1", "type": "ascendency", "parent": "art.start", "ring": 2, "slot": 1},
+  {"id": "gun.start", "name": "Gunslinger SM", "type": "ascendency", "parent": "art.start", "ring": 2, "slot": 2},
+  {"id": "eng.start", "name": "Engineer SM", "type": "ascendency", "parent": "art.start", "ring": 2, "slot": 3},
+  {"id": "rsm.start", "name": "Runesmith SM", "type": "ascendency", "parent": "art.ma1", "requires": "arc.ma1", "ring": 3, "slot": 1},
+  {"id": "tpr.start", "name": "Trapper SM", "type": "ascendency", "parent": "eng.start", "requires": "ran.ma1", "ring": 3, "slot": 1},
+  {"id": "ppt.start", "name": "Puppeteer SM", "type": "ascendency", "parent": "eng.start", "requires": "wit.ma1", "ring": 3, "slot": 2},
+  {"id": "902202", "name": "Musketeer SM", "type": "ascendency", "parent": "gun.start", "requires": "sws.start", "ring": 3, "slot": 1},
+  {"id": "902204", "name": "Deadeye SM", "type": "ascendency", "parent": "gun.start", "requires": "asa.start", "ring": 3, "slot": 2},
+  {"id": "903101", "name": "Ironclad SM", "type": "ascendency", "parent": "eng.start", "requires": "fig.ma1", "ring": 3, "slot": 3}
+]

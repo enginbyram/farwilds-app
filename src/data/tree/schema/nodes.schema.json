@@ -1,0 +1,121 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Farwilds nodes",
+  "description": "One object per node, one per line.",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "required": [
+      "id"
+    ],
+    "additionalProperties": false,
+    "patternProperties": {
+      "^_": {}
+    },
+    "properties": {
+      "id": {
+        "type": [
+          "string",
+          "number"
+        ],
+        "description": "Permanent id. Rename 'name' freely, never the id — parents, links and gems use it."
+      },
+      "name": {
+        "type": "string"
+      },
+      "type": {
+        "description": "A key of world.json → nodeTypes (sets shape, size, default cost). Gem types set the cluster rule.",
+        "anyOf": [
+          {
+            "enum": [
+              "centre",
+              "starter socket",
+              "passive keystone",
+              "ascendency",
+              "gem socket",
+              "bridge keystone",
+              "cluster gem",
+              "choice cluster gem",
+              "open cluster gem",
+              "pathway gem"
+            ]
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "parent": {
+        "type": [
+          "string",
+          "number"
+        ],
+        "description": "The node it hangs from. Draws the connection and sets the position."
+      },
+      "requires": {
+        "type": [
+          "string",
+          "number"
+        ],
+        "description": "Parent 2: must be owned first. Never a path, never moves the node."
+      },
+      "class": {
+        "description": "Root nodes only — others inherit it from their parent.",
+        "anyOf": [
+          {
+            "enum": [
+              "Fighter",
+              "Rogue",
+              "Ranger",
+              "Druid",
+              "Cleric",
+              "Bard",
+              "Witch",
+              "Arcanist",
+              "Artificer"
+            ]
+          },
+          {
+            "type": "string"
+          }
+        ]
+      },
+      "ring": {
+        "type": "integer",
+        "minimum": 0
+      },
+      "slot": {
+        "type": "number",
+        "description": "Order among siblings, counted clockwise: 1, 2, 3…"
+      },
+      "angle": {
+        "type": "number",
+        "description": "Place by hand: degrees clockwise from the top. Only for gates / special nodes."
+      },
+      "depth": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 1,
+        "description": "Band nodes: 0 = inner edge, 1 = outer edge."
+      },
+      "cluster": {
+        "type": "string",
+        "description": "A key of clusters.json. Same id on a gem and its members (or a whole pathway)."
+      },
+      "cost": {
+        "type": "number",
+        "description": "Overrides nodeTypes[type].cost."
+      },
+      "requirement": {
+        "type": "string",
+        "description": "Free text shown in the node card."
+      },
+      "wiki": {
+        "type": "string"
+      },
+      "notes": {
+        "type": "string"
+      }
+    }
+  }
+}

@@ -1,0 +1,15 @@
+[
+  {"id": "rog.start", "name": "Rogue start", "type": "starter socket", "class": "Rogue", "ring": 1, "slot": 1},
+  {"id": "rog.ma1", "name": "Rogue MA 1", "type": "ascendency", "parent": "rog.start", "ring": 2, "slot": 1},
+  {"id": "sws.start", "name": "Swashbuckler SM", "type": "ascendency", "parent": "rog.start", "ring": 2, "slot": 2},
+  {"id": "vig.start", "name": "Vigilante SM", "type": "ascendency", "parent": "rog.start", "ring": 2, "slot": 3},
+  {"id": "asa.start", "name": "Assassin SM", "type": "ascendency", "parent": "rog.start", "ring": 2, "slot": 4},
+  {"id": "inv.start", "name": "Investigator SM", "type": "ascendency", "parent": "rog.start", "ring": 2, "slot": 5},
+  {"id": "due.start", "name": "Duelist SM", "type": "ascendency", "parent": "sws.start", "requires": "fig.ma1", "ring": 3, "slot": 1},
+  {"id": "ats.start", "name": "Arcane Trickster SM", "type": "ascendency", "parent": "rog.ma1", "requires": "arc.ma1", "ring": 3, "slot": 1},
+  {"id": "sab.start", "name": "Saboteur SM", "type": "ascendency", "parent": "asa.start", "requires": "eng.start", "ring": 3, "slot": 1},
+  {"id": "sta.start", "name": "Stalker SM", "type": "ascendency", "parent": "asa.start", "requires": "ran.ma1", "ring": 3, "slot": 2},
+  {"id": "cha.start", "name": "Charlatan SM", "type": "ascendency", "parent": "rog.ma1", "requires": "spy.start", "ring": 3, "slot": 2},
+  {"id": "nbl.start", "name": "Nightblade SM", "type": "ascendency", "parent": "asa.start", "requires": "wit.ma1", "ring": 3, "slot": 3},
+  {"id": "202602", "name": "Champion SM", "type": "ascendency", "parent": "sws.start", "requires": "her.start", "ring": 3, "slot": 2}
+]

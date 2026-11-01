@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Farwilds clusters",
+  "type": "object",
+  "patternProperties": {
+    "^_": {}
+  },
+  "additionalProperties": {
+    "type": "object",
+    "additionalProperties": false,
+    "patternProperties": {
+      "^_": {}
+    },
+    "properties": {
+      "name": {
+        "type": "string",
+        "description": "Drawn beside a pathway's outline."
+      },
+      "class": {
+        "type": "string"
+      },
+      "ring": {
+        "type": "integer"
+      },
+      "template": {
+        "type": "string"
+      },
+      "notes": {
+        "type": "string"
+      }
+    }
+  }
+}

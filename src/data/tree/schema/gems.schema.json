@@ -1,0 +1,82 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Farwilds gem texts",
+  "description": "Node id → its text. Works for any node. Keys starting with _ are notes and are ignored.",
+  "type": "object",
+  "patternProperties": {
+    "^_": {}
+  },
+  "additionalProperties": {
+    "type": "object",
+    "additionalProperties": false,
+    "patternProperties": {
+      "^_": {}
+    },
+    "properties": {
+      "description": {
+        "type": "string",
+        "description": "What the node does. Shown in the node card."
+      },
+      "flavor": {
+        "type": "string",
+        "description": "An in-world line, shown in italics under the description."
+      },
+      "bonuses": {
+        "type": "array",
+        "description": "Each line is plain text, or {\"effect\": id, \"value\": n, \"when\": \"…\"}.",
+        "items": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "object",
+              "required": [
+                "effect"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "effect": {
+                  "description": "A key of world.json → effects.",
+                  "anyOf": [
+                    {
+                      "enum": [
+                        "str",
+                        "dex",
+                        "con",
+                        "well",
+                        "enc",
+                        "log",
+                        "wis",
+                        "pre",
+                        "rhe",
+                        "aut",
+                        "life",
+                        "rage_gain",
+                        "pq_pool"
+                      ]
+                    },
+                    {
+                      "type": "string"
+                    }
+                  ]
+                },
+                "value": {
+                  "type": [
+                    "number",
+                    "string"
+                  ],
+                  "description": "2 → '+2', -1 → '-1'. Unit % is added from the effect."
+                },
+                "when": {
+                  "type": "string",
+                  "description": "Condition written after the bonus: 'while Raging'."
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

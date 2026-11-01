@@ -1,0 +1,7 @@
+{
+  "fig.wm1": {"name": "Weapon Mastery", "class": "Fighter", "ring": 1, "template": "Select one", "notes": "5 fighting styles"},
+  "bar.car1": {"name": "Carnage", "class": "Fighter", "ring": 2, "template": "Barbarian Pathway", "notes": "Barbarian Pathway"},
+  "bar.bul1": {"name": "Bulwark", "class": "Fighter", "ring": 2, "template": "Barbarian Pathway", "notes": "Barbarian Pathway"},
+  "bar.car2": {"name": "Carnage II", "class": "Fighter", "ring": 3, "template": "Barbarian Pathway", "notes": "Barbarian Pathway"},
+  "bar.bul2": {"name": "Bulwark II", "class": "Fighter", "ring": 3, "template": "Barbarian Pathway", "notes": "Barbarian Pathway"}
+}

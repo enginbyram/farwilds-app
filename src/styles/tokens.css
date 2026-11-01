@@ -1,0 +1,68 @@
+/*
+ * DESIGN TOKENS — every colour and font in the app comes from here.
+ * Names mirror the Figma variables ("Theme · Light" / "Theme · Dark"):
+ *   surface/bg → --bg, aptitude/body → --apt-body, etc.
+ *
+ * Light theme = :root. Dark theme = the two blocks below (system setting, or the toggle button).
+ */
+:root {
+  /* surface/* */
+  --bg: #f3f4f1;
+  --panel: #fbfbf9;
+  --line: #d5d8d2;
+  /* text/* */
+  --ink: #1d2430;
+  --muted: #5e6673;
+  /* accent/* */
+  --brass: #9a6b1f;        /* primary button, focus, zoom badge */
+  --route: #d18b16;        /* route mode, selection ring, requirement halo */
+  --danger: #b3261e;       /* warnings, "can't unlock" reasons */
+  --success: #2e7d4f;      /* Unlock button, unlocked counters */
+  --on-success: #ffffff;   /* text on the Unlock button */
+
+  /* aptitude/* (mapped in src/config/settings.ts → APTITUDE_COLOR) */
+  --apt-body: #b4532e;
+  --apt-wisdom: #1f7a68;
+  --apt-charisma: #a63a6b;
+  --apt-intellect: #5a4bb0;
+  --apt-centre: #6b6f76;
+  --forbidden: #b3261e;
+
+  /* map */
+  --sector-opacity: 0.06;
+  --locked-opacity: 0.55;  /* locked nodes you can't reach yet */
+  --edge-opacity: 0.7;
+
+  /* type — matches the Figma text styles */
+  --font-display: "Source Serif 4 Variable", "Source Serif 4", Georgia, serif;
+  --font-body: "Inter Variable", "Inter", system-ui, sans-serif;
+  --font-mono: "Cascadia Code", ui-monospace, "SFMono-Regular", monospace;
+  --weight-title: 500;     /* Display/Title, Display/Card title */
+  --weight-number: 600;    /* Display/Big number */
+
+  /* layout */
+  --radius: 10px;
+  --sidebar: 340px;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161d; --panel: #181d26; --line: #2c3340;
+    --ink: #e7e4dc; --muted: #9aa1ad;
+    --brass: #d9a54a; --route: #f2b43a; --danger: #ef5b52;
+    --success: #4cb07a; --on-success: #0d1a13;
+    --apt-body: #e07a52; --apt-wisdom: #4cc0a3; --apt-charisma: #e070a0;
+    --apt-intellect: #9b8cf0; --apt-centre: #9aa0a8; --forbidden: #ef5b52;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161d; --panel: #181d26; --line: #2c3340;
+  --ink: #e7e4dc; --muted: #9aa1ad;
+  --brass: #d9a54a; --route: #f2b43a; --danger: #ef5b52;
+  --success: #4cb07a; --on-success: #0d1a13;
+  --apt-body: #e07a52; --apt-wisdom: #4cc0a3; --apt-charisma: #e070a0;
+  --apt-intellect: #9b8cf0; --apt-centre: #9aa0a8; --forbidden: #ef5b52;
+  color-scheme: dark;
+}

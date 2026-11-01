@@ -1,0 +1,7 @@
+[
+  {"id": "dru.start", "name": "Druid start", "type": "starter socket", "class": "Druid", "ring": 1, "slot": 1},
+  {"id": "dru.ma1", "name": "Druid MA 1", "type": "ascendency", "parent": "dru.start", "ring": 2, "slot": 1},
+  {"id": "shf.start", "name": "Shifter SM", "type": "ascendency", "parent": "dru.start", "ring": 2, "slot": 2},
+  {"id": "sha.start", "name": "Shaman SM", "type": "ascendency", "parent": "dru.start", "ring": 2, "slot": 3},
+  {"id": "wdn.start", "name": "Warden SM", "type": "ascendency", "parent": "dru.ma1", "requires": "ran.ma1", "ring": 3, "slot": 1}
+]
