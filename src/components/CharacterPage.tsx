@@ -65,10 +65,10 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
       {/* ── Top bar: everything important at a glance, left to right ── */}
       <header className="char-top">
         <section className="ct ct--data" aria-label="Character">
-          <div className="ct__level" title={c.band.writtenAs}><span>Lv</span><b>{c.level}</b></div>
+          <div className="ct__level" title={`Level ${c.level} · ${c.band.writtenAs}`}><b>{c.level}</b></div>
           <div className="ct__who">
             <input className="character__name ct__name" value={ch.name} aria-label="Character name" onChange={e => ch.setName(e.target.value)} spellCheck={false} />
-            <div className="ct__class"><b>{c.buildName}</b><span className="mono">{ch.className} · {c.aptitude} · {c.band.writtenAs}</span></div>
+            <div className="ct__class"><b>{c.buildName}</b><span className="mono">{ch.className} · {c.aptitude}</span></div>
             <div className="ct__facts">
               <Hint lines={[["Lineage", c.lineage || "—"], ["Speed", `${c.combat.speed} m`]]}><span className="ct__fact"><Icon name="race" />{s.race || "—"}</span></Hint>
               <Hint lines={mark && mark.kind !== "None" ? [[mark.kind, mark.pole], ...(mark.note ? [mark.note] : [])] : ["No mark or power"]}>
@@ -102,11 +102,11 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
             <Hint lines={[`Level 1: d${core?.hitDie ?? "?"} + CON`, "Then d/2 + 1 + CON per level", `From Asc. I: d${c.hitDie}`]}>
               <RadialGauge now={c.combat.hp} max={c.combat.hp} kind="hp" size={54} label="HP" title={`Hit Points ${c.combat.hp}`} /></Hint>
             <div className="ct__pools">
-              <Pool label="Quick" now={c.pools.quick} max={c.well?.ceiling ? Math.max(c.pools.quick, c.well.ceiling) : c.pools.quick} kind="quick" lines={[["Well", c.well?.tier ?? "—"], ["Base pool", c.well?.base ?? 0], [`Growth × ${c.level - 1} levels`, (c.well?.growth ?? 0) * (c.level - 1)], ["Ceiling", c.well?.ceiling ?? 0], ["CON bonus", Math.max(0, c.attributes.find(a => a.key === "CON")?.mod ?? 0) * (rules.params.find(p => p.key === "QuickPerCON")?.value ?? 0)], "Ring: pool against the well's ceiling"]} />
+              <Pool label="Quick" now={c.pools.quick} max={c.pools.quick} kind="quick" lines={[["Base pool", c.well?.base ?? 0], [`Growth × ${c.level - 1} levels`, (c.well?.growth ?? 0) * (c.level - 1)], ["CON bonus", Math.max(0, c.attributes.find(a => a.key === "CON")?.mod ?? 0) * (rules.params.find(p => p.key === "QuickPerCON")?.value ?? 0)]]} />
               <Pool label="Sanity" now={c.pools.sanity} max={c.pools.sanity} kind="sanity" lines={["Base + Endurance + 1 per level after the first", ["Endurance", signed(c.skills.find(k => k.name === "Endurance")?.total ?? 0)]]} />
               {c.pools.purequick !== null && <Pool label="Purequick" now={c.pools.purequick} max={c.pools.purequick} kind="pq" lines={["(PQBase + WIS mod) × ((PQPerWIS + PQPerLevel) × (level − 1))", "Refills only by prayer"]} />}
               {c.pools.rage !== null && <Pool label="Rage" now={0} max={c.pools.rage} kind="rage" lines={["Rests at 0; built by moves and damage taken", ["Cap", c.pools.rage]]} />}
-              {c.pools.felLimit !== null && <Pool label="Fel" now={0} max={c.pools.felLimit} kind="fel" lines={["Rests at 0; converted from Quick", ["Fel limit (the well)", c.pools.felLimit]]} />}
+              {c.pools.felLimit !== null && <Pool label="Fel" now={0} max={c.pools.felLimit} kind="fel" lines={["Rests at 0; converted from Quick", ["Fel limit", c.pools.felLimit]]} />}
             </div>
             <div className="ct__stats">
               <StatIcon icon="armour" label="AR" value={c.combat.armour} lines={["Armour — from gear & passives"]} />
@@ -116,6 +116,14 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
               <StatIcon icon="spell" label="SP" value={`${sp(c.combat.spWeave)} / ${sp(c.combat.spWell)} / ${sp(c.combat.spDivine)}`} lines={[["Weave (Intellect)", sp(c.combat.spWeave)], ["Well (CON)", sp(c.combat.spWell)], ["Divine (WIS)", sp(c.combat.spDivine)]]} />
               <StatIcon icon="leech" label="Leech" value={c.combat.leech} lines={["Gear & passives"]} />
             </div>
+          </div>
+        </section>
+
+        <section className="ct ct--hd" aria-label="Hit Die">
+          <h2>Hit Die</h2>
+          <div className="ct__row">
+            <Hint lines={[[`Level 1 (${ch.className})`, `d${core?.hitDie ?? "?"}`], [`From Asc. I${s.asc1 ? ` (${s.asc1})` : ""}`, `d${c.hitDie}`], "Each level after the first: d/2 + 1 + CON"]}>
+              <span className="ptbox"><Icon name="die" size={24} /><b>d{c.hitDie}</b><small>per level</small></span></Hint>
           </div>
         </section>
 
@@ -130,11 +138,11 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
         </section>
       </header>
 
-      <div className="char__cols char__cols--body">
+      <div className={`char__cols char__cols--body${devMode ? "" : " char__cols--two"}`}>
         {/* ── Skills ── */}
         <section className="card">
           <h2>Skills</h2>
-          <ul className="skilllist">
+          <ul className="skilllist skilllist--compact">
             {c.skills.map(k => (
               <li key={k.name}>
                 <span>{k.name}</span>
@@ -183,36 +191,22 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
           <p className="note">Attribute points {c.pointsUsed} / {c.attributePointsAvailable}</p>
         </section>
 
-        <div className="char__stack">
-          {/* ── Progression (and Dev-mode identity editing) ── */}
+        {devMode && <div className="char__stack">
+          {/* ── Dev mode only: identity editing and rule checks ── */}
           <section className="card">
-            <h2>Progression</h2>
+            <h2>Dev · identity</h2>
             <dl className="idlist">
-              {devMode && <>
-                <Row label="Level"><input type="number" className="in in--num" style={{ width: 70 }} min={1} max={maxLevel} value={s.level}
-                  onChange={e => update("level", Math.max(1, Number(e.target.value) || 1))} aria-label="Level" /></Row>
-                <Row label="Race"><Select label="Race" value={s.race} options={rules.races.map(r => r.name)} onChange={v => update("race", v)} /></Row>
-                <Row label="Mark / power"><Select label="Mark" value={s.mark} options={rules.marks.map(m => m.name)} onChange={v => update("mark", v)} /></Row>
-                <Row label="Core class"><Select label="Core class" value={ch.className} options={rules.coreClasses.map(x => x.name)} onChange={changeClass} /></Row>
-                <Row label="Dominant"><Select label="Dominant affinity" value={s.dominant} options={rules.elements.map(e => e.name)} onChange={v => update("dominant", v)} /></Row>
-                <Row label="Subdominant"><Select label="Subdominant" value={s.subdominant} options={["None", ...rules.elements.map(e => e.name)]} onChange={v => update("subdominant", v)} /></Row>
-              </>}
-              <Row label="First ascendancy">
-                {devMode ? <Select label="First ascendancy" value={s.asc1} blank="— none —"
-                    options={rules.ascendancies.filter(a => a.coreClass === ch.className).map(a => a.name)} onChange={v => update("asc1", v)} />
-                  : s.asc1 || <span className="muted">ring 1 on the tree (level {c.levels.ascILevel}+)</span>}
-              </Row>
-              <Row label="Second ascendancy">
-                {devMode ? <Select label="Second ascendancy" value={s.asc2} blank="— none —"
-                    options={rules.ascendancies.filter(a => a.name !== s.asc1).map(a => a.name)} onChange={v => update("asc2", v)} />
-                  : s.asc2 || <span className="muted">ring 2 on the tree (level {c.levels.ascIILevel}+)</span>}
-              </Row>
-              {c.asc2Eff && <Row label="Combination">{c.combination ? <>{c.combination.name} <span className="mono">Root A: {c.combination.rootA}</span></> : "—"}</Row>}
-              {c.cross && <Row label="Cross-aptitude">{c.cross} <span className="mono">{c.asc2Aptitude}</span></Row>}
-              {c.gates.length > 0 && <Row label="Gate needed">{c.gates.join(", ")}</Row>}
-              <Row label="Hit Die">d{c.hitDie}</Row>
-              <Row label="Well">{c.well?.tier ?? "—"}</Row>
-              <Row label="Tree">{ch.used} / {ch.total} points spent</Row>
+              <Row label="Level"><input type="number" className="in in--num" style={{ width: 70 }} min={1} max={maxLevel} value={s.level}
+                onChange={e => update("level", Math.max(1, Number(e.target.value) || 1))} aria-label="Level" /></Row>
+              <Row label="Race"><Select label="Race" value={s.race} options={rules.races.map(r => r.name)} onChange={v => update("race", v)} /></Row>
+              <Row label="Mark / power"><Select label="Mark" value={s.mark} options={rules.marks.map(m => m.name)} onChange={v => update("mark", v)} /></Row>
+              <Row label="Core class"><Select label="Core class" value={ch.className} options={rules.coreClasses.map(x => x.name)} onChange={changeClass} /></Row>
+              <Row label="First ascendancy"><Select label="First ascendancy" value={s.asc1} blank="— none —"
+                options={rules.ascendancies.filter(a => a.coreClass === ch.className).map(a => a.name)} onChange={v => update("asc1", v)} /></Row>
+              <Row label="Second ascendancy"><Select label="Second ascendancy" value={s.asc2} blank="— none —"
+                options={rules.ascendancies.filter(a => a.name !== s.asc1).map(a => a.name)} onChange={v => update("asc2", v)} /></Row>
+              <Row label="Dominant"><Select label="Dominant affinity" value={s.dominant} options={rules.elements.map(e => e.name)} onChange={v => update("dominant", v)} /></Row>
+              <Row label="Subdominant"><Select label="Subdominant" value={s.subdominant} options={["None", ...rules.elements.map(e => e.name)]} onChange={v => update("subdominant", v)} /></Row>
             </dl>
           </section>
 
@@ -224,7 +218,7 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
               ))}
             </ul>
           </section>
-        </div>
+        </div>}
       </div>
     </div>
   );

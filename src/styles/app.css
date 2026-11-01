@@ -628,3 +628,15 @@ dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .unit__body .unit__stats { flex: 1; }
 .numbers.numbers--gauge { grid-template-columns: auto repeat(3, minmax(0, 1fr)); }
 .ct__pools { display: flex; gap: 10px; align-items: center; padding-right: 14px; margin-right: 2px; border-right: 1px solid var(--line); }
+/* Character page: compact skills (two columns), two-column body outside Dev mode, number-only level ring */
+.char__cols--two { grid-template-columns: minmax(380px, 1.1fr) minmax(320px, 1fr); }
+.skilllist--compact { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 18px; }
+.skilllist--compact li { padding: 3px 0; font-size: 12.5px; gap: 6px; }
+.skilllist--compact .badge { min-width: 30px; font-size: 10px; padding: 0 5px; }
+.ct__level b { margin: 0; font-size: 24px; }
+@media (max-width: 1000px) { .char__cols--two { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 520px) { .skilllist--compact { grid-template-columns: minmax(0, 1fr); } }
+.char-top { grid-template-columns: minmax(340px, 1.5fr) auto minmax(380px, 2fr) auto auto; }
+.skilllist .hint { margin: 0; font-size: inherit; line-height: inherit; }
+@media (max-width: 1250px) { .char-top { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .char-top { grid-template-columns: minmax(0, 1fr); } }

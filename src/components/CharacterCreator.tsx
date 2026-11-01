@@ -1,12 +1,12 @@
 /**
  * Character creator — a new level-1 character, step by step:
  *   1 Origin (name, race, mark or power, dominant affinity) → 2 Class → 3 Attributes → 4 Review.
- * Every character starts with the same well (the playerStart tier); the subdominant affinity opens later.
+ * The subdominant affinity opens later (Level Up).
  * Nothing touches the current character until "Create character" is pressed.
  */
 import { useMemo, useState } from "react";
 import { DEFAULT_SHEET } from "@/hooks/useSheet";
-import { attributeFocus, computeCharacter, creationBudget, paramGetter, startingWell } from "@/rules/compute";
+import { attributeFocus, computeCharacter, creationBudget, paramGetter } from "@/rules/compute";
 import { Badge, RadialGauge, signed } from "./ui";
 import { ATTR_KEYS, type AttrKey, type AttrPoints, type CharacterSheet, type Rules, zeroPoints } from "@/rules/types";
 
@@ -41,7 +41,6 @@ export function CharacterCreator({ rules, onCreate, onCancel }: { rules: Rules; 
   const c = useMemo(() => computeCharacter(rules, sheet, coreClass), [rules, sheet, coreClass]);
   const focus = attributeFocus(rules, sheet.race, coreClass);
   const budget = creationBudget(rules, sheet.mark), maxPer = p("CreationMaxPerAttribute");
-  const well = startingWell(rules);
   const left = budget - c.pointsUsed;
 
   const lineages = [...new Set(rules.races.map(r => r.lineage))];
@@ -120,8 +119,7 @@ export function CharacterCreator({ rules, onCreate, onCancel }: { rules: Rules; 
             ))}
           </div>
 
-          <p className="note">Every character starts with a {well?.tier ?? "—"} well (Quick {well?.base ?? 0}, ceiling {well?.ceiling ?? 0}).
-            The subdominant affinity opens at Ascendancy {p("SubdominantAscension")}.</p>
+          <p className="note">The subdominant affinity opens at Ascendancy {p("SubdominantAscension")}.</p>
         </section>
       )}
 
@@ -193,7 +191,6 @@ export function CharacterCreator({ rules, onCreate, onCancel }: { rules: Rules; 
               <dt>Affinity</dt><dd>{sheet.dominant}</dd>
               <dt>Sub-arts open</dt><dd>{c.subArts || "—"}</dd>
               <dt>Mark or power</dt><dd>{sheet.mark}</dd>
-              <dt>Well</dt><dd>{well?.tier}</dd>
             </dl>
             <div className="stats">
               <div className="stat stat--big"><b>{c.combat.hp}</b><span>Hit Points</span></div>
