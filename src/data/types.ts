@@ -41,7 +41,7 @@ export interface WorldDef {
   rings: Array<{ ring: number; name?: string; radius: number; role?: string }>;
   nodeTypes: Record<string, { shape?: string; size?: number; cost?: number; description?: string }>;
   ascendancies: Record<string, { name?: string; coreClass?: string; forbidden?: boolean; notes?: string }>;
-  effects: Record<string, { name?: string; category?: string; unit?: string; description?: string; target?: string }>;
+  effects: Record<string, { name?: string; category?: string; unit?: string; description?: string; target?: string; aliases?: string[] }>;
   builds: Array<{ id?: string; startClass?: string; first?: string; second?: string; targets?: string; notes?: string }>;
 }
 

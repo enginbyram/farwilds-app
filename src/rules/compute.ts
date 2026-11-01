@@ -67,6 +67,7 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
   const p = paramGetter(rules);
   const lv = derivedLevels(rules);
   const L = Math.max(1, Math.round(s.level) || 1);
+  const F = (k: string) => ext.flat[k] ?? 0;   // flat bonuses from gear and the tree (rules/bonuses.ts)
   const mod = (score: number) => Math.floor((score - p("ModBase")) / (p("ModDiv") || 1));
 
   const core = rules.coreClasses.find(c => c.name === coreClass);
@@ -110,7 +111,7 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
   });
   const M = Object.fromEntries(attributes.map(a => [a.key, a.mod])) as Record<AttrKey, number>;
   const creationPoints = creationBudget(rules, s.mark);
-  const attributePointsAvailable = creationPoints + p("AttributePointsPerLevel") * (L - 1);
+  const attributePointsAvailable = creationPoints + p("AttributePointsPerLevel") * (L - 1) + F("attr_points");   // + Ability Score Improvement nodes
   const pointsUsed = ATTR_KEYS.reduce((t, k) => t + (s.points[k] ?? 0), 0);
   const aptitudeMods = rules.aptitudes.map(ap => {
     const mods = attributes.filter(a => a.aptitude === ap.name).map(a => a.mod);
@@ -132,7 +133,6 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
   const hp = hdCore + M.CON
     + Math.min(L - 1, lv.ascILevel - 2) * Math.max(minLv, hdCore / 2 + 1 + M.CON)
     + Math.max(0, L - lv.ascILevel + 1) * Math.max(minLv, hdAsc / 2 + 1 + M.CON);
-  const F = (k: string) => ext.flat[k] ?? 0;   // flat bonuses from gear and the tree
   const combat = {
     hp: hp + F("hp"),
     initiative: M.DEX + F("initiative"),
@@ -148,6 +148,9 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
     /** Extra damage by type from gear and the tree ("cold" → 1). Lands after Armour. */
     extraDamage: Object.fromEntries(Object.entries(ext.flat).filter(([k, v]) => k.startsWith("damage:") && v).map(([k, v]) => [k.slice(7), v])),
     rageGain: F("rage_gain"),
+    attack: F("attack"),                 // to hit only, every attack
+    mainActions: 1 + F("main_actions"),  // per turn
+    sideActions: 1 + F("side_actions"),
   };
 
   // ── Resource pools ──
@@ -204,7 +207,7 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
     lineage: race?.lineage ?? "", aptitude, asc1Eff, asc2Eff, buildName,
     combination: combo ?? null, cross, asc2Aptitude, gates, hitDie: hdAsc,
     attributes, pointsUsed, creationPoints, attributePointsAvailable, aptitudeMods, well: tier, skills, skillPointsUsed, skillPointsAvailable, combat, pools,
-    subArts, compound, subdominantOpen, checks, levels: lv, external: ext, maxArmour,
+    subArts, compound, subdominantOpen, checks, levels: lv, external: ext, maxArmour, proficiencyPoints: F("proficiency"),
   };
 }
 

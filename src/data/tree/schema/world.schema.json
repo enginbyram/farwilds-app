@@ -152,6 +152,13 @@
           "target": {
             "type": "string",
             "description": "Where the calculator adds the bonus: attr:STR, skill:Endurance, armour, hp, ap, ap_melee, ap_ranged, sp, initiative, speed, leech, quick, purequick, well, sanity, rage_gain, rage_max, damage:cold \u2026"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Other words a bonus line may use for this effect: \"Armor Rating\", \"bonus to attack rolls\"."
           }
         },
         "additionalProperties": false

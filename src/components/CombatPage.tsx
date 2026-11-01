@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Computed } from "@/rules/compute";
 import { attackPower, paramGetter } from "@/rules/compute";
 import type { Condition, Item, Rules } from "@/rules/types";
-import { equippedWeapons, type WeaponChoice } from "@/model/equipment";
+import { catalogItem, equippedWeapons, isWeaponItem, type WeaponChoice } from "@/model/equipment";
 import type { Character } from "@/hooks/useCharacter";
 import {
   ATTACK, COMBAT, DEFAULT_POLICY, SKILLS, YOU, autoTurn, canPlay, cardSlot, endTurn, newFight, parseDice, passiveState,
@@ -42,7 +42,7 @@ export function CombatPage({ rules, c, ch, equipped, condition, onFightEnd, devM
   // Weapons: what is equipped (Character page → Gear), then bare hands; Dev mode adds the test presets.
   const weapons: WeaponChoice[] = useMemo(() => [
     ...equippedWeapons(equipped),
-    ...(devMode ? COMBAT.weapons.map(w => ({ key: `test:${w.name}`, name: `${w.name} (test)`, dice: w.dice, damageType: w.damageType ?? "", kind: "melee" as const, ap: w.ap, equipped: false })) : []),
+    ...(devMode ? COMBAT.weapons.map(w => ({ key: `test:${w.name}`, name: `${w.name} (test)`, dice: w.dice, damageType: w.damageType ?? "", kind: "melee" as const, ap: w.ap, equipped: false, properties: [] })) : []),
   ], [equipped, devMode]);
   const [weaponName, setWeaponName] = useState(() => weapons[0].key);
   // Armour comes from gear and passives. Dev mode can add a test tier on top.
@@ -57,14 +57,26 @@ export function CombatPage({ rules, c, ch, equipped, condition, onFightEnd, devM
   const skill = (n: string) => c.skills.find(s => s.name === n)?.total ?? 0;
   const hasRageSkills = [...owned].some(id => id.startsWith("bbr."));
   const flat = (k: string) => c.external.flat[k] ?? 0;
+  // Conditional to-hit bonuses (Weapon Mastery…) that fit the weapon in hand.
+  const offhandWeapon = isWeaponItem(catalogItem(equipped.offhand?.ref));
+  const fits = (cond?: string) => cond === "two-handed" ? weapon.properties.includes("two-handed")
+    : cond === "thrown" ? weapon.properties.includes("thrown")
+    : cond === "ranged" ? weapon.kind === "ranged"
+    : cond === "melee" ? weapon.kind === "melee"
+    : cond === "offhand" ? offhandWeapon && weapon.key.startsWith("mainhand:")
+    : false;
+  const condLines = c.external.lines.filter(l => l.target === "attack" && l.when && fits(l.cond));
+  const condAttack = condLines.reduce((t, l) => t + l.value, 0);
   const weaponAP = attackPower(rules, mods, weapon.kind, weapon.ap) + flat("ap") + flat(weapon.kind === "melee" ? "ap_melee" : "ap_ranged");
   const fighter: Fighter = {
     name: ch.name,
     hpMax: Math.max(1, Math.round(c.combat.hp)),
+    mainActions: c.combat.mainActions, sideActions: c.combat.sideActions,
+    level: c.level,
     hpStart: Math.max(0, Math.round(c.combat.hp) - condition.hpLost),   // the fight starts from the sheet's current HP
     defence: c.combat.defence,                     // physical attacks roll against the DEX score (1 Nov)
     armour: (armourWorn?.value ?? 0) + c.combat.armour,
-    attackBonus: weaponAP,                         // attack = d20 + AP (1 Nov)
+    attackBonus: weaponAP + c.combat.attack + condAttack,   // attack = d20 + AP (1 Nov) + to-hit bonuses
     ap: weaponAP,
     initiative: c.combat.initiative,
     weapon: parseDice(weapon.dice),
@@ -203,7 +215,7 @@ export function CombatPage({ rules, c, ch, equipped, condition, onFightEnd, devM
                 <RadialGauge now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="hp" size={50} label="HP" />
               <dl className="unit__stats">
                 <dt>Defence (DEX)</dt><dd>{fighter.defence}</dd><dt>Armour</dt><dd>{fighter.armour}</dd>
-                <dt>Attack</dt><dd>{signed(fighter.attackBonus)}</dd><dt>Damage</dt><dd>{weapon.dice} {signed(fighter.ap)}{Object.entries(c.combat.extraDamage).map(([k, v]) => ` +${v} ${k}`).join("")}{weapon.damageType ? ` · ${weapon.damageType}` : ""}</dd>
+                <dt>Attack</dt><dd title={condLines.map(l => `${l.source} +${l.value}`).join(", ") || undefined}>{signed(fighter.attackBonus)}</dd><dt>Damage</dt><dd>{weapon.dice} {signed(fighter.ap)}{Object.entries(c.combat.extraDamage).map(([k, v]) => ` +${v} ${k}`).join("")}{weapon.damageType ? ` · ${weapon.damageType}` : ""}</dd>
               </dl>
               </div>
               <div className="unit__gear">

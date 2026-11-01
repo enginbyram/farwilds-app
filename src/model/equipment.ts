@@ -168,7 +168,7 @@ export function receive(purse: Record<string, number>, cp: number): Record<strin
 }
 
 // ── Weapons in a fight ──
-export interface WeaponChoice { key: string; name: string; dice: string; damageType: string; kind: "melee" | "ranged"; ap: number; equipped: boolean }
+export interface WeaponChoice { key: string; name: string; dice: string; damageType: string; kind: "melee" | "ranged"; ap: number; equipped: boolean; properties: string[] }   // properties lower-case: "two-handed", "thrown"…
 /** The weapons a character can fight with: what it has equipped, then bare hands. */
 export function equippedWeapons(equipped: Record<string, Item>): WeaponChoice[] {
   const out: WeaponChoice[] = [];
@@ -177,8 +177,8 @@ export function equippedWeapons(equipped: Record<string, Item>): WeaponChoice[] 
     if (!it || !isWeaponItem(c) || !c?.damage) continue;
     if (out.some(w => w.key === c.id)) continue;
     const ranged = slot === "ranged" || c.category === "firearm";
-    out.push({ key: `${slot}:${c.id}`, name: c.name, dice: c.damage, damageType: c.damage_type ?? "", kind: ranged ? "ranged" : "melee", ap: c.attack_power ?? 0, equipped: true });
+    out.push({ key: `${slot}:${c.id}`, name: c.name, dice: c.damage, damageType: c.damage_type ?? "", kind: ranged ? "ranged" : "melee", ap: c.attack_power ?? 0, equipped: true, properties: (c.properties ?? []).map(x => x.toLowerCase()) });
   }
-  out.push({ key: "unarmed", name: "Unarmed", dice: "1d4", damageType: "bludgeoning", kind: "melee", ap: 0, equipped: false });
+  out.push({ key: "unarmed", name: "Unarmed", dice: "1d4", damageType: "bludgeoning", kind: "melee", ap: 0, equipped: false, properties: [] });
   return out;
 }

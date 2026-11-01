@@ -34,7 +34,8 @@ export interface BonusLine {
   target: string;          // "attr:STR", "armour", "damage:cold"… ("" = text only)
   label: string;           // "Strength", "Armour"
   value: number;
-  when?: string;           // conditional: listed, not added
+  when?: string;           // conditional: listed, not added to the sheet
+  cond?: string;           // a condition the combat engine knows: two-handed, thrown, ranged, offhand, melee, raging
   text?: string;           // a line that couldn't be read as a number
   /** Scaling: the bonus is rate × (total of `per` ÷ step), rounded down. `value` holds the result once summed. */
   scale?: { rate: number; per: string; step: number };
@@ -67,35 +68,67 @@ function resolve(effect: string, effects: Effects): { target: string; label: str
   return null;
 }
 
-/** Looks an effect up by its name too ("Armour", "Strength", "cold damage"). */
-function resolveByName(name: string, effects: Effects): { target: string; label: string } | null {
-  const n = name.trim().toLowerCase();
-  for (const [key, def] of Object.entries(effects as Record<string, { name?: string; target?: string }>)) {
+type EffectDef = { name?: string; target?: string; aliases?: string[] };
+const norm = (s: string) => s.toLowerCase().replace(/[.\s]+$/, "").replace(/\s+/g, " ").trim();
+
+/** Every word or phrase that names an effect, longest first: key, name, aliases, skill names, attribute keys. */
+function vocabulary(effects: Effects, skills: string[]): { phrase: string; target: string; label: string }[] {
+  const out: { phrase: string; target: string; label: string }[] = [];
+  for (const [key, def] of Object.entries(effects as Record<string, EffectDef>)) {
     if (key.startsWith("_") || !def?.target) continue;
-    if (key.toLowerCase() === n || def.name?.toLowerCase() === n) return { target: def.target, label: def.name ?? key };
+    const label = def.name ?? key;
+    for (const ph of [key, def.name, ...(def.aliases ?? [])]) if (ph) out.push({ phrase: norm(ph), target: def.target, label });
   }
-  return resolve(name, effects);
+  for (const s of skills) out.push({ phrase: norm(s), target: `skill:${s}`, label: s });
+  for (const k of ATTR_KEYS) out.push({ phrase: k.toLowerCase(), target: `attr:${k}`, label: k });
+  return out.sort((a, b) => b.phrase.length - a.phrase.length);
 }
 
-/** "+1 STR", "-2 Speed", "+1 cold damage while raging" → a line; anything else → text only. */
+/** Conditions the combat engine understands, from the words of a bonus line. */
+const CONDITIONS: [RegExp, string][] = [
+  [/two[- ]handed/i, "two-handed"], [/thrown/i, "thrown"], [/ranged/i, "ranged"],
+  [/off[- ]?hand/i, "offhand"], [/melee/i, "melee"], [/rag(e|ing)/i, "raging"],
+];
+
+/** "+2 STR", "+2 Armor Rating every 10 AR", "+2 bonus to attack rolls with thrown weapons", "+1 Main Action" →
+ *  a line; anything that doesn't start with a number and name an effect → text only. */
 export function parseBonusText(text: string, effects: Effects, skills: string[] = []): Omit<BonusLine, "source" | "from"> {
-  const m = /^\s*([+\-−]\s*\d+(?:\.\d+)?)\s+(.+?)(?:\s+(while|when|if|against|vs\.?)\s+(.+))?\s*$/i.exec(text);
-  if (m) {
-    const value = Number(m[1].replace(/[−\s]/g, c => (c === "−" ? "-" : "")));
-    const what = m[2];
-    const r = resolveByName(what, effects)
-      ?? (skills.find(s => s.toLowerCase() === what.trim().toLowerCase()) ? { target: `skill:${skills.find(s => s.toLowerCase() === what.trim().toLowerCase())}`, label: what.trim() } : null);
-    if (r) return { ...r, value, ...(m[3] ? { when: `${m[3]} ${m[4]}` } : {}) };
+  const plain: Omit<BonusLine, "source" | "from"> = { target: "", label: text, value: 0, text };
+  const m = /^\s*'?\s*([+\-−]\s*\d+(?:\.\d+)?)\s+(.+?)\s*\.?\s*$/i.exec(text);
+  if (!m) return plain;
+  const value = Number(m[1].replace(/\s/g, "").replace("−", "-"));
+  const rest = norm(m[2]);
+  const words = vocabulary(effects, skills);
+  const head = words.find(w => rest === w.phrase || rest.startsWith(`${w.phrase} `));
+  if (!head) return plain;
+  const tail = rest.slice(head.phrase.length).trim();
+
+  // Scaling: "every 10 AR", "per 2 STR", "for every 5 Armour".
+  const sc = /^(?:for )?(?:every|per|each)\s+(\d+(?:\.\d+)?)\s+(.+)$/.exec(tail);
+  if (sc) {
+    const per = words.find(w => norm(sc[2]) === w.phrase);
+    if (per) return { target: head.target, label: head.label, value: 0, text, scale: { rate: value, per: per.target, step: Number(sc[1]) || 1 } };
   }
-  return { target: "", label: text, value: 0, text };
+  if (!tail) return { target: head.target, label: head.label, value, text };
+  // Anything after the effect is a condition: shown, not added; the combat engine reads the known ones.
+  const cond = CONDITIONS.find(([re]) => re.test(tail))?.[1];
+  return { target: head.target, label: head.label, value, text, when: tail, ...(cond ? { cond } : {}) };
+}
+
+/** world.json key, "skill:Endurance", an attribute short name, or any effect name or alias → { target, label }. */
+function resolveAny(effect: string, effects: Effects): { target: string; label: string } | null {
+  const r = resolve(effect, effects);
+  if (r) return r;
+  const w = vocabulary(effects, []).find(x => x.phrase === norm(effect));
+  return w ? { target: w.target, label: w.label } : null;
 }
 
 function fromDef(b: BonusDef, effects: Effects, skills: string[]): Omit<BonusLine, "source" | "from"> {
   if (typeof b === "string") return parseBonusText(b, effects, skills);
-  const r = resolve(String(b.effect ?? ""), effects);
+  const r = resolveAny(String(b.effect ?? ""), effects);
   const value = Number(String(b.value ?? 0).replace("−", "-")) || 0;
   if (!r) return { target: "", label: String(b.effect), value, text: `${value >= 0 ? "+" : ""}${value} ${b.effect}${b.when ? ` ${b.when}` : ""}` };
-  const scale = b.per ? { rate: value, per: resolve(b.per, effects)?.target ?? b.per, step: Number(b.step) || 1 } : undefined;
+  const scale = b.per ? { rate: value, per: resolveAny(b.per, effects)?.target ?? b.per, step: Number(b.step) || 1 } : undefined;
   return { ...r, value: scale ? 0 : value, ...(b.when ? { when: b.when } : {}), ...(scale ? { scale } : {}) };
 }
 

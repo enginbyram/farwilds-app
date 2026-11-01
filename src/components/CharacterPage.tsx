@@ -159,6 +159,8 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
               <span className="ptbox"><Icon name="keystone" size={22} /><b>{ch.left}</b><small>keystone</small></span></Hint>
             <Hint lines={[["Expertise points", c.expertisePoints], `From Ascendancy II – Level 1 (level ${c.levels.expertiseStart})`]}>
               <span className="ptbox"><Icon name="expertise" size={22} /><b>{c.expertisePoints}</b><small>expertise</small></span></Hint>
+            {c.proficiencyPoints > 0 && <Hint lines={["Proficiency points — raise or unlock a proficiency", ...linesFor(c.external, "proficiency")]}>
+              <span className="ptbox"><Icon name="tool" size={22} /><b>{c.proficiencyPoints}</b><small>proficiency</small></span></Hint>}
           </div>
         </section>
       </header>
@@ -197,7 +199,7 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
                 )))}
               </tbody>
             </table>
-            <p className="note">Attribute points {c.pointsUsed} / {c.attributePointsAvailable}</p>
+            <Hint lines={["Creation points + points per level", ...linesFor(c.external, "attr_points")]}><p className="note">Attribute points {c.pointsUsed} / {c.attributePointsAvailable}</p></Hint>
           </section>
 
           {/* ── Skills ── */}

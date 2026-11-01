@@ -28,6 +28,8 @@ export interface SkillDef {
   perFight?: number;
   /** Times the card can be played between rests, and which rest makes it ready again ("short": short or long). */
   uses?: number; recharge?: "short" | "long";
+  /** Healing cards: HP = heal dice + healPerLevel × level. */
+  healPerLevel?: number;
 }
 export interface WeaponDef { name: string; dice: string; ap: number; damageType?: string; note?: string; }
 export interface FoeDef { name: string; hp: number; defence: number; armour: number; attack: number; damage: string; composure: number; note?: string; }
@@ -68,7 +70,9 @@ export interface Fighter {
   name: string; hpMax: number; defence: number; armour: number; attackBonus: number; ap: number; initiative: number;
   weapon: Dice; endurance: number; intimidation: number; conMod: number; sanity: number; rageMax: number;
   weaponName?: string;
-  hpStart?: number;                       // HP when the fight starts (the sheet's current HP); hpMax if absent
+  hpStart?: number;
+  mainActions?: number; sideActions?: number;
+  level?: number;   // per turn (1 each unless a node gives more: "+1 Main Action")                       // HP when the fight starts (the sheet's current HP); hpMax if absent
   damageType?: string;                    // of the weapon: slashing, piercing… (physical types are cut by Armour)
   extraDamage?: Record<string, number>;   // flat extra damage by type from gear and the tree ("cold" → 1), lands past Armour
 }
@@ -238,7 +242,8 @@ function advance(s: CombatState) {
 
 /** Opens your turn: settles the last cycle (decay, surge, Headlong), then start-of-turn effects. */
 function beginPlayerTurn(s: CombatState, f: Fighter, owned: Owned, rng: Rng) {
-  s.phase = "player"; s.playerTurns += 1; s.used = { active: false, side: false }; s.extra = { active: 0, side: 0 };
+  s.phase = "player"; s.playerTurns += 1; s.used = { active: false, side: false };
+  s.extra = { active: Math.max(0, (f.mainActions ?? 1) - 1), side: Math.max(0, (f.sideActions ?? 1) - 1) };
   s.guardDown = false; s.open = false; s.lostControl = false;
   const c = s.cycle;
   if (s.playerTurns > 1) {
@@ -266,7 +271,7 @@ function beginPlayerTurn(s: CombatState, f: Fighter, owned: Owned, rng: Rng) {
 
 function foeTurn(s: CombatState, f: Fighter, owned: Owned, foe: FoeState, rng: Rng) {
   if (foe.attack <= -50) { say(s, "foe", `${T("foe", foe.name)} stands there.`); return; }   // dummies
-  const armourNow = s.guardDown ? Math.floor(f.armour * (eff(owned, "bbr.berserker1", "armourFactor") ?? 0.5)) : f.armour;
+  const armourNow = s.guardDown ? Math.floor(f.armour * (eff(owned, "bbr.berserker1", "armourFactor") ?? 1)) : f.armour;   // halved from Berserker II
   const roll = d20(rng, s.open ? "adv" : ""), atk = roll + foe.attack, crit = roll === 20;
   if ((rule("NaturalOneMisses") && roll === 1) || (!crit && atk < f.defence)) { say(s, "foe", `${T("foe", foe.name)} attacks ${T("roll", `${roll}+${foe.attack}=${atk} vs ${f.defence}`)} ${T("miss", "miss")}`); return; }
   const dd = parseDice(foe.damage);
@@ -279,7 +284,7 @@ function foeTurn(s: CombatState, f: Fighter, owned: Owned, foe: FoeState, rng: R
   say(s, "foe", `${T("foe", foe.name)} ${crit ? T("crit", "crit") : T("hit", "hits")} ${T("roll", `${roll}+${foe.attack}=${atk} vs ${f.defence}`)} ${T("dmg", `${dmg} dmg`)}${held ? ` ${T("skill", "Held Wounds")} holds ${T("stat", held)} (holding ${s.held})` : ""} → ${T("stat", `${s.hp} HP`)}`);
   gainRage(s, f, owned, rule("RageOnTake"), "took damage");
   if (s.guardDown) gainRage(s, f, owned, eff(owned, "bbr.berserker1", "extraRagePerHit") ?? 0, "Berserker");
-  if (!foe.hasHitYou && owned.has("bbr.grudge1")) gainRage(s, f, owned, eff(owned, "bbr.grudge1", "rage") ?? 1, `Grudge vs the ${foe.name}`);
+  if (owned.has("bbr.grudge1")) gainRage(s, f, owned, eff(owned, "bbr.grudge1", "rage") ?? 1, `Grudge vs the ${foe.name}`);   // every hit (node text, 1 Nov)
   foe.hasHitYou = true;
 }
 
@@ -353,8 +358,16 @@ export function playCard(prev: CombatState, f: Fighter, owned: Owned, id: string
     s.extra.active += def.grantActive ?? 0; s.extra.side += def.grantSide ?? 0;
     const what = [def.grantActive && `+${def.grantActive} Main`, def.grantSide && `+${def.grantSide} Side`].filter(Boolean).join(", ");
     say(s, "you", `${T("skill", def.name)} ${T("stat", `${what} action this turn`)}`);
+  } else if (def && def.heal && id !== "bbr.corpse") {
+    // A healing card (Second Wind): heal dice + healPerLevel × your level.
+    const d = parseDice(def.heal);
+    const h = rollN(rng, d.n, d.d) + d.plus + (def.healPerLevel ?? 0) * (f.level ?? 1);
+    s.hp = Math.min(f.hpMax, s.hp + h);
+    say(s, "you", `${T("skill", def.name)} ${T("heal", `+${h} HP`)} → ${T("stat", `${s.hp} HP`)}`);
   } else if (id === "bbr.berserker1") {
-    s.guardDown = true; say(s, "you", `${T("skill", "Berserker")} guard down until your next turn: ${T("stat", "Armour halved")} extra Rage per hit`);
+    s.guardDown = true;
+    const halved = (eff(owned, "bbr.berserker1", "armourFactor") ?? 1) < 1;
+    say(s, "you", `${T("skill", "Berserker")} guard down until your next turn:${halved ? ` ${T("stat", "Armour halved")},` : ""} extra Rage per hit`);
   } else if (id === "bbr.bitedown1") {
     const steps = Math.floor(Math.min(s.rage, Math.max(2, opt.biteSpend)) / 2);   // Rage is spent in pairs
     const per = parseDice(eff(owned, "bbr.bitedown1", "healPer2Rage"));
@@ -433,7 +446,7 @@ export function passiveState(s: CombatState, owned: Owned, f: Fighter): Record<s
     "bbr.thickit1": aliveFoes(s).length >= (SKILLS["bbr.thickit1"]?.minFoes ?? 2),
     "bbr.redmist2": s.bank > 0,
     "bbr.unbroken": s.heldQueue.length > 0,
-    "bbr.grudge1": s.foes.some(x => x.hpNow > 0 && !x.hasHitYou),
+    "bbr.grudge1": s.foes.some(x => x.hpNow > 0),
     "bbr.ironmind": s.rage >= 1 && f.rageMax > 0,
   };
 }

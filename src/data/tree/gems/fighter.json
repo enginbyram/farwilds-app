@@ -2,158 +2,233 @@
   "fig.start": {
     "_name": "Fighter I",
     "description": "Fighters share an unparalleled mastery with weapons and armor, and a thorough knowledge of the skills of combat. They are well acquainted with death, both meting it out and staring it defiantly in the face.",
-    "bonuses": []
+    "bonuses": [
+      "Light and Medium Armor and Shields available to use",
+      "Simple and Martial Weapons available to use"
+    ]
   },
   "fig.wmg1": {
     "_name": "Weapon Mastery",
-    "description": "You adopt a particular style of fighting as your specialty. You can't take a Fighting Style option more than once.",
+    "description": "You adopt a particular style of fighting as your specialty. Choose one of the following options. You can't take a Fighting Style option more than once",
     "bonuses": []
   },
   "fig.wmg2": {
     "_name": "Defense",
-    "description": "While you wear armour, you gain +2 Armour for every 10 Armour you have (rounded down).",
+    "description": "",
     "bonuses": [
-      {
-        "effect": "ar",
-        "value": 2,
-        "per": "armour",
-        "step": 10
-      }
+      "+2 Armor Rating every 10 AR."
     ]
   },
   "fig.wmg3": {
     "_name": "Greatweapon Fighting",
     "description": "",
-    "bonuses": []
+    "bonuses": [
+      "+2 bonus to attack rolls to two-handed weapons wielded"
+    ]
   },
   "fig.wmg4": {
     "_name": "Thrown Weapon Fighting",
     "description": "",
-    "bonuses": []
+    "bonuses": [
+      "+2 bonus to attack rolls you make with thrown weapons."
+    ]
   },
   "fig.wmg5": {
     "_name": "Two-Weapon Fighting",
     "description": "",
-    "bonuses": []
+    "bonuses": [
+      "+2 bonus to attack rolls when you have a offhand weapon"
+    ]
   },
   "fig.wmg6": {
     "_name": "Archery",
     "description": "",
-    "bonuses": []
+    "bonuses": [
+      "+2 bonus to attack rolls you make with ranged weapons."
+    ]
   },
   "fig.secondw1": {
     "_name": "Second Wind",
-    "description": "You have a limited well of stamina that you can draw on to protect yourself from harm. On your turn, you can use a bonus action to regain hit points equal to 1d10 + your fighter level. Once you use this feature, you must finish a short or long rest before you can use it again.",
-    "bonuses": []
+    "description": "You have a limited well of stamina that you can draw on to protect yourself from harm. Once you use this feature, you must finish a short or long rest before you can use it again.",
+    "bonuses": [
+      "side action to regain hit points equal to d10 + your level"
+    ]
   },
   "fig.asi1": {
     "_name": "Ability Score Improvement",
     "description": "",
-    "bonuses": []
+    "bonuses": [
+      "+2 ability score improvement"
+    ]
   },
   "fig.actions1": {
     "_name": "Action Surge",
-    "description": "You can push yourself beyond your normal limits for a moment. On your turn, you can take one additional action. Once you use this feature, you must finish a short or long rest before you can use it again.",
-    "bonuses": []
+    "description": "You can push yourself beyond your normal limits for a moment. Once you use this feature, you must finish a short or long rest before you can use it again.",
+    "bonuses": [
+      "used as as side action, you can take one additional main action"
+    ]
   },
   "bbr.headlong1": {
     "_name": "Headlong",
-    "description": "Charge up to 10 m and strike; builds 1 Rage on impact, 2 if you are struck during the charge. You end the charge in the middle of them.",
-    "bonuses": []
+    "description": "You head charge into your foes.",
+    "bonuses": [
+      "Charge up to 10 m; builds 1 Rage on impact, 2 if you are struck during the charge."
+    ]
   },
   "bbr.unmake1": {
     "_name": "Unmake",
-    "description": "Spend all Rage on one strike: +1d6 damage per 2 Rage spent. Rage drops to 0.",
-    "bonuses": []
+    "description": "Spend all Rage on one strike",
+    "bonuses": [
+      "+1d6 damage per 2 Rage spent. Rage drops to 0."
+    ]
   },
   "bbr.blooded1": {
     "_name": "Blooded",
-    "description": "At 5 Rage or more, melee attacks deal +1d4 damage.",
-    "bonuses": []
+    "description": "At 5 Rage or more, melee attacks deal extra damage",
+    "bonuses": [
+      "if rage >= 5, +1d4 damage."
+    ]
   },
   "bbr.berserker1": {
     "_name": "Berserker",
-    "description": "Lower your guard until your next turn: Armour halved, every hit you take builds 1 extra Rage.",
-    "bonuses": []
+    "description": "Lower your guard until your next turn",
+    "bonuses": [
+      "used as side action, every hit you take builds 1 extra Rage."
+    ]
   },
   "bbr.pastred1": {
     "_name": "Past the Red",
-    "description": "At 10 Rage, damage dice are doubled. No retreat and no non-Rage skills while it lasts.",
-    "bonuses": []
+    "description": "You feel the rage flowing from you.",
+    "bonuses": [
+      "Side action, if rage >= 10, damage dice are doubled."
+    ]
   },
   "bbr.thickit1": {
     "_name": "Thick of It",
-    "description": "Gain 1 Rage each turn if two or more enemies are within reach.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Gain 1 Rage each turn if two or more enemies are within reach."
+    ]
   },
   "bbr.bitedown1": {
     "_name": "Bite Down",
-    "description": "Spend Rage to recover 1d6 HP per 2 Rage spent. Spending to 0 releases Held Wounds.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Spend Rage to recover 1d6 HP per 2 Rage spent as side action"
+    ]
   },
   "bbr.grudge1": {
     "_name": "Grudge",
-    "description": "The first time each enemy hits you, gain 1 extra Rage.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "every time an enemy hits you, you gain 1 extra Rage."
+    ]
   },
   "bbr.dti1": {
     "_name": "Draw Them In",
-    "description": "Spend 2 Rage on an Intimidation shout: enemies in reach make a Composure check or must attack you next turn.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Spend 2 Rage on an Intimidation shout: enemies in reach make a Composure check or must attack you next turn."
+    ]
   },
   "bbr.hw1": {
     "_name": "Held Wounds",
-    "description": "While Rage is above 0, hold back up to CON modifier × 2 damage of each hit. When Rage hits 0, everything held lands at once.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "While Rage is above 0, hold back up to CON modifier + damage of each hit."
+    ]
   },
   "bbr.corpse": {
     "_name": "Corpse-Eater",
-    "description": "Consume a fallen enemy: restore 1d6 HP and gain 2 Rage. Leaves you open (foes attack with advantage until your next turn) and adds 1 fel per corpse.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Consume a fallen enemy to restore HP and gain Rage. The corpse's foul Quick is fel and enters"
+    ]
   },
   "bbr.bitedown2": {
     "_name": "Bite Down II",
-    "description": "2d6 HP per 2 Rage spent.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Upgrade to Bite Down, 2d6 HP per 2 Rage spent."
+    ]
   },
   "bbr.grudge2": {
     "_name": "Grudge II",
-    "description": "2 extra Rage.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Upgrade to Grudge, 2 extra Rage."
+    ]
   },
   "bbr.ironmind": {
     "_name": "Iron Mind",
-    "description": "When a spell targets you, spend 1 Rage to gain advantage on the check against it.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "When a spell targets you, spend 1 Rage to gain advantage on the check against it."
+    ]
   },
   "bbr.unbroken": {
     "_name": "Unbroken",
-    "description": "When Rage hits 0, make an Endurance check. On a success, held damage lands a third per turn over 3 turns instead of at once.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "When Rage hits 0, make an Endurance check. On a success, held damage lands a third per turn over 3 turns instead of at once."
+    ]
   },
   "bbr.headlong2": {
     "_name": "Headlong II",
-    "description": "The charge also deals 1d6 damage on impact.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Upgrade to Headlong, The charge also deals 1d6 damage on impact."
+    ]
   },
   "bbr.unmake2": {
     "_name": "Unmake II",
-    "description": "+2d6 per 2 Rage spent.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Upgrade to Unmake, +2d6 damage per 2 Rage spent."
+    ]
   },
   "bbr.blooded2": {
     "_name": "Blooded II",
-    "description": "+2d4 damage.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Upgrade to Blooded, At 5 Rage or more, melee attacks deal +2d4."
+    ]
   },
   "bbr.berserker2": {
     "_name": "Berserker II",
-    "description": "2 extra Rage per hit taken.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Upgrade to Berserker, Armour halved; 2 extra Rage per hit taken."
+    ]
   },
   "bbr.redmist2": {
     "_name": "Red Mist",
-    "description": "Rage gained above 10 is banked as +1d6 on your next hit, up to 3d6. The surge check still rolls; a failed check loses control for a turn and 1 Sanity per banked point.",
-    "bonuses": []
+    "description": "",
+    "bonuses": [
+      "Rage gained above 10 is banked as +1d6 on your next hit, up to 3d6. The surge check still rolls."
+    ]
+  },
+  "fig.ma1": {
+    "_name": "Fighter MA 1",
+    "description": "",
+    "bonuses": [
+      "+2 proficiency bonus",
+      "Heavy Armor available to use",
+      "+1 Main Action"
+    ]
+  },
+  "bbr.start": {
+    "_name": "Barbarian SM",
+    "description": "For every barbarian, rage is a power that fuels not just a battle frenzy but also uncanny reflexes, resilience, and feats of strength.",
+    "bonuses": [
+      "Rage is available to use"
+    ]
+  },
+  "bul.ma2": {
+    "_name": "Bulwark MA 2",
+    "description": "",
+    "bonuses": [
+      "Fel is available to use"
+    ]
   }
 }

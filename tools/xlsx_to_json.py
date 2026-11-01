@@ -7,6 +7,17 @@ Convert the old skill-tree workbook (.xlsx) into the JSON database in src/data/t
 
 It never touches existing gem texts: with --into, gems/*.json files that already exist are kept
 and only missing node entries are added to them.
+
+Node texts only (the usual case once the tree lives in JSON):
+
+    python tools/xlsx_to_json.py Farwilds_Skill_Tree_DB_v4.xlsx --texts
+
+reads the Nodes sheet's `description` and `bonus` columns into src/data/tree/gems/<class>.json and
+changes nothing else. A row with either column filled replaces that node's description and bonuses
+(an empty cell clears it); a row with both empty leaves the node as it is. Each line of `bonus` becomes
+one bonus line. The app reads lines like "+2 STR", "+2 Armor Rating every 10 AR", "+2 bonus to attack
+rolls with thrown weapons", "+1 Main Action" as numbers (src/rules/bonuses.ts); other lines are shown
+as text.
 """
 from __future__ import annotations
 
@@ -205,10 +216,73 @@ def convert(xlsx: Path, out: Path, keep_gems: bool) -> list[str]:
     return report
 
 
+def bonus_lines(cell) -> list[str]:
+    """The bonus cell → one line per bonus. Excel's leading ' (text marker) and blank lines are dropped."""
+    if cell is None:
+        return []
+    out = []
+    for line in str(cell).replace("\r", "").split("\n"):
+        line = line.replace("\xa0", " ").strip().lstrip("'").strip()
+        if line:
+            out.append(line)
+    return out
+
+
+def import_texts(xlsx: Path, tree: Path) -> list[str]:
+    """Writes the Nodes sheet's description and bonus columns into tree/gems/*.json (see the module doc)."""
+    wb = openpyxl.load_workbook(xlsx, data_only=True)
+    ws = wb["Nodes"]
+    header = [clean(c.value) for c in ws[1]]
+    if "description" not in header and "bonus" not in header:
+        return ["The Nodes sheet has no description or bonus column — nothing to do."]
+    # Which gems file each node belongs to: the same name as the nodes/*.json file that holds it.
+    file_of = {}
+    for f in sorted((tree / "nodes").glob("*.json")):
+        for n in json.loads(f.read_text(encoding="utf-8")):
+            file_of[str(n["id"])] = f.stem
+    texts: dict[str, dict] = {}
+    for r in ws.iter_rows(min_row=2, values_only=True):
+        row = dict(zip(header, r))
+        nid = as_id(row.get("node_id"))
+        desc, bonus = row.get("description"), row.get("bonus")
+        if not nid or (clean(desc) is None and not bonus_lines(bonus)):
+            continue
+        texts[nid] = {"name": clean(row.get("name")), "description": clean(desc) or "", "bonuses": bonus_lines(bonus)}
+
+    report, missing, changed = [], [], {}
+    for nid, tx in texts.items():
+        stem = file_of.get(nid)
+        if not stem:
+            missing.append(nid)
+            continue
+        changed.setdefault(stem, {})[nid] = tx
+    for stem, entries in changed.items():
+        path = tree / "gems" / f"{stem}.json"
+        gems = json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+        for nid, tx in entries.items():
+            g = gems.get(nid, {})
+            g = {"_name": g.get("_name") or tx["name"] or nid, **{k: v for k, v in g.items() if k != "_name"}}
+            g["description"] = tx["description"]
+            g["bonuses"] = tx["bonuses"]
+            gems[nid] = g
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(pretty(gems), encoding="utf-8")
+        report.append(f"gems/{stem}.json: {len(entries)} node texts")
+    if missing:
+        report.append(f"Not in the JSON tree, skipped: {', '.join(missing)}")
+    return report
+
+
 if __name__ == "__main__":
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("xlsx", type=Path)
     ap.add_argument("--into", type=Path, default=Path(__file__).parent / "out", help="output folder (default tools/out)")
+    ap.add_argument("--texts", action="store_true", help="only copy the description and bonus columns into src/data/tree/gems")
     a = ap.parse_args()
+    if a.texts:
+        tree = a.into if a.into != Path(__file__).parent / "out" else Path(__file__).parent.parent / "src" / "data" / "tree"
+        for line in import_texts(a.xlsx, tree):
+            print(line)
+        raise SystemExit
     for line in convert(a.xlsx, a.into, keep_gems=True):
         print(line)
