@@ -61,6 +61,18 @@ export interface CharacterSheet {
   subdominant: string;           // "None" until chosen (opens at Ascendancy III)
   points: AttrPoints;            // attribute points spent: creator + level ups
   skillPoints: Record<string, number>;  // spent from SkillPointsPerAscension × ascensions reached
+  equipped: Record<string, Item>;        // gear slot id (src/data/gear.json) → the item worn there
+  bag: Item[];                           // carried, not worn
+  wealth: Record<string, number>;        // coin id (gold, silver, copper) → count
+  valuables: Item[];                     // gems, jewellery and other trade goods
+}
+
+/** Anything a character can wear, carry or trade. Stats come later with the equipment chapter. */
+export interface Item {
+  name: string;
+  kind?: string;   // gear slot id for wearables; "gem", "jewellery", "art"… for valuables
+  qty?: number;
+  note?: string;
 }
 
 export const zeroPoints = (): AttrPoints =>

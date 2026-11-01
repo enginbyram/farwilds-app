@@ -4,7 +4,8 @@
  *   {
  *     "format": "farwilds-character", "version": 1, "savedAt": "...",
  *     "name": "...", "coreClass": "Fighter",
- *     "sheet":   { race, level, asc1, asc2, ranks, … },       ← what you typed
+ *     "sheet":   { race, level, asc1, asc2, points, …,
+ *                  equipped, bag, wealth, valuables },         ← what you typed / carry
  *     "tree":    { "workbook": "...", "unlocked": ["101", …] } ← unlocked node ids
  *     "summary": { buildName, hp, … }                          ← read-only snapshot, ignored on load
  *   }
@@ -14,7 +15,7 @@ import type { Computed } from "@/rules/compute";
 import { normaliseSheet } from "@/hooks/useSheet";
 
 export const CHARACTER_FORMAT = "farwilds-character";
-export const CHARACTER_FILE_VERSION = 2;
+export const CHARACTER_FILE_VERSION = 3;
 
 export interface CharacterFile {
   format: typeof CHARACTER_FORMAT;

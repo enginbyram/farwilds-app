@@ -1,0 +1,28 @@
+{
+  "$comment": "Gear slots and coins for the Character page. Edit by hand. Slot list is a placeholder until Rulebook 6.2 (Armour and shields) settles the full list. side: left / right column beside the figure, or weapons row under it. icon: a name from ICONS in src/components/ui.tsx.",
+  "slots": [
+    { "id": "head",      "label": "Head",      "side": "left",    "icon": "head" },
+    { "id": "neck",      "label": "Neck",      "side": "left",    "icon": "neck" },
+    { "id": "shoulders", "label": "Shoulders", "side": "left",    "icon": "shoulders" },
+    { "id": "back",      "label": "Back",      "side": "left",    "icon": "back" },
+    { "id": "chest",     "label": "Chest",     "side": "left",    "icon": "chest" },
+    { "id": "wrists",    "label": "Wrists",    "side": "left",    "icon": "wrists" },
+    { "id": "hands",     "label": "Hands",     "side": "right",   "icon": "hands" },
+    { "id": "waist",     "label": "Waist",     "side": "right",   "icon": "waist" },
+    { "id": "legs",      "label": "Legs",      "side": "right",   "icon": "legs" },
+    { "id": "feet",      "label": "Feet",      "side": "right",   "icon": "feet" },
+    { "id": "ring1",     "label": "Ring",      "side": "right",   "icon": "ring" },
+    { "id": "ring2",     "label": "Ring",      "side": "right",   "icon": "ring" },
+    { "id": "mainhand",  "label": "Main hand", "side": "melee",   "icon": "melee" },
+    { "id": "offhand",   "label": "Off hand",  "side": "melee",   "icon": "armour" },
+    { "id": "ranged",    "label": "Ranged",    "side": "ranged",  "icon": "ranged" }
+  ],
+  "coins": [
+    { "id": "gold",   "label": "Gold",   "short": "gp" },
+    { "id": "silver", "label": "Silver", "short": "sp" },
+    { "id": "copper", "label": "Copper", "short": "cp" }
+  ],
+  "valuableKinds": ["gem", "jewellery", "art", "other"],
+  "bagMinCells": 20,
+  "bagColumns": 5
+}

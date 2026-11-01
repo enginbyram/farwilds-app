@@ -4,7 +4,7 @@
  * Saved in the browser so a reload keeps it.
  */
 import { useEffect, useState } from "react";
-import { ATTR_KEYS, type AttrPoints, type CharacterSheet, zeroPoints } from "@/rules/types";
+import { ATTR_KEYS, type AttrPoints, type CharacterSheet, type Item, zeroPoints } from "@/rules/types";
 
 const KEY = "farwilds.sheet";
 
@@ -18,7 +18,22 @@ export const DEFAULT_SHEET: CharacterSheet = {
   subdominant: "None",
   points: zeroPoints(),
   skillPoints: {},
+  equipped: {},
+  bag: [],
+  wealth: { gold: 0, silver: 0, copper: 0 },
+  valuables: [],
 };
+
+/** Keeps only well-formed items from a saved or hand-edited file. */
+const asItem = (v: unknown): Item | null => {
+  const o = v as Partial<Item> | null;
+  if (!o || typeof o.name !== "string" || !o.name.trim()) return null;
+  return {
+    name: o.name, ...(typeof o.kind === "string" ? { kind: o.kind } : {}),
+    ...(Number.isFinite(o.qty) ? { qty: Number(o.qty) } : {}), ...(typeof o.note === "string" ? { note: o.note } : {}),
+  };
+};
+const asItems = (v: unknown): Item[] => (Array.isArray(v) ? v.map(asItem).filter((x): x is Item => !!x) : []);
 
 /** Old (v1) sheets chose a rank per attribute; turn those into creator points so nothing is lost. */
 const RANK_POINTS: Record<string, number> = { Main: 4, Side: 2, Misc: 1 };
@@ -37,6 +52,10 @@ export function normaliseSheet(raw: unknown): CharacterSheet {
     dominant: str(s.dominant, d.dominant), subdominant: str(s.subdominant, d.subdominant),
     points,
     skillPoints: { ...s.skillPoints },
+    equipped: Object.fromEntries(Object.entries(s.equipped ?? {}).map(([k, v]) => [k, asItem(v)]).filter(([, v]) => v)) as Record<string, Item>,
+    bag: asItems(s.bag),
+    wealth: Object.fromEntries(Object.entries({ ...d.wealth, ...s.wealth }).map(([k, v]) => [k, Math.max(0, Math.floor(Number(v) || 0))])),
+    valuables: asItems(s.valuables),
   };
 }
 

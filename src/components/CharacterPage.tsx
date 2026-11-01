@@ -2,8 +2,9 @@
  * Character page — read-only character sheet. Points are spent only through Level Up
  * (tree node → Level Up screen) or the Creator. Dev mode turns the identity fields into inputs.
  *
- * Layout:  top bar  [ Data | Affinities | Stats (HP + pools + icons) | Points ]
- *          body     [ Skills | Attributes | Progression + Checks ]
+ * Layout:  top bar  [ Data | Affinities | Stats (HP + pools + icons) | Hit Die | Points ]
+ *          body     [ Attributes / Skills | Gear | Wealth / Equipment ]  — three equal thirds
+ *          dev      [ Identity | Checks ]  (Dev mode only, under the body)
  * Colours follow the core class (CLASS_THEME in config/settings.ts).
  */
 import { CLASS_THEME } from "@/config/settings";
@@ -11,6 +12,7 @@ import type { Character } from "@/hooks/useCharacter";
 import type { SheetState } from "@/hooks/useSheet";
 import type { Computed } from "@/rules/compute";
 import type { Rules } from "@/rules/types";
+import { BagPanel, GearPanel, WealthPanel } from "./Inventory";
 import { Badge, Hint, Icon, RadialGauge, signed } from "./ui";
 
 function Select({ value, options, onChange, label, blank }: {
@@ -139,88 +141,99 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
         </section>
       </header>
 
-      <div className={`char__cols char__cols--body${devMode ? "" : " char__cols--two"}`}>
-        {/* ── Skills ── */}
-        <section className="card">
-          <h2>Skills</h2>
-          <ul className="skilllist skilllist--compact">
-            {c.skills.map(k => (
-              <li key={k.name}>
-                <span>{k.name}</span>
-                <Badge focus={focusOf(k.attribute)}>{k.attribute}</Badge>
-                <Hint className="skilllist__v" lines={[[`${k.attribute} modifier`, signed(k.mod)], ["Points spent", k.points], ["Gear & passives", signed(k.bonus)]]}>
-                  <b>{signed(k.total)}</b>
-                </Hint>
-              </li>
-            ))}
-          </ul>
-          <p className="note">Skill points {c.skillPointsUsed} / {c.skillPointsAvailable} · +{rules.params.find(p => p.key === "SkillPointsPerAscension")?.value ?? 0} per ascension</p>
-        </section>
-
-        {/* ── Attributes ── */}
-        <section className="card">
-          <h2>Attributes</h2>
-          <table className="attrs">
-            <tbody>
-              {aptitudes.map(ap => ap.rows.map((a, i) => (
-                <tr key={a.key} className={i === 0 ? "attrs__first" : ""}>
-                  {i === 0 && (
-                    <th rowSpan={ap.rows.length} className="attrs__apt">
-                      <Hint lines={[`${ap.name} modifier: average of its attribute modifiers, rounded down`]}>
-                        <span>{ap.name}</span><b>{signed(ap.mod)}</b>
-                      </Hint>
-                    </th>
-                  )}
-                  <td className="attrs__name">{a.name}</td>
-                  <td><Badge focus={a.focus} title={a.focus ? `${a.focus} attribute` : undefined}>{a.key}</Badge></td>
-                  <td className="attrs__score">
-                    <Hint lines={[
-                      ["Base", a.base],
-                      [`Race (${s.race})`, signed(a.race)],
-                      ...(a.mark ? [[`Mark (${s.mark})`, signed(a.mark)] as [string, string]] : []),
-                      [`Class (${ch.className})`, signed(a.cls)],
-                      ["Points spent", signed(a.points)],
-                      ["Gear & passives", signed(a.external)],
-                      ...(a.focus ? [`${a.focus}: race or class gives ${a.focus === "Main" ? 2 : 1}`] : []),
-                    ]}><b>{a.score}</b></Hint>
-                  </td>
-                  <td><Hint lines={["(score − 10) ÷ 2, rounded down"]}><Badge focus={a.focus}>{signed(a.mod)}</Badge></Hint></td>
-                </tr>
-              )))}
-            </tbody>
-          </table>
-          <p className="note">Attribute points {c.pointsUsed} / {c.attributePointsAvailable}</p>
-        </section>
-
-        {devMode && <div className="char__stack">
-          {/* ── Dev mode only: identity editing and rule checks ── */}
+      <div className="char__thirds">
+        <div className="char__third">
+          {/* ── Attributes ── */}
           <section className="card">
-            <h2>Dev · identity</h2>
-            <dl className="idlist">
-              <Row label="Level"><input type="number" className="in in--num" style={{ width: 70 }} min={1} max={maxLevel} value={s.level}
-                onChange={e => update("level", Math.max(1, Number(e.target.value) || 1))} aria-label="Level" /></Row>
-              <Row label="Race"><Select label="Race" value={s.race} options={rules.races.map(r => r.name)} onChange={v => update("race", v)} /></Row>
-              <Row label="Mark / power"><Select label="Mark" value={s.mark} options={rules.marks.map(m => m.name)} onChange={v => update("mark", v)} /></Row>
-              <Row label="Core class"><Select label="Core class" value={ch.className} options={rules.coreClasses.map(x => x.name)} onChange={changeClass} /></Row>
-              <Row label="First ascendancy"><Select label="First ascendancy" value={s.asc1} blank="— none —"
-                options={rules.ascendancies.filter(a => a.coreClass === ch.className).map(a => a.name)} onChange={v => update("asc1", v)} /></Row>
-              <Row label="Second ascendancy"><Select label="Second ascendancy" value={s.asc2} blank="— none —"
-                options={rules.ascendancies.filter(a => a.name !== s.asc1).map(a => a.name)} onChange={v => update("asc2", v)} /></Row>
-              <Row label="Dominant"><Select label="Dominant affinity" value={s.dominant} options={rules.elements.map(e => e.name)} onChange={v => update("dominant", v)} /></Row>
-              <Row label="Subdominant"><Select label="Subdominant" value={s.subdominant} options={["None", ...rules.elements.map(e => e.name)]} onChange={v => update("subdominant", v)} /></Row>
-            </dl>
+            <h2>Attributes</h2>
+            <table className="attrs">
+              <tbody>
+                {aptitudes.map(ap => ap.rows.map((a, i) => (
+                  <tr key={a.key} className={i === 0 ? "attrs__first" : ""}>
+                    {i === 0 && (
+                      <th rowSpan={ap.rows.length} className="attrs__apt">
+                        <Hint lines={[`${ap.name} modifier: average of its attribute modifiers, rounded down`]}>
+                          <span>{ap.name}</span><b>{signed(ap.mod)}</b>
+                        </Hint>
+                      </th>
+                    )}
+                    <td className="attrs__name">{a.name}</td>
+                    <td><Badge focus={a.focus} title={a.focus ? `${a.focus} attribute` : undefined}>{a.key}</Badge></td>
+                    <td className="attrs__score">
+                      <Hint lines={[
+                        ["Base", a.base],
+                        [`Race (${s.race})`, signed(a.race)],
+                        ...(a.mark ? [[`Mark (${s.mark})`, signed(a.mark)] as [string, string]] : []),
+                        [`Class (${ch.className})`, signed(a.cls)],
+                        ["Points spent", signed(a.points)],
+                        ["Gear & passives", signed(a.external)],
+                        ...(a.focus ? [`${a.focus}: race or class gives ${a.focus === "Main" ? 2 : 1}`] : []),
+                      ]}><b>{a.score}</b></Hint>
+                    </td>
+                    <td><Hint lines={["(score − 10) ÷ 2, rounded down"]}><Badge focus={a.focus}>{signed(a.mod)}</Badge></Hint></td>
+                  </tr>
+                )))}
+              </tbody>
+            </table>
+            <p className="note">Attribute points {c.pointsUsed} / {c.attributePointsAvailable}</p>
           </section>
 
+          {/* ── Skills ── */}
           <section className="card">
-            <h2>Checks <span className={`pill${failing.length ? " pill--bad" : ""}`}>{failing.length ? `${failing.length} to fix` : "all pass"}</span></h2>
-            <ul className="checks">
-              {(failing.length ? failing : c.checks).map(k => (
-                <li key={k.label} className={k.ok ? "ok" : "bad"}><span>{k.label}</span><b>{k.message}</b></li>
+            <h2>Skills</h2>
+            <ul className="skilllist skilllist--compact">
+              {c.skills.map(k => (
+                <li key={k.name}>
+                  <span>{k.name}</span>
+                  <Badge focus={focusOf(k.attribute)}>{k.attribute}</Badge>
+                  <Hint className="skilllist__v" lines={[[`${k.attribute} modifier`, signed(k.mod)], ["Points spent", k.points], ["Gear & passives", signed(k.bonus)]]}>
+                    <b>{signed(k.total)}</b>
+                  </Hint>
+                </li>
               ))}
             </ul>
+            <p className="note">Skill points {c.skillPointsUsed} / {c.skillPointsAvailable} · +{rules.params.find(p => p.key === "SkillPointsPerAscension")?.value ?? 0} per ascension</p>
           </section>
-        </div>}
+        </div>
+
+        <div className="char__third">
+          <GearPanel sh={sh} c={c} devMode={devMode} />
+        </div>
+
+        <div className="char__third">
+          <WealthPanel sh={sh} devMode={devMode} />
+          <BagPanel sh={sh} devMode={devMode} />
+        </div>
       </div>
+
+      {devMode && <div className="char__dev">
+        {/* ── Dev mode only: identity editing and rule checks ── */}
+        <section className="card">
+          <h2>Dev · identity</h2>
+          <dl className="idlist">
+            <Row label="Level"><input type="number" className="in in--num" style={{ width: 70 }} min={1} max={maxLevel} value={s.level}
+              onChange={e => update("level", Math.max(1, Number(e.target.value) || 1))} aria-label="Level" /></Row>
+            <Row label="Race"><Select label="Race" value={s.race} options={rules.races.map(r => r.name)} onChange={v => update("race", v)} /></Row>
+            <Row label="Mark / power"><Select label="Mark" value={s.mark} options={rules.marks.map(m => m.name)} onChange={v => update("mark", v)} /></Row>
+            <Row label="Core class"><Select label="Core class" value={ch.className} options={rules.coreClasses.map(x => x.name)} onChange={changeClass} /></Row>
+            <Row label="First ascendancy"><Select label="First ascendancy" value={s.asc1} blank="— none —"
+              options={rules.ascendancies.filter(a => a.coreClass === ch.className).map(a => a.name)} onChange={v => update("asc1", v)} /></Row>
+            <Row label="Second ascendancy"><Select label="Second ascendancy" value={s.asc2} blank="— none —"
+              options={rules.ascendancies.filter(a => a.name !== s.asc1).map(a => a.name)} onChange={v => update("asc2", v)} /></Row>
+            <Row label="Dominant"><Select label="Dominant affinity" value={s.dominant} options={rules.elements.map(e => e.name)} onChange={v => update("dominant", v)} /></Row>
+            <Row label="Subdominant"><Select label="Subdominant" value={s.subdominant} options={["None", ...rules.elements.map(e => e.name)]} onChange={v => update("subdominant", v)} /></Row>
+          </dl>
+        </section>
+
+        <section className="card">
+          <h2>Checks <span className={`pill${failing.length ? " pill--bad" : ""}`}>{failing.length ? `${failing.length} to fix` : "all pass"}</span></h2>
+          <ul className="checks">
+            {(failing.length ? failing : c.checks).map(k => (
+              <li key={k.label} className={k.ok ? "ok" : "bad"}><span>{k.label}</span><b>{k.message}</b></li>
+            ))}
+          </ul>
+        </section>
+      </div>}
     </div>
   );
 }

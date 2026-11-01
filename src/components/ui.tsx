@@ -81,6 +81,25 @@ const ICONS: Record<string, string> = {
   lock: "M6 11h12v9H6zM8 11V8a4 4 0 0 1 8 0v3",
   die: "M12 2.5l8.5 5v9L12 21.5l-8.5-5v-9zM12 2.5l-5 8.5h10zM7 11l5 10.5L17 11M3.5 7.5L7 11M20.5 7.5L17 11",
   none: "M5 12h14",
+  // gear slots
+  head: "M5 15a7 7 0 0 1 14 0v4H5zM12 8v11M5 15h14",
+  neck: "M6 3c0 6 3 9 6 9s6-3 6-9M12 12v2M12 14a3 3 0 1 0 0 6 3 3 0 0 0 0-6z",
+  shoulders: "M3 16c0-5 4-8 9-8s9 3 9 8zM12 8v8M7.5 9.5v6.5M16.5 9.5v6.5",
+  back: "M8 3h8l3 18H5zM8 3L7 9M16 3l1 6",
+  chest: "M8 3L4 6v14h16V6l-4-3c0 2-2 3.5-4 3.5S8 5 8 3zM12 6.5V20",
+  wrists: "M7 5h10l-1 14H8zM7.4 10h9.2M7.8 15h8.4",
+  hands: "M7 21v-7L5 10.5a1.5 1.5 0 0 1 2.6-1.5L9 11V5a1.5 1.5 0 0 1 3 0v6V4a1.5 1.5 0 0 1 3 0v7V6a1.5 1.5 0 0 1 3 0v9c0 3.5-2 6-5 6z",
+  waist: "M3 10h18v5H3zM10 9h4v7h-4z",
+  legs: "M6 3h12l-1 18h-4l-1-11-1 11H7zM6 6h12",
+  feet: "M8 3h6v10l6 3v4H5v-4l3-2zM5 18h15",
+  ring: "M12 9a6 6 0 1 0 0 12 6 6 0 0 0 0-12zM9.5 3h5L12 8z",
+  // wealth and bag
+  coin: "M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10z",
+  gem: "M7 4h10l4 5-9 11L3 9zM3 9h18M9 4l3 5 3-5M12 9v11",
+  jewellery: "M12 10a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11zM8 4h8l-4 6z",
+  art: "M4 5h16v14H4zM4 15l5-5 4 4 2-2 5 5M15 8.5a1 1 0 1 0 0 .1",
+  other: "M5 9l7-5 7 5v10H5zM9 19v-6h6v6",
+  bag: "M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2",
 };
 export function Icon({ name, size = 18, className = "" }: { name: string; size?: number; className?: string }) {
   return (
