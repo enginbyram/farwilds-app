@@ -4,22 +4,13 @@
  * Score = ScoreMin (8) + race + mark + class + spent points (creator + level ups) + external.
  * "Main" / "Side" are not chosen: an attribute is Main where race or class gives it 2, Side where it gives 1.
  *
- * `external` is where gear and tree passives will plug in. Nothing is typed by hand: until gear and
- * passive effects exist it is all zero, so Armour, weapon AP and Leech read 0.
+ * `external` (rules/bonuses.ts) is everything gear and unlocked tree nodes give: nothing is typed by hand.
  */
-import { ATTR_KEYS, type AttrKey, type AttrPoints, type CharacterSheet, type Rules, zeroPoints } from "./types";
+import { ATTR_KEYS, type AttrKey, type CharacterSheet, type Rules } from "./types";
+import { type External, NO_EXTERNAL } from "./bonuses";
+export { type External, NO_EXTERNAL } from "./bonuses";
 
 const ROMAN = ["", "I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
-
-export interface External {
-  attributes: AttrPoints;
-  skills: Record<string, number>;
-  armour: number;
-  meleeWeaponAP: number;
-  rangedWeaponAP: number;
-  leech: number;
-}
-export const NO_EXTERNAL: External = { attributes: zeroPoints(), skills: {}, armour: 0, meleeWeaponAP: 0, rangedWeaponAP: 0, leech: 0 };
 
 export type Focus = "Main" | "Side" | "";
 export interface AttributeRow {
@@ -62,6 +53,14 @@ export function attributeFocus(rules: Rules, race: string, coreClass: string): R
     const top = Math.max(r?.[k] ?? 0, c?.[k] ?? 0);
     return [k, top >= 2 ? "Main" : top >= 1 ? "Side" : ""];
   })) as Record<AttrKey, Focus>;
+}
+
+/** Attack Power from attributes and the weapon's own AP (the weapon AP works inside the formula, as before). */
+export function attackPower(rules: Rules, M: Record<string, number>, kind: "melee" | "ranged", weaponAP = 0) {
+  const p = paramGetter(rules);
+  return kind === "melee"
+    ? Math.floor((M.STR ?? 0) * (p("APMeleeSTR") + weaponAP) + (M.DEX ?? 0) * (p("APMeleeDEX") + weaponAP))
+    : Math.floor((M.DEX ?? 0) * (p("APRangedDEX") + weaponAP));
 }
 
 export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: string, ext: External = NO_EXTERNAL) {
@@ -133,18 +132,22 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
   const hp = hdCore + M.CON
     + Math.min(L - 1, lv.ascILevel - 2) * Math.max(minLv, hdCore / 2 + 1 + M.CON)
     + Math.max(0, L - lv.ascILevel + 1) * Math.max(minLv, hdAsc / 2 + 1 + M.CON);
+  const F = (k: string) => ext.flat[k] ?? 0;   // flat bonuses from gear and the tree
   const combat = {
-    hp,
-    initiative: M.DEX,
+    hp: hp + F("hp"),
+    initiative: M.DEX + F("initiative"),
     defence: attributes.find(a => a.key === "DEX")?.score ?? 0,   // physical attacks roll against the DEX score (1 Nov)
-    speed: race?.speed ?? p("BaseSpeed"),
-    apMelee: Math.floor(M.STR * (p("APMeleeSTR") + ext.meleeWeaponAP) + M.DEX * (p("APMeleeDEX") + ext.meleeWeaponAP)),
-    apRanged: Math.floor(M.DEX * (p("APRangedDEX") + ext.rangedWeaponAP)),
-    spWeave: aptMod("Intellect"),
-    spWell: M.CON,
-    spDivine: M.WIS,
+    speed: (race?.speed ?? p("BaseSpeed")) + F("speed"),
+    apMelee: attackPower(rules, M, "melee", ext.meleeWeaponAP) + F("ap") + F("ap_melee"),
+    apRanged: attackPower(rules, M, "ranged", ext.rangedWeaponAP) + F("ap") + F("ap_ranged"),
+    spWeave: aptMod("Intellect") + F("sp"),
+    spWell: M.CON + F("sp"),
+    spDivine: M.WIS + F("sp"),
     armour: ext.armour,
-    leech: ext.leech,
+    leech: F("leech"),
+    /** Extra damage by type from gear and the tree ("cold" → 1). Lands after Armour. */
+    extraDamage: Object.fromEntries(Object.entries(ext.flat).filter(([k, v]) => k.startsWith("damage:") && v).map(([k, v]) => [k.slice(7), v])),
+    rageGain: F("rage_gain"),
   };
 
   // ── Resource pools ──
@@ -153,14 +156,14 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
   // Pools (1 Nov): Hit Die maximum + modifier, +PoolPerStep every PoolStepLevels levels after the first.
   // The well still caps the Quick pool; a Trace well (NPCs) holds none.
   const poolGrowth = p("PoolPerStep") * Math.floor((L - 1) / (p("PoolStepLevels") || 1));
-  const quick = !tier || tier.ceiling === 0 ? 0 : Math.max(0, Math.min(tier.ceiling, hdAsc + M.CON + poolGrowth));
+  const quick = !tier || tier.ceiling === 0 ? 0 : Math.max(0, Math.min(tier.ceiling + F("well"), hdAsc + M.CON + poolGrowth + F("quick")));
   const pools = {
     quick, poolGrowth,
-    purequick: has("purequick") ? Math.max(0, hdAsc + M.WIS + poolGrowth) : null,
-    rage: has("rage") ? p("RageMax") : null,
+    purequick: has("purequick") ? Math.max(0, hdAsc + M.WIS + poolGrowth + F("purequick")) : null,
+    rage: has("rage") ? p("RageMax") + F("rage_max") : null,
     fel: has("fel"),
     felLimit: has("fel") ? quick : null,
-    sanity: p("SanityBase") + endurance + p("SanityPerLevel") * (L - 1),
+    sanity: p("SanityBase") + endurance + p("SanityPerLevel") * (L - 1) + F("sanity"),
   };
 
   // ── Affinity ──
@@ -172,6 +175,11 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
   // ── Checks ──
   const C = (label: string, ok: boolean, message: string): Check => ({ label, ok, message: ok ? "OK" : message });
   const maxPer = p("CreationMaxPerAttribute");
+  // Armour training: the heavier limit of the two ascendancies (or the core class). "Medium Armor" → Medium.
+  const order = (name?: string) => rules.armour.find(a => a.name === name)?.order ?? 0;
+  const maxArmour = [asc1Eff, asc2Eff].filter(Boolean).map(a => asc(a)?.maxArmour ?? "")
+    .reduce((best, n) => (order(n) > order(best) ? n : best), "");
+  const tooHeavy = ext.armourTypes.filter(t => order(t.split(" ")[0]) > order(maxArmour));
   const overCap = attributes.filter(a => a.points > maxPer).map(a => a.key);
   const checks: Check[] = [
     C("Level", L >= 1 && L <= p("MaxLevel"), `Level must be 1–${p("MaxLevel")}`),
@@ -188,6 +196,7 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
     C("Affinities distinct", s.subdominant !== s.dominant, "Subdominant equals dominant"),
     C("Subdominant unlocked", !hasSub || subdominantOpen, `Subdominant opens at Ascendancy ${ROMAN[p("SubdominantAscension")] ?? p("SubdominantAscension")}`),
     C("Gate requirement", gates.length === 0, `Must reach: ${gates.join(", ")}`),
+    C("Armour within training", tooHeavy.length === 0, `${tooHeavy.join(", ")} is heavier than ${maxArmour || "None"} (the build's limit)`),
   ];
 
   return {
@@ -195,7 +204,7 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
     lineage: race?.lineage ?? "", aptitude, asc1Eff, asc2Eff, buildName,
     combination: combo ?? null, cross, asc2Aptitude, gates, hitDie: hdAsc,
     attributes, pointsUsed, creationPoints, attributePointsAvailable, aptitudeMods, well: tier, skills, skillPointsUsed, skillPointsAvailable, combat, pools,
-    subArts, compound, subdominantOpen, checks, levels: lv,
+    subArts, compound, subdominantOpen, checks, levels: lv, external: ext, maxArmour,
   };
 }
 

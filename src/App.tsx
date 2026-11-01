@@ -26,6 +26,7 @@ import { EquipmentDrawer, type ShopMode } from "@/components/EquipmentDrawer";
 import { CombatPage } from "@/components/CombatPage";
 import { useRules } from "@/hooks/useRules";
 import { useSheet } from "@/hooks/useSheet";
+import { collectBonuses } from "@/rules/bonuses";
 import { computeCharacter } from "@/rules/compute";
 import { downloadJson, makeCharacterFile, parseCharacterFile, slug } from "@/data/characterFile";
 import { MapView, type ViewToggles } from "@/components/MapView";
@@ -81,7 +82,11 @@ export default function App() {
     try { localStorage.setItem("page", page); localStorage.setItem("devMode", devMode ? "1" : "0"); } catch { /* storage blocked */ }
   }, [page, devMode]);
   useEffect(() => { if (!message) return; const t = setTimeout(() => setMessage(""), 4000); return () => clearTimeout(t); }, [message]);
-  const computed = useMemo(() => computeCharacter(rs.rules, sh.sheet, ch.className), [rs.rules, sh.sheet, ch.className]);
+  // Gear and unlocked tree nodes → one set of bonuses (rules/bonuses.ts), added on top of the sheet.
+  const skillNames = useMemo(() => rs.rules.skills.map(k => k.name), [rs.rules]);
+  const external = useMemo(() => collectBonuses(sh.sheet, ch.owned, model.effects, skillNames),
+    [sh.sheet.equipped, ch.owned, model.effects, skillNames]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const computed = useMemo(() => computeCharacter(rs.rules, sh.sheet, ch.className, external), [rs.rules, sh.sheet, ch.className, external]);
 
   const saveCharacter = () => {
     downloadJson(makeCharacterFile(ch.name, ch.className, sh.sheet, source, ch.unlockedIds, computed), `${slug(ch.name)}.farwilds.json`);
@@ -189,9 +194,9 @@ export default function App() {
             : devMode && page !== "combat" && <DevPanel rs={rs} />}
           <div className={`charmain__page${page === "combat" ? " charmain__page--full" : ""}`}>
             {page === "character" && <CharacterPage rules={rs.rules} sh={sh} ch={ch} c={computed} devMode={devMode}
-                onCreate={() => setPage("creator")} onLevelUp={startLevelUp} onShop={setShop} />}
+                onCreate={() => setPage("creator")} onLevelUp={startLevelUp} onShop={setShop} onMessage={setMessage} />}
             {page === "creator" && <CharacterCreator key={rs.rules.version} rules={rs.rules} onCreate={createCharacter} onCancel={() => setPage("character")} />}
-            {page === "combat" && <CombatPage key={`${ch.name}|${sh.sheet.level}|${ch.used}`} rules={rs.rules} c={computed} ch={ch} devMode={devMode} />}
+            {page === "combat" && <CombatPage key={`${ch.name}|${sh.sheet.level}|${ch.used}`} rules={rs.rules} c={computed} ch={ch} equipped={sh.sheet.equipped} devMode={devMode} />}
             {page === "levelup" && (levelUp
               ? <LevelUpScreen rules={rs.rules} model={model} ch={ch} sheet={sh.sheet} pending={levelUp} onConfirm={confirmLevelUp} onCancel={cancelLevelUp} />
               : <p className="note">No level up in progress. Press Level up on the Character page to start one.</p>)}

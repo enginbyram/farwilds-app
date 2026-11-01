@@ -60,6 +60,7 @@ export function buildModel(data: TreeData): TreeModel {
     wikiPage: text(r.wiki), notes: text(r.notes), sourceFile: text(r.file),
     description: text(gems[text(r.id)]?.description), flavor: text(gems[text(r.id)]?.flavor),
     bonuses: (gems[text(r.id)]?.bonuses ?? []).map(b => formatBonus(b, W, text(r.id), warnings)),
+    bonusDefs: gems[text(r.id)]?.bonuses ?? [],
     parent: null, required: null,
     angle: 0, sliceStart: 0, sliceWidth: 0, radius: 0, x: 0, y: 0,
     size: 1, shape: "circle", neighbours: [], clusterMembers: [], clusterGem: null,
@@ -368,7 +369,7 @@ export function buildModel(data: TreeData): TreeModel {
   return {
     nodes, links, byId, classes, aptitudes, ringRadius,
     maxRadius: Math.max(100, ...ringRadius.values()),
-    ascendancies, builds, clusters: clusterDefs, warnings,
+    ascendancies, builds, clusters: clusterDefs, effects: W.effects ?? {}, warnings,
   };
 }
 
@@ -380,8 +381,8 @@ function formatBonus(b: BonusDef, world: WorldDef, nodeId: string, warnings: str
   if (typeof b === "string") return b;
   const id = text(b?.effect);
   const def = world.effects?.[id];
-  if (!def) warnings.push(`${nodeId}: bonus effect "${id}" isn't in world.json → effects`);
-  const name = text(def?.name) || id;
+  if (!def && !/^skill:/i.test(id)) warnings.push(`${nodeId}: bonus effect "${id}" isn't in world.json → effects`);
+  const name = text(def?.name) || id.replace(/^skill:/i, "");
   const v = text(b.value);
   const value = v === "" ? "" : /^[+\-−]/.test(v) ? v : `+${v}`;
   const unit = v !== "" && text(def?.unit) === "%" ? "%" : "";

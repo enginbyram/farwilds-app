@@ -9,8 +9,9 @@
  */
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Computed } from "@/rules/compute";
-import { paramGetter } from "@/rules/compute";
-import type { Rules } from "@/rules/types";
+import { attackPower, paramGetter } from "@/rules/compute";
+import type { Item, Rules } from "@/rules/types";
+import { equippedWeapons, type WeaponChoice } from "@/model/equipment";
 import type { Character } from "@/hooks/useCharacter";
 import {
   ATTACK, COMBAT, DEFAULT_POLICY, SKILLS, YOU, autoTurn, canPlay, cardSlot, endTurn, newFight, parseDice, passiveState,
@@ -25,37 +26,43 @@ const FOE_STEP_MS = 650;
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const one = (x: number) => (Math.round(x * 10) / 10).toString();
 
-export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Computed; ch: Character; devMode: boolean }) {
+export function CombatPage({ rules, c, ch, equipped, devMode }: { rules: Rules; c: Computed; ch: Character; equipped: Record<string, Item>; devMode: boolean }) {
   const p = paramGetter(rules);
   const skillIds = Object.keys(SKILLS);
   const onTree = useMemo(() => new Set([...ch.owned].map(n => n.id).filter(id => id in SKILLS)), [ch.owned]);
 
   // ── Setup ──
   const [owned, setOwned] = useState<Set<string>>(() => new Set(onTree));
-  const [weaponName, setWeaponName] = useState(COMBAT.weapons[0].name);
-  const [armourName, setArmourName] = useState(() => {
-    const maxOrder = Math.max(0, ...[c.asc1Eff, c.asc2Eff].map(a => rules.armour.find(x => x.name === rules.ascendancies.find(r => r.name === a)?.maxArmour)?.order ?? 0));
-    return rules.armour.find(a => a.order === maxOrder)?.name ?? "None";
-  });
+  // Weapons: what is equipped (Character page → Gear), then bare hands; Dev mode adds the test presets.
+  const weapons: WeaponChoice[] = useMemo(() => [
+    ...equippedWeapons(equipped),
+    ...(devMode ? COMBAT.weapons.map(w => ({ key: `test:${w.name}`, name: `${w.name} (test)`, dice: w.dice, damageType: w.damageType ?? "", kind: "melee" as const, ap: w.ap, equipped: false })) : []),
+  ], [equipped, devMode]);
+  const [weaponName, setWeaponName] = useState(() => weapons[0].key);
+  // Armour comes from gear and passives. Dev mode can add a test tier on top.
+  const [armourName, setArmourName] = useState("None");
   const [foes, setFoes] = useState<FoeDef[]>(() => [COMBAT.foes[0], COMBAT.foes[0]].map(f => ({ ...f })));
   const [pastRedDoubles, setPastRedDoubles] = useState(false);
   const [biteSpend, setBiteSpend] = useState(4);
 
-  const weapon = COMBAT.weapons.find(w => w.name === weaponName) ?? COMBAT.weapons[0];
-  const armourWorn = rules.armour.find(a => a.name === armourName);
+  const weapon = weapons.find(w => w.key === weaponName) ?? weapons[0];
+  const armourWorn = devMode ? rules.armour.find(a => a.name === armourName) : undefined;
   const mods = Object.fromEntries(c.attributes.map(a => [a.key, a.mod])) as Record<string, number>;
   const skill = (n: string) => c.skills.find(s => s.name === n)?.total ?? 0;
   const hasRageSkills = [...owned].some(id => id.startsWith("bbr."));
-  const meleeAP = Math.floor((mods.STR ?? 0) * (p("APMeleeSTR") + weapon.ap) + (mods.DEX ?? 0) * (p("APMeleeDEX") + weapon.ap));
+  const flat = (k: string) => c.external.flat[k] ?? 0;
+  const weaponAP = attackPower(rules, mods, weapon.kind, weapon.ap) + flat("ap") + flat(weapon.kind === "melee" ? "ap_melee" : "ap_ranged");
   const fighter: Fighter = {
     name: ch.name,
     hpMax: Math.max(1, Math.round(c.combat.hp)),
     defence: c.combat.defence,                     // physical attacks roll against the DEX score (1 Nov)
     armour: (armourWorn?.value ?? 0) + c.combat.armour,
-    attackBonus: meleeAP,                          // attack = d20 + AP (1 Nov)
-    ap: meleeAP,
+    attackBonus: weaponAP,                         // attack = d20 + AP (1 Nov)
+    ap: weaponAP,
     initiative: c.combat.initiative,
     weapon: parseDice(weapon.dice),
+    weaponName: weapon.name, damageType: weapon.damageType,
+    extraDamage: c.combat.extraDamage,
     endurance: skill("Endurance"), intimidation: skill("Intimidation"), conMod: mods.CON ?? 0,
     sanity: c.pools.sanity,
     rageMax: c.pools.rage ?? (hasRageSkills ? p("RageMax") : 0),
@@ -180,14 +187,14 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
                 <RadialGauge now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="hp" size={50} label="HP" />
               <dl className="unit__stats">
                 <dt>Defence (DEX)</dt><dd>{fighter.defence}</dd><dt>Armour</dt><dd>{fighter.armour}</dd>
-                <dt>Attack</dt><dd>{signed(fighter.attackBonus)}</dd><dt>Damage</dt><dd>{weapon.dice} {signed(fighter.ap)}</dd>
+                <dt>Attack</dt><dd>{signed(fighter.attackBonus)}</dd><dt>Damage</dt><dd>{weapon.dice} {signed(fighter.ap)}{Object.entries(c.combat.extraDamage).map(([k, v]) => ` +${v} ${k}`).join("")}{weapon.damageType ? ` · ${weapon.damageType}` : ""}</dd>
               </dl>
               </div>
               <div className="unit__gear">
-                <label>Weapon<select value={weaponName} disabled={!setup} onChange={e => setWeaponName(e.target.value)}>
-                  {COMBAT.weapons.map(w => <option key={w.name} value={w.name}>{w.name} · {w.dice}</option>)}</select></label>
-                <label>Armour<select value={armourName} disabled={!setup} onChange={e => setArmourName(e.target.value)}>
-                  {rules.armour.map(a => <option key={a.name} value={a.name}>{a.name} · {a.value}</option>)}</select></label>
+                <label>Weapon<select value={weapon.key} disabled={!setup} onChange={e => setWeaponName(e.target.value)}>
+                  {weapons.map(w => <option key={w.key} value={w.key}>{w.name} · {w.dice}{w.damageType ? ` ${w.damageType}` : ""}</option>)}</select></label>
+                {devMode && <label>Test armour<select value={armourName} disabled={!setup} onChange={e => setArmourName(e.target.value)}>
+                  {rules.armour.map(a => <option key={a.name} value={a.name}>{a.name === "None" ? "None (gear only)" : `+${a.value} (${a.name})`}</option>)}</select></label>}
               </div>
             </li>
             <li className="unit unit--empty">No allies yet. Friendly characters will join here.</li>
@@ -222,7 +229,7 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
                   <span className="sq__tip" role="tooltip">
                     <b>{title}{upgraded(id) ? " II" : ""}</b>
                     <em>{cardSlot(id) === "active" ? "Main" : cardSlot(id) === "side" ? "Side" : "Misc"}{def ? ` · ${def.pillar}` : ""}</em>
-                    {id === ATTACK ? `Strike with your ${weapon.name.toLowerCase()}: ${weapon.dice} ${signed(fighter.ap)} AP.` : def.text}
+                    {id === ATTACK ? `Strike with your ${weapon.name.toLowerCase()}: ${weapon.dice}${weapon.damageType ? ` ${weapon.damageType}` : ""} ${signed(fighter.ap)} AP.` : def.text}
                     <strong className={v.ok ? "" : "off"}>{v.ok ? (targeted && target ? `Click to use on ${target.name}` : "Click to use") : v.why}</strong>
                   </span>
                 </div>

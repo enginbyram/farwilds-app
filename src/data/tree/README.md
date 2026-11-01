@@ -60,6 +60,9 @@ That entry shows in the node card as:
 > Ignore difficult terrain on your first move each turn
 
 - A bonus is either **plain text**, or `{ "effect", "value", "when" }`. `effect` is a key of `world.json → effects`; the name comes from there, and a unit of `%` adds the percent sign. Negative values are written as-is (`-1 Strength`).
+- **What counts in the calculation:** a bonus *without* `when` is always on — it is added to the Character page and Combat as soon as the node is unlocked (`src/rules/bonuses.ts`). A bonus *with* `when` is situational: it shows on the node card but is not added. Plain text is shown only (use it for rule changes such as "one extra Side action").
+- `effect` can also be `skill:<Skill name>` (`{"effect": "skill:Endurance", "value": 1}`). Where each effect lands is its `target` in `world.json → effects` (`attr:STR`, `armour`, `hp`, `ap`, `damage:cold`…).
+- A new **action** a node opens (a card in Combat) lives in `src/data/combat.json → skills`, keyed by the node id. `grantActive` / `grantSide` give extra actions that turn (Action Surge), `perFight` limits uses.
 - Add a new effect to `world.json → effects` first, then use its key. An unknown key is listed in the data warnings badge.
 - A gem entry whose id has no node is also flagged, so a renamed id never fails silently.
 

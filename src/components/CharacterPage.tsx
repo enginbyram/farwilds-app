@@ -9,6 +9,7 @@
  */
 import { CLASS_THEME } from "@/config/settings";
 import type { Character } from "@/hooks/useCharacter";
+import { linesFor } from "@/rules/bonuses";
 import type { SheetState } from "@/hooks/useSheet";
 import type { Computed } from "@/rules/compute";
 import type { Rules } from "@/rules/types";
@@ -38,8 +39,9 @@ export function classStyle(coreClass: string): React.CSSProperties {
   return (t ? { "--class-l": t[0], "--class-d": t[1] } : {}) as React.CSSProperties;
 }
 
-export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, onShop }: {
+export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, onShop, onMessage }: {
   rules: Rules; sh: SheetState; ch: Character; c: Computed; devMode: boolean; onCreate: () => void; onLevelUp: () => void; onShop: (m: ShopMode) => void;
+  onMessage?: (m: string) => void;
 }) {
   const { sheet: s, update } = sh;
   const failing = c.checks.filter(x => !x.ok);
@@ -47,6 +49,11 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
   const race = rules.races.find(r => r.name === s.race);
   const mark = rules.marks.find(m => m.name === s.mark);
   const core = rules.coreClasses.find(k => k.name === ch.className);
+  /** Hover lines for one bonus target: each item or node that gives it, or "Gear & passives +0". */
+  const from = (...targets: string[]) => {
+    const l = linesFor(c.external, ...targets);
+    return l.length ? l : [["Gear & passives", "+0"] as [string, string]];
+  };
   const subAsc = rules.params.find(p => p.key === "SubdominantAscension")?.value ?? 3;
 
   const changeClass = (cls: string) => {
@@ -102,7 +109,7 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
         <section className="ct ct--stats" aria-label="Stats">
           <h2>Stats</h2>
           <div className="ct__row">
-            <Hint lines={[`Level 1: d${core?.hitDie ?? "?"} + CON`, "Then d/2 + 1 + CON per level", `From Asc. I: d${c.hitDie}`]}>
+            <Hint lines={[`Level 1: d${core?.hitDie ?? "?"} + CON`, "Then d/2 + 1 + CON per level", `From Asc. I: d${c.hitDie}`, ...linesFor(c.external, "hp")]}>
               <RadialGauge now={c.combat.hp} max={c.combat.hp} kind="hp" size={54} label="HP" title={`Hit Points ${c.combat.hp}`} /></Hint>
             <div className="ct__pools">
               <Pool label="Quick" now={c.pools.quick} max={c.pools.quick} kind="quick" lines={["Hit Die + CON mod, +2 every 2 levels", [`Hit Die (d${c.hitDie})`, c.hitDie], ["CON mod", signed(c.attributes.find(a => a.key === "CON")?.mod ?? 0)], ["Level growth", c.pools.poolGrowth], "Refills on rest and food"]} />
@@ -112,13 +119,13 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
               {c.pools.felLimit !== null && <Pool label="Fel" now={0} max={c.pools.felLimit} kind="fel" lines={["Rests at 0; converted from Quick", ["Fel limit", c.pools.felLimit]]} />}
             </div>
             <div className="ct__stats">
-              <StatIcon icon="armour" label="AR" value={c.combat.armour} lines={["Armour — from gear & passives", "Reduces physical damage"]} />
+              <StatIcon icon="armour" label="AR" value={c.combat.armour} lines={["Armour — reduces physical damage", ...from("armour")]} />
               <StatIcon icon="defence" label="Def" value={c.combat.defence} lines={["Defence — the DEX score", "Physical attacks roll against it"]} />
-              <StatIcon icon="initiative" label="Init" value={sp(c.combat.initiative)} lines={["Initiative — d20 + DEX modifier"]} />
-              <StatIcon icon="speed" label="Speed" value={`${c.combat.speed} m`} lines={[race?.speed == null ? "Base speed" : `${s.race} speed`]} />
-              <StatIcon icon="melee" label="AP" value={`${sp(c.combat.apMelee)} / ${sp(c.combat.apRanged)}`} lines={[["Melee", sp(c.combat.apMelee)], ["Ranged", sp(c.combat.apRanged)], "Melee: STR × (1 + weapon AP) + DEX × (0.5 + weapon AP)", "Ranged: DEX × (1 + weapon AP)"]} />
-              <StatIcon icon="spell" label="SP" value={`${sp(c.combat.spWeave)} / ${sp(c.combat.spWell)} / ${sp(c.combat.spDivine)}`} lines={[["Weave (Intellect)", sp(c.combat.spWeave)], ["Well (CON)", sp(c.combat.spWell)], ["Divine (WIS)", sp(c.combat.spDivine)]]} />
-              <StatIcon icon="leech" label="Leech" value={c.combat.leech} lines={["Gear & passives"]} />
+              <StatIcon icon="initiative" label="Init" value={sp(c.combat.initiative)} lines={["Initiative — d20 + DEX modifier", ...linesFor(c.external, "initiative")]} />
+              <StatIcon icon="speed" label="Speed" value={`${c.combat.speed} m`} lines={[race?.speed == null ? "Base speed" : `${s.race} speed`, ...linesFor(c.external, "speed")]} />
+              <StatIcon icon="melee" label="AP" value={`${sp(c.combat.apMelee)} / ${sp(c.combat.apRanged)}`} lines={[["Melee", sp(c.combat.apMelee)], ["Ranged", sp(c.combat.apRanged)], "Melee: STR × (1 + weapon AP) + DEX × (0.5 + weapon AP)", "Ranged: DEX × (1 + weapon AP)", ...linesFor(c.external, "weapon_ap_melee", "weapon_ap_ranged", "ap", "ap_melee", "ap_ranged")]} />
+              <StatIcon icon="spell" label="SP" value={`${sp(c.combat.spWeave)} / ${sp(c.combat.spWell)} / ${sp(c.combat.spDivine)}`} lines={[["Weave (Intellect)", sp(c.combat.spWeave)], ["Well (CON)", sp(c.combat.spWell)], ["Divine (WIS)", sp(c.combat.spDivine)], ...linesFor(c.external, "sp")]} />
+              <StatIcon icon="leech" label="Leech" value={c.combat.leech} lines={["Leech — returns health from damage and healing", ...from("leech")]} />
             </div>
           </div>
         </section>
@@ -167,7 +174,7 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
                         ...(a.mark ? [[`Mark (${s.mark})`, signed(a.mark)] as [string, string]] : []),
                         [`Class (${ch.className})`, signed(a.cls)],
                         ["Points spent", signed(a.points)],
-                        ["Gear & passives", signed(a.external)],
+                        ...from(`attr:${a.key}`),
                         ...(a.focus ? [`${a.focus}: race or class gives ${a.focus === "Main" ? 2 : 1}`] : []),
                       ]}><b>{a.score}</b></Hint>
                     </td>
@@ -187,7 +194,7 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
                 <li key={k.name}>
                   <span>{k.name}</span>
                   <Badge focus={focusOf(k.attribute)}>{k.attribute}</Badge>
-                  <Hint className="skilllist__v" lines={[[`${k.attribute} modifier`, signed(k.mod)], ["Points spent", k.points], ["Gear & passives", signed(k.bonus)]]}>
+                  <Hint className="skilllist__v" lines={[[`${k.attribute} modifier`, signed(k.mod)], ["Points spent", k.points], ...from(`skill:${k.name}`)]}>
                     <b>{signed(k.total)}</b>
                   </Hint>
                 </li>
@@ -198,11 +205,11 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
         </div>
 
         <div className="char__third">
-          <GearPanel sh={sh} c={c} devMode={devMode} />
+          <GearPanel sh={sh} c={c} devMode={devMode} onMessage={onMessage} />
         </div>
 
         <div className="char__third">
-          <EquipmentPanel sh={sh} c={c} rules={rules} devMode={devMode} onShop={onShop} />
+          <EquipmentPanel sh={sh} c={c} rules={rules} devMode={devMode} onShop={onShop} onMessage={onMessage} />
         </div>
       </div>
 

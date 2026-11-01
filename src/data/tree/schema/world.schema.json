@@ -148,9 +148,16 @@
           },
           "description": {
             "type": "string"
+          },
+          "target": {
+            "type": "string",
+            "description": "Where the calculator adds the bonus: attr:STR, skill:Endurance, armour, hp, ap, ap_melee, ap_ranged, sp, initiative, speed, leech, quick, purequick, well, sanity, rage_gain, rage_max, damage:cold \u2026"
           }
         },
         "additionalProperties": false
+      },
+      "patternProperties": {
+        "^_": {}
       }
     },
     "builds": {

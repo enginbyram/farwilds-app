@@ -9,6 +9,7 @@ import { useMemo, useState } from "react";
 import type { TreeModel } from "@/data/types";
 import type { Character } from "@/hooks/useCharacter";
 import { bandLabel, computeCharacter, paramGetter } from "@/rules/compute";
+import { collectBonuses } from "@/rules/bonuses";
 import { ATTR_KEYS, type AttrKey, type CharacterSheet, type Rules, zeroPoints } from "@/rules/types";
 import { classStyle } from "./CharacterPage";
 import { Badge, signed } from "./ui";
@@ -71,7 +72,12 @@ export function LevelUpScreen({ rules, model, ch, sheet, pending, onConfirm, onC
 }) {
   const p = paramGetter(rules);
   const cls = ch.className;
-  const before = useMemo(() => computeCharacter(rules, sheet, cls), [rules, sheet, cls]);
+  // Bonuses before the level (nodes owned when it started) and after (with the new nodes).
+  const skillNames = rules.skills.map(k => k.name);
+  const extBefore = useMemo(() => collectBonuses(sheet, [...ch.owned].filter(n => n.isCentre || pending.snapshot.includes(n.id) || n === ch.start), model.effects, skillNames),
+    [sheet, ch.owned, pending.snapshot, model.effects]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const extAfter = useMemo(() => collectBonuses(sheet, ch.owned, model.effects, skillNames), [sheet, ch.owned, model.effects]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const before = useMemo(() => computeCharacter(rules, sheet, cls, extBefore), [rules, sheet, cls, extBefore]);
   const band = bandLabel(pending.to, p("BandSize") || 1);
   const crossing = band.inBand === 1 && band.band >= 1;
   const lv = before.levels;
@@ -93,7 +99,7 @@ export function LevelUpScreen({ rules, model, ch, sheet, pending, onConfirm, onC
     skillPoints: Object.fromEntries(rules.skills.map(k => [k.name, (sheet.skillPoints[k.name] ?? 0) + (skillAdd[k.name] ?? 0)])),
     points: Object.fromEntries(ATTR_KEYS.map(k => [k, (sheet.points[k] ?? 0) + attrAdd[k]])) as CharacterSheet["points"],
   };
-  const after = computeCharacter(rules, draft, cls);
+  const after = computeCharacter(rules, draft, cls, extAfter);
   const skillLeft = after.skillPointsAvailable - after.skillPointsUsed;
   const attrLeft = after.attributePointsAvailable - after.pointsUsed;
   const newNodes = ch.unlockedIds.filter(id => !pending.snapshot.includes(id)).map(id => model.byId.get(id)?.name ?? id);

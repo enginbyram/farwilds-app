@@ -40,7 +40,7 @@ export interface WorldDef {
   rings: Array<{ ring: number; name?: string; radius: number; role?: string }>;
   nodeTypes: Record<string, { shape?: string; size?: number; cost?: number; description?: string }>;
   ascendancies: Record<string, { name?: string; coreClass?: string; forbidden?: boolean; notes?: string }>;
-  effects: Record<string, { name?: string; category?: string; unit?: string; description?: string }>;
+  effects: Record<string, { name?: string; category?: string; unit?: string; description?: string; target?: string }>;
   builds: Array<{ id?: string; startClass?: string; first?: string; second?: string; targets?: string; notes?: string }>;
 }
 
@@ -78,6 +78,7 @@ export interface TreeNode {
   description: string;         // gems/*.json → description
   flavor: string;              // gems/*.json → flavor (an in-world quote, shown in italics)
   bonuses: string[];           // gems/*.json → bonuses, already written out ("+2 Strength")
+  bonusDefs: BonusDef[];       // the raw bonuses (gems/*.json) — rules/bonuses.ts adds them to the sheet
   sourceFile: string;          // the nodes/*.json file the node lives in
 
   parent: TreeNode | null;     // parent_id — the node it hangs from
@@ -130,6 +131,7 @@ export interface TreeModel {
   ascendancies: Map<string, AscendancyInfo>;
   builds: BuildInfo[];
   clusters: Map<string, ClusterDef>;
+  effects: WorldDef["effects"];   // world.json → effects, for the bonus pipeline
   warnings: string[];
 }
 

@@ -7,16 +7,19 @@
  *          a lowered price shows red, a raised one yellow.
  *          Adjusted prices and the cart live only while the drawer is open; closing forgets them.
  *          Pay takes the total from the purse (with change) and puts the items in the bag.
+ *   sell — the bag, each item at its selling price (catalog price × sellRate in gear.json) with − / +
+ *          to haggle and a count to sell; Sell takes them out of the bag and puts the coins in the purse.
  *
  * Catalog: src/data/equipment.json (from the equipment workbook, tools/equipment_xlsx_to_json.py).
  */
 import { useMemo, useState } from "react";
+import gear from "@/data/gear.json";
 import type { SheetState } from "@/hooks/useSheet";
-import { addToBag, CATALOG, CATEGORIES, categoryLabel, type CatalogItem, coinValue, formatMoney, itemIcon, pay, toCopper, walletCopper } from "@/model/equipment";
+import { addToBag, CATALOG, CATEGORIES, catalogItem, categoryLabel, type CatalogItem, coinValue, formatMoney, itemIcon, pay, receive, sellPrice, toCopper, walletCopper } from "@/model/equipment";
 import { GEAR_SLOTS } from "./Inventory";
 import { Hint, Icon } from "./ui";
 
-export type ShopMode = "add" | "buy";
+export type ShopMode = "add" | "buy" | "sell";
 interface CartLine { id: string; price: number; qty: number }  // price in copper, as agreed when added
 
 const slotLabel = (id?: string) => GEAR_SLOTS.find(s => s.id === id)?.label;
@@ -45,6 +48,86 @@ function itemLines(it: CatalogItem, priceCp?: number): (string | [string, string
 
 export function EquipmentDrawer({ mode, sh, onClose, onMessage, style }: {
   mode: ShopMode; sh: SheetState; onClose: () => void; onMessage: (m: string) => void; style?: React.CSSProperties;
+}) {
+  if (mode === "sell") return <SellDrawer sh={sh} onClose={onClose} onMessage={onMessage} style={style} />;
+  return <ShopDrawer mode={mode} sh={sh} onClose={onClose} onMessage={onMessage} style={style} />;
+}
+
+/** Sell: the bag, priced at what a merchant pays. Counts and haggled prices live only while the drawer is open. */
+function SellDrawer({ sh, onClose, onMessage, style }: { sh: SheetState; onClose: () => void; onMessage: (m: string) => void; style?: React.CSSProperties }) {
+  const { sheet: s, setSheet } = sh;
+  const [count, setCount] = useState<Record<number, number>>({});   // bag index → how many to sell
+  const [prices, setPrices] = useState<Record<number, number>>({});  // bag index → haggled price each, copper
+
+  const rows = s.bag.map((it, i) => ({ it, i, c: catalogItem(it.ref), base: sellPrice(it), qty: it.qty ?? 1 }));
+  const priceOf = (i: number) => prices[i] ?? rows[i].base;
+  const step = (i: number) => Math.max(1, coinValue(rows[i].c?.price.coin ?? "cp"));
+  const setN = (i: number, n: number) => setCount(x => ({ ...x, [i]: Math.max(0, Math.min(rows[i].qty, n)) }));
+  const total = rows.reduce((t, r) => t + (count[r.i] ?? 0) * priceOf(r.i), 0);
+  const pieces = Object.values(count).reduce((t, n) => t + n, 0);
+
+  const sell = () => {
+    setSheet(x => {
+      const bag: typeof x.bag = [];
+      x.bag.forEach((it, i) => {
+        const n = count[i] ?? 0, q = it.qty ?? 1;
+        if (n >= q) return;
+        bag.push(n ? { ...it, qty: q - n } : it);
+      });
+      return { ...x, bag, wealth: receive(x.wealth, total) };
+    });
+    onMessage(`Sold ${pieces} item${pieces === 1 ? "" : "s"} for ${formatMoney(total)}`);
+    setCount({}); setPrices({});
+  };
+
+  return (
+    <aside className="shop" style={style} aria-label="Sell equipment">
+      <div className="shop__head">
+        <h2>Sell</h2>
+        <span className="shop__cat note">Merchants pay {Math.round((gear.sellRate ?? 0.5) * 100)}% of the list price</span>
+        <button type="button" className="btn btn--ghost btn--small shop__close" onClick={onClose} aria-label="Close"><Icon name="close" size={16} /></button>
+      </div>
+      <ul className="shop__list">
+        {rows.length === 0 && <li className="empty">The bag is empty. Worn gear must be taken off before it can be sold.</li>}
+        {rows.map(({ it, i, c, base, qty }) => {
+          const p = priceOf(i), n = count[i] ?? 0;
+          const trend = p < base ? " down" : p > base ? " up" : "";
+          return (
+            <li key={i} className={`shop__row${n ? " on" : ""}`}>
+              <Icon name={itemIcon(it)} size={20} />
+              <Hint lines={c ? itemLines(c, p) : [[categoryLabel(it.kind) || "Item", it.name], "Not from the catalog: no price"]} className="shop__name">
+                <b>{it.name}</b><small>{qty > 1 ? `${qty} in the bag · ` : ""}{base ? `${formatMoney(base)} each` : "no price"}</small>
+              </Hint>
+              <span className={`shop__adjust${trend}`}>
+                <button type="button" className="btn btn--ghost btn--small" onClick={() => setPrices(x => ({ ...x, [i]: Math.max(0, p - step(i)) }))} disabled={!base || p === 0} aria-label="Lower price"><Icon name="minus" size={14} /></button>
+                <Hint lines={[["Merchant's offer", formatMoney(base)], "Not saved when the drawer closes"]}><span className="shop__price">{formatMoney(p)}</span></Hint>
+                <button type="button" className="btn btn--ghost btn--small" onClick={() => setPrices(x => ({ ...x, [i]: p + step(i) }))} disabled={!base} aria-label="Raise price"><Icon name="plus" size={14} /></button>
+              </span>
+              <span className="shop__qty">
+                <button type="button" className="btn btn--ghost btn--small" onClick={() => setN(i, n - 1)} disabled={!n} aria-label="Sell one less"><Icon name="minus" size={14} /></button>
+                <b>{n}</b>
+                <button type="button" className="btn btn--ghost btn--small" onClick={() => setN(i, n + 1)} disabled={!base || n >= qty} aria-label="Sell one more"><Icon name="plus" size={14} /></button>
+              </span>
+            </li>
+          );
+        })}
+      </ul>
+      <div className="shop__foot">
+        <div className="shop__totals">
+          <span>You get <b>{formatMoney(total)}</b></span>
+          <span>Purse <b>{formatMoney(walletCopper(s.wealth))}</b></span>
+        </div>
+        <div className="shop__actions">
+          <button type="button" className="btn btn--ghost btn--small" onClick={() => { setCount({}); setPrices({}); }} disabled={!pieces && !Object.keys(prices).length}>Reset</button>
+          <button type="button" className="btn btn--class" onClick={sell} disabled={!pieces}>Sell {pieces || ""}</button>
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function ShopDrawer({ mode, sh, onClose, onMessage, style }: {
+  mode: "add" | "buy"; sh: SheetState; onClose: () => void; onMessage: (m: string) => void; style?: React.CSSProperties;
 }) {
   const { sheet: s, update } = sh;
   const [category, setCategory] = useState("");

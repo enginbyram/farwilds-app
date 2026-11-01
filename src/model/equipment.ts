@@ -101,3 +101,84 @@ export function addToBag(bag: Item[], it: CatalogItem, qty: number): Item[] {
   }
   return next;
 }
+
+// ── Wearing ──
+/** Slots an item can go in: its catalog slot; rings either ring slot; one-handed weapons and shields in either hand. */
+export function slotsFor(it: Item): string[] {
+  const c = catalogItem(it.ref);
+  if (!c?.slot) return [];
+  if (c.slot === "ring1" || c.slot === "ring2") return ["ring1", "ring2"];
+  if (c.category === "weapon" && c.slot === "mainhand" && !isTwoHanded(c)) return ["mainhand", "offhand"];
+  return [c.slot];
+}
+export const isTwoHanded = (c?: CatalogItem) => !!c?.properties?.some(p => p.toLowerCase() === "two-handed");
+export const isWeaponItem = (c?: CatalogItem) => c?.category === "weapon" || c?.category === "firearm";
+
+/**
+ * Wears bag[index] in `slot` (or its first free slot). Whatever was there goes back to the bag.
+ * A two-handed weapon takes the main hand and empties the off hand; a stack is split, one is worn.
+ */
+export function wear(s: { bag: Item[]; equipped: Record<string, Item> }, index: number, slot?: string):
+  { bag: Item[]; equipped: Record<string, Item> } | null {
+  const it = s.bag[index];
+  const options = it ? slotsFor(it) : [];
+  if (!it || !options.length) return null;
+  const target = slot && options.includes(slot) ? slot : options.find(o => !s.equipped[o]) ?? options[0];
+  const bag = [...s.bag];
+  const one: Item = { ...it, qty: undefined };
+  if ((it.qty ?? 1) > 1) bag[index] = { ...it, qty: (it.qty ?? 1) - 1 }; else bag.splice(index, 1);
+  const equipped = { ...s.equipped };
+  const off = (k: string) => {
+    const old = equipped[k];
+    if (!old) return;
+    for (const [kk, v] of Object.entries(equipped)) if (v === old) delete equipped[kk];
+    bag.push(old);
+  };
+  off(target);
+  const c = catalogItem(it.ref);
+  if (isTwoHanded(c) && target === "mainhand") off("offhand");
+  if (target === "offhand" && isTwoHanded(catalogItem(equipped.mainhand?.ref))) off("mainhand");
+  delete one.qty;
+  equipped[target] = { ...one, kind: target };
+  return { bag, equipped };
+}
+
+/** Takes the item in `slot` off and puts it in the bag. */
+export function unequip(s: { bag: Item[]; equipped: Record<string, Item> }, slot: string) {
+  const it = s.equipped[slot];
+  if (!it) return null;
+  const equipped = { ...s.equipped };
+  delete equipped[slot];
+  const c = catalogItem(it.ref);
+  return { equipped, bag: [...s.bag, { ...it, kind: c?.category ?? it.kind }] };
+}
+
+// ── Selling ──
+/** What a merchant pays: the catalog price × SellRate (gear.json), in copper, rounded down. */
+export const sellPrice = (it: Item) => {
+  const c = catalogItem(it.ref);
+  return c ? Math.floor(toCopper(c.price) * (gear.sellRate ?? 0.5)) : 0;
+};
+/** Puts copper into a purse in the largest coins. */
+export function receive(purse: Record<string, number>, cp: number): Record<string, number> {
+  const w = { ...purse };
+  let left = Math.max(0, Math.floor(cp));
+  for (const c of COINS_DESC) { const n = Math.floor(left / c.value); w[c.id] = (w[c.id] ?? 0) + n; left -= n * c.value; }
+  return w;
+}
+
+// ── Weapons in a fight ──
+export interface WeaponChoice { key: string; name: string; dice: string; damageType: string; kind: "melee" | "ranged"; ap: number; equipped: boolean }
+/** The weapons a character can fight with: what it has equipped, then bare hands. */
+export function equippedWeapons(equipped: Record<string, Item>): WeaponChoice[] {
+  const out: WeaponChoice[] = [];
+  for (const slot of ["mainhand", "offhand", "ranged"]) {
+    const it = equipped[slot], c = catalogItem(it?.ref);
+    if (!it || !isWeaponItem(c) || !c?.damage) continue;
+    if (out.some(w => w.key === c.id)) continue;
+    const ranged = slot === "ranged" || c.category === "firearm";
+    out.push({ key: `${slot}:${c.id}`, name: c.name, dice: c.damage, damageType: c.damage_type ?? "", kind: ranged ? "ranged" : "melee", ap: c.attack_power ?? 0, equipped: true });
+  }
+  out.push({ key: "unarmed", name: "Unarmed", dice: "1d4", damageType: "bludgeoning", kind: "melee", ap: 0, equipped: false });
+  return out;
+}

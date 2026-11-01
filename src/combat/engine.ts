@@ -22,8 +22,12 @@ export interface SkillDef {
   rage?: number; rageIfStruck?: number; impactDice?: string; dicePer2Rage?: string; atRage?: number;
   bonusDice?: string; extraRagePerHit?: number; armourFactor?: number; bankDice?: string; bankMax?: number;
   minFoes?: number; healPer2Rage?: string; cost?: number; conMultiplier?: number; heal?: string; fel?: number; turns?: number;
+  /** Action economy: playing the card gives this many more Main / Side actions this turn (Action Surge). */
+  grantActive?: number; grantSide?: number;
+  /** Times the card can be played in one fight (stands in for "once per short or long rest"). */
+  perFight?: number;
 }
-export interface WeaponDef { name: string; dice: string; ap: number; note?: string; }
+export interface WeaponDef { name: string; dice: string; ap: number; damageType?: string; note?: string; }
 export interface FoeDef { name: string; hp: number; defence: number; armour: number; attack: number; damage: string; composure: number; note?: string; }
 export interface RuleRow { key: string; value: number; status: string; note: string; }
 
@@ -61,7 +65,13 @@ const d20 = (rng: Rng, mode: "adv" | "" = "") => {
 export interface Fighter {
   name: string; hpMax: number; defence: number; armour: number; attackBonus: number; ap: number; initiative: number;
   weapon: Dice; endurance: number; intimidation: number; conMod: number; sanity: number; rageMax: number;
+  weaponName?: string;
+  damageType?: string;                    // of the weapon: slashing, piercing… (physical types are cut by Armour)
+  extraDamage?: Record<string, number>;   // flat extra damage by type from gear and the tree ("cold" → 1), lands past Armour
 }
+
+/** Physical damage types: Armour reduces these and only these (Rulebook 9.6). */
+export const PHYSICAL = ["bludgeoning", "piercing", "slashing"];
 /** Which skills the fighter has: node ids from the tree (or Dev mode's test toggles). */
 export type Owned = Set<string>;
 
@@ -89,6 +99,8 @@ export type Phase = "setup" | "player" | "foes" | "over";
 export interface CombatState {
   phase: Phase; round: number; order: InitRoll[]; cursor: number; playerTurns: number;
   used: { active: boolean; side: boolean };
+  extra: { active: number; side: number };   // more actions this turn, from cards like Action Surge
+  uses: Record<string, number>;              // how often each card was played this fight (perFight limits)
   hp: number; rage: number; held: number; heldQueue: number[]; bank: number;
   guardDown: boolean;   // Berserker until your next turn
   open: boolean;        // Corpse-Eater: foes attack with advantage until your next turn
@@ -103,7 +115,7 @@ export const YOU = "you";
 
 export function newFight(f: Fighter, foes: FoeDef[]): CombatState {
   return {
-    phase: "setup", round: 0, order: [], cursor: 0, playerTurns: 0, used: { active: false, side: false },
+    phase: "setup", round: 0, order: [], cursor: 0, playerTurns: 0, used: { active: false, side: false }, extra: { active: 0, side: 0 }, uses: {},
     hp: f.hpMax, rage: 0, held: 0, heldQueue: [], bank: 0, guardDown: false, open: false, lostControl: false,
     fel: 0, sanityLost: 0,
     foes: foes.map((x, i) => {
@@ -222,7 +234,7 @@ function advance(s: CombatState) {
 
 /** Opens your turn: settles the last cycle (decay, surge, Headlong), then start-of-turn effects. */
 function beginPlayerTurn(s: CombatState, f: Fighter, owned: Owned, rng: Rng) {
-  s.phase = "player"; s.playerTurns += 1; s.used = { active: false, side: false };
+  s.phase = "player"; s.playerTurns += 1; s.used = { active: false, side: false }; s.extra = { active: 0, side: 0 };
   s.guardDown = false; s.open = false; s.lostControl = false;
   const c = s.cycle;
   if (s.playerTurns > 1) {
@@ -303,8 +315,10 @@ export const cardSlot = (id: string): "active" | "side" | "misc" =>
 export function canPlay(s: CombatState, owned: Owned, id: string, targetKey: string): { ok: boolean; why: string } {
   if (s.phase !== "player") return { ok: false, why: "Not your turn" };
   const slot = cardSlot(id);
-  if (slot === "active" && s.used.active) return { ok: false, why: "Main action already used" };
-  if (slot === "side" && s.used.side) return { ok: false, why: "Side action already used" };
+  if (slot === "active" && s.used.active && s.extra.active <= 0) return { ok: false, why: "Main action already used" };
+  if (slot === "side" && s.used.side && s.extra.side <= 0) return { ok: false, why: "Side action already used" };
+  const per = SKILLS[id]?.perFight;
+  if (per !== undefined && (s.uses[id] ?? 0) >= per) return { ok: false, why: per === 1 ? "Already used this fight" : `Used ${per} times this fight` };
   if (s.lostControl && id !== ATTACK) return { ok: false, why: "Lost in the surge" };
   if (id !== ATTACK && !owned.has(id)) return { ok: false, why: "Not unlocked" };
   const target = s.foes.find(x => x.key === targetKey && x.hpNow > 0);
@@ -324,10 +338,17 @@ export function playCard(prev: CombatState, f: Fighter, owned: Owned, id: string
   if (!canPlay(prev, owned, id, targetKey).ok) return prev;
   const s = structuredClone(prev);
   const slot = cardSlot(id);
-  if (slot === "active") s.used.active = true; else if (slot === "side") s.used.side = true;
+  if (slot === "active") { if (s.used.active) s.extra.active -= 1; else s.used.active = true; }
+  else if (slot === "side") { if (s.used.side) s.extra.side -= 1; else s.used.side = true; }
+  s.uses[id] = (s.uses[id] ?? 0) + 1;
   const G = (n: number, why: string) => gainRage(s, f, owned, n, why);
 
-  if (id === "bbr.berserker1") {
+  const def = SKILLS[id];
+  if (def && (def.grantActive || def.grantSide)) {
+    s.extra.active += def.grantActive ?? 0; s.extra.side += def.grantSide ?? 0;
+    const what = [def.grantActive && `+${def.grantActive} Main`, def.grantSide && `+${def.grantSide} Side`].filter(Boolean).join(", ");
+    say(s, "you", `${T("skill", def.name)} ${T("stat", `${what} action this turn`)}`);
+  } else if (id === "bbr.berserker1") {
     s.guardDown = true; say(s, "you", `${T("skill", "Berserker")} guard down until your next turn: ${T("stat", "Armour halved")} extra Rage per hit`);
   } else if (id === "bbr.bitedown1") {
     const steps = Math.floor(Math.min(s.rage, Math.max(2, opt.biteSpend)) / 2);   // Rage is spent in pairs
@@ -381,10 +402,16 @@ function strike(s: CombatState, f: Fighter, owned: Owned, id: string, targetKey:
       if (!x.n && !x.plus) continue;
       const m = mult(isBought), v = rollN(rng, x.n * m, x.d) + x.plus; sum += v; parts.push(`${x.n * m}d${x.d}${x.plus ? `+${x.plus}` : ""}=${v}`);
     }
-    const dmg = Math.max(rule("MinDamage"), sum + f.ap - target.armour);
+    // Armour cuts physical damage only (9.6); extra typed damage from gear and passives lands past it.
+    const physical = !f.damageType || PHYSICAL.includes(f.damageType.toLowerCase());
+    const armourCut = physical ? target.armour : 0;
+    const main = Math.max(rule("MinDamage"), sum + f.ap - armourCut);
+    const extras = Object.entries(f.extraDamage ?? {}).filter(([, v]) => v > 0);
+    const extra = extras.reduce((t2, [, v]) => t2 + v, 0);
+    const dmg = main + extra;
     target.hpNow -= dmg; s.stats.dealt += dmg;
     if (s.bank > 0) s.bank = 0;
-    say(s, "you", `${T("skill", name)} at ${T("foe", target.name)} ${T("roll", `${roll}+${f.attackBonus}=${atk} vs ${target.defence}`)} ${crit ? T("crit", "CRIT") : T("hit", "hit")}${ptr ? ` ${T("skill", "Past the Red")}` : ""} ${parts.map(x => T("roll", x)).join(" + ")} + ${T("stat", `AP ${f.ap}`)} − ${T("stat", `Armour ${target.armour}`)} = ${T("dmg", `${dmg} dmg`)} → ${T("stat", `${Math.max(0, target.hpNow)} HP left`)}`);
+    say(s, "you", `${T("skill", name)} at ${T("foe", target.name)} ${T("roll", `${roll}+${f.attackBonus}=${atk} vs ${target.defence}`)} ${crit ? T("crit", "CRIT") : T("hit", "hit")}${ptr ? ` ${T("skill", "Past the Red")}` : ""} ${parts.map(x => T("roll", x)).join(" + ")}${f.damageType ? ` ${f.damageType}` : ""} + ${T("stat", `AP ${f.ap}`)}${armourCut ? ` − ${T("stat", `Armour ${armourCut}`)}` : ""}${extras.map(([k, v]) => ` + ${T("stat", `${v} ${k}`)}`).join("")} = ${T("dmg", `${dmg} dmg`)} → ${T("stat", `${Math.max(0, target.hpNow)} HP left`)}`);
     if (dmg > 0) { s.cycle.dealt = true; G(rule("RageOnDeal"), "dealt damage"); }
     if (target.hpNow <= 0) { say(s, "you", `${T("foe", target.name)} ${T("crit", "falls")}`); G(rule("RageOnKill"), "kill"); }
     if (id === "bbr.headlong1") G(SKILLS["bbr.headlong1"].rage ?? 1, "Headlong impact");
@@ -428,6 +455,12 @@ export function autoTurn(prev: CombatState, f: Fighter, owned: Owned, p: Policy,
   else if (p.corpseBelowPct && hpPct() < p.corpseBelowPct && ok("bbr.corpse")) play("bbr.corpse");
   else if (p.unmakeAt && s.rage >= p.unmakeAt && ok("bbr.unmake1")) play("bbr.unmake1");
   else if (ok(ATTACK)) play(ATTACK);
+  // Cards that give more actions (Action Surge): use them, then strike again with each new Main action.
+  for (const id of Object.keys(SKILLS)) {
+    if (!SKILLS[id].grantActive || !ok(id) || !target()) continue;
+    play(id);
+    while (s.phase === "player" && s.extra.active > 0 && ok(ATTACK)) play(ATTACK);
+  }
   if (p.berserker && ok("bbr.berserker1")) play("bbr.berserker1");
   return s.phase === "player" ? endTurn(s) : s;
 }

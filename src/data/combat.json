@@ -1,5 +1,5 @@
 {
-  "_about": "Combat calculator data. rules = how a turn resolves; skills = what each tree node does in a fight (keyed by node id); weapons and foes = presets for the Combat page. Edit by hand; the app reloads. Fields starting with _ are ignored.",
+  "_about": "Combat calculator data. rules = how a turn resolves; skills = what each tree node does in a fight (keyed by node id; grantActive / grantSide give extra actions this turn, perFight limits uses); weapons = test presets for Dev mode (the Combat page uses the weapons you have equipped); foes = presets for the Combat page. Edit by hand; the app reloads. Fields starting with _ are ignored.",
 
   "rules": [
     {"key": "AttackDie", "value": 20, "status": "Settled", "note": "Attacks roll a d20. A natural 20 is a critical hit: damage dice are doubled (glossary)."},
@@ -20,6 +20,8 @@
   ],
 
   "skills": {
+    "fig.actions1":   {"name": "Action Surge", "action": "misc",     "pillar": "Fighter", "grantActive": 1, "perFight": 1, "text": "Push past your limits: take one more Main action this turn. Once per fight here; the rule is once per short or long rest."},
+
     "bbr.headlong1":  {"name": "Headlong",     "action": "active",   "pillar": "Carnage", "rage": 1, "rageIfStruck": 1, "impactDice": "", "text": "Charge up to 10 m and strike; builds 1 Rage on impact, 2 if you are struck during the charge. You end the charge in the middle of them. Usable on the first turn of a fight."},
     "bbr.headlong2":  {"name": "Headlong II",  "action": "upgrade",  "pillar": "Carnage", "upgrades": "bbr.headlong1", "impactDice": "1d6", "text": "The charge also deals 1d6 damage on impact."},
     "bbr.unmake1":    {"name": "Unmake",       "action": "active",   "pillar": "Carnage", "dicePer2Rage": "1d6", "text": "Spend all Rage on one strike: +1d6 damage per 2 Rage spent. Rage drops to 0."},
@@ -44,12 +46,12 @@
   },
 
   "weapons": [
-    {"name": "Greataxe",   "dice": "1d12", "ap": 0, "note": "Placeholder: weapon AP comes from gear once gear exists."},
-    {"name": "Greatsword", "dice": "2d6",  "ap": 0},
-    {"name": "Longsword",  "dice": "1d8",  "ap": 0},
-    {"name": "Spear",      "dice": "1d8",  "ap": 0},
-    {"name": "Dagger",     "dice": "1d4",  "ap": 0},
-    {"name": "Unarmed",    "dice": "1d4",  "ap": 0}
+    {"name": "Greataxe",   "dice": "1d12", "ap": 0, "damageType": "slashing", "note": "Placeholder: weapon AP comes from gear once gear exists."},
+    {"name": "Greatsword", "dice": "2d6",  "ap": 0, "damageType": "slashing"},
+    {"name": "Longsword",  "dice": "1d8",  "ap": 0, "damageType": "slashing"},
+    {"name": "Spear",      "dice": "1d8",  "ap": 0, "damageType": "piercing"},
+    {"name": "Dagger",     "dice": "1d4",  "ap": 0, "damageType": "piercing"},
+    {"name": "Unarmed",    "dice": "1d4",  "ap": 0, "damageType": "bludgeoning"}
   ],
 
   "foes": [

@@ -7,15 +7,20 @@
  *   of everything worn and carried.
  *
  * Slots, coins and bag size come from src/data/gear.json. Items live on the sheet, so they are
- * saved with the character file. Display only for now; in Dev mode slots, coins and lists can be
- * filled by hand to test the layout until the equipment chapter brings real items.
+ * saved with the character file.
+ *
+ * Click an item (bag or slot) for its menu (ItemMenu.tsx): Wear, Take off, Use, Sell, Drop.
+ * Click an empty slot to wear something from the bag that fits it. Worn gear counts in the
+ * calculation through rules/bonuses.ts. Dev mode adds "Edit by hand" to every menu.
  */
 import gear from "@/data/gear.json";
 import type { SheetState } from "@/hooks/useSheet";
 import type { Computed } from "@/rules/compute";
 import type { Item, Rules } from "@/rules/types";
-import { carriedWeight, categoryLabel, itemIcon, itemWeight } from "@/model/equipment";
+import { useState } from "react";
+import { carriedWeight, catalogItem, categoryLabel, formatMoney, itemIcon, itemWeight, receive, sellPrice, slotsFor, unequip, wear } from "@/model/equipment";
 import type { ShopMode } from "./EquipmentDrawer";
+import { ItemMenu, menuAt, type MenuEntry, type MenuState } from "./ItemMenu";
 import { Hint, Icon, RadialGauge, signed } from "./ui";
 
 export interface GearSlot { id: string; label: string; side: "left" | "right" | "melee" | "ranged"; icon: string }
@@ -33,7 +38,45 @@ function askItem(what: string, current?: Item): Item | null | undefined {
   return name.trim() ? { ...current, name: name.trim() } : null;
 }
 
-function Slot({ slot, item, dev, onEdit }: { slot: GearSlot; item?: Item; dev: boolean; onEdit: () => void }) {
+const slotName = (id: string) => GEAR_SLOTS.find(x => x.id === id)?.label ?? id;
+
+/** Menu entries for one bag item: Wear (per slot that fits), Use, Sell, Drop. */
+export function bagEntries(sh: SheetState, i: number, say: (m: string) => void): MenuEntry[] {
+  const { sheet: s, setSheet } = sh;
+  const it = s.bag[i];
+  if (!it) return [];
+  const c = catalogItem(it.ref);
+  const qty = it.qty ?? 1;
+  const out: MenuEntry[] = [];
+  const fits = slotsFor(it);
+  for (const slot of fits) {
+    const busy = s.equipped[slot];
+    out.push({
+      label: fits.length > 1 ? `Wear — ${slotName(slot)}` : "Wear", icon: "wear", note: busy ? `swap ${busy.name}` : slotName(slot),
+      onClick: () => setSheet(x => { const r = wear(x, i, slot); if (r) say(`Wearing ${it.name}`); return r ? { ...x, ...r } : x; }),
+    });
+  }
+  if (c?.category === "consumable") out.push({
+    label: "Use", icon: "use",
+    onClick: () => { setSheet(x => ({ ...x, bag: qty > 1 ? x.bag.map((b, j) => (j === i ? { ...b, qty: qty - 1 } : b)) : x.bag.filter((_, j) => j !== i) })); say(`Used ${it.name}${c.description ? `: ${c.description}` : ""}`); },
+  });
+  const price = sellPrice(it);
+  out.push({
+    label: qty > 1 ? "Sell one" : "Sell", icon: "sell", note: price ? formatMoney(price) : "no price", disabled: !price,
+    onClick: () => { setSheet(x => ({ ...x, wealth: receive(x.wealth, price), bag: qty > 1 ? x.bag.map((b, j) => (j === i ? { ...b, qty: qty - 1 } : b)) : x.bag.filter((_, j) => j !== i) })); say(`Sold ${it.name} for ${formatMoney(price)}`); },
+  });
+  if (qty > 1 && price) out.push({
+    label: `Sell all ${qty}`, icon: "sell", note: formatMoney(price * qty),
+    onClick: () => { setSheet(x => ({ ...x, wealth: receive(x.wealth, price * qty), bag: x.bag.filter((_, j) => j !== i) })); say(`Sold ${qty} × ${it.name} for ${formatMoney(price * qty)}`); },
+  });
+  out.push({
+    label: qty > 1 ? `Drop all ${qty}` : "Drop", icon: "drop", danger: true,
+    onClick: () => { if (window.confirm(`Drop ${qty > 1 ? `${qty} × ` : ""}${it.name}? It is gone for good.`)) { setSheet(x => ({ ...x, bag: x.bag.filter((_, j) => j !== i) })); say(`Dropped ${it.name}`); } },
+  });
+  return out;
+}
+
+function Slot({ slot, item, onOpen }: { slot: GearSlot; item?: Item; onOpen: (e: React.MouseEvent<HTMLElement>) => void }) {
   const body = (
     <span className={`slot${item ? " slot--full" : ""}`}>
       <Icon name={slot.icon} size={22} />
@@ -42,7 +85,7 @@ function Slot({ slot, item, dev, onEdit }: { slot: GearSlot; item?: Item; dev: b
   );
   return (
     <Hint lines={itemLines(slot.label, item)}>
-      {dev ? <button type="button" className="slot__btn" onClick={onEdit} aria-label={`${slot.label} slot`}>{body}</button> : body}
+      <button type="button" className="slot__btn" onClick={onOpen} aria-haspopup="menu" aria-label={`${slot.label} slot${item ? `: ${item.name}` : ""}`}>{body}</button>
     </Hint>
   );
 }
@@ -57,8 +100,9 @@ function Figure() {
   );
 }
 
-export function GearPanel({ sh, c, devMode }: { sh: SheetState; c: Computed; devMode: boolean }) {
-  const { sheet: s, update } = sh;
+export function GearPanel({ sh, c, devMode, onMessage = () => {} }: { sh: SheetState; c: Computed; devMode: boolean; onMessage?: (m: string) => void }) {
+  const { sheet: s, update, setSheet } = sh;
+  const [menu, setMenu] = useState<MenuState | null>(null);
   const edit = (slot: GearSlot) => {
     const next = askItem(slot.label, s.equipped[slot.id]);
     if (next === undefined) return;
@@ -66,8 +110,27 @@ export function GearPanel({ sh, c, devMode }: { sh: SheetState; c: Computed; dev
     if (next) equipped[slot.id] = { ...next, kind: slot.id }; else delete equipped[slot.id];
     update("equipped", equipped);
   };
+  const open = (e: React.MouseEvent<HTMLElement>, slot: GearSlot) => {
+    const it = s.equipped[slot.id];
+    const entries: MenuEntry[] = [];
+    if (it) {
+      entries.push({ label: "Take off", icon: "unequip", note: "to the bag",
+        onClick: () => setSheet(x => { const r = unequip(x, slot.id); if (r) onMessage(`Took off ${it.name}`); return r ? { ...x, ...r } : x; }) });
+      entries.push({ label: "Drop", icon: "drop", danger: true,
+        onClick: () => { if (window.confirm(`Drop ${it.name}? It is gone for good.`)) { setSheet(x => { const eq = { ...x.equipped }; for (const [k, v] of Object.entries(eq)) if (v === x.equipped[slot.id]) delete eq[k]; return { ...x, equipped: eq }; }); onMessage(`Dropped ${it.name}`); } } });
+    } else {
+      // Empty slot: everything in the bag that fits it.
+      s.bag.forEach((b, i) => {
+        if (!slotsFor(b).includes(slot.id)) return;
+        entries.push({ label: `Wear ${b.name}`, icon: "wear", onClick: () => setSheet(x => { const r = wear(x, i, slot.id); if (r) onMessage(`Wearing ${b.name}`); return r ? { ...x, ...r } : x; }) });
+      });
+      if (!entries.length) entries.push({ label: "Nothing in the bag fits here", icon: "none", disabled: true });
+    }
+    if (devMode) entries.push({ label: "Edit by hand (dev)", icon: "edit", onClick: () => edit(slot) });
+    setMenu(menuAt(e, it ? it.name : slot.label, entries));
+  };
   const side = (k: GearSlot["side"]) => GEAR_SLOTS.filter(x => x.side === k)
-    .map(x => <Slot key={x.id} slot={x} item={s.equipped[x.id]} dev={devMode} onEdit={() => edit(x)} />);
+    .map(x => <Slot key={x.id} slot={x} item={s.equipped[x.id]} onOpen={e => open(e, x)} />);
   const worn = Object.keys(s.equipped).length;
 
   return (
@@ -90,7 +153,7 @@ export function GearPanel({ sh, c, devMode }: { sh: SheetState; c: Computed; dev
           <Hint lines={[["Attack Power, ranged", signed(c.combat.apRanged)], "Added to the d20 for physical attacks"]}><b>{signed(c.combat.apRanged)}</b></Hint>
         </div>
       </div>
-      {devMode && <p className="note">Dev mode: click a slot to put an item in it.</p>}
+      <ItemMenu menu={menu} onClose={() => setMenu(null)} />
     </section>
   );
 }
@@ -98,10 +161,11 @@ export function GearPanel({ sh, c, devMode }: { sh: SheetState; c: Computed; dev
 const kg = (n: number) => `${Math.round(n * 10) / 10} kg`;
 
 /** Equipment card: purse and valuables in a compact strip, the load gauge, then the bag grid. */
-export function EquipmentPanel({ sh, c, rules, devMode, onShop }: {
-  sh: SheetState; c: Computed; rules: Rules; devMode: boolean; onShop: (m: ShopMode) => void;
+export function EquipmentPanel({ sh, c, rules, devMode, onShop, onMessage = () => {} }: {
+  sh: SheetState; c: Computed; rules: Rules; devMode: boolean; onShop: (m: ShopMode) => void; onMessage?: (m: string) => void;
 }) {
   const { sheet: s, update } = sh;
+  const [menu, setMenu] = useState<MenuState | null>(null);
   const cols = gear.bagColumns;
   const cells = Math.max(gear.bagMinCells, Math.ceil((s.bag.length + (devMode ? 1 : 0)) / cols) * cols);
 
@@ -139,6 +203,7 @@ export function EquipmentPanel({ sh, c, rules, devMode, onShop }: {
         <div className="card__tools">
           <button type="button" className="btn btn--small" onClick={() => onShop("add")}><Icon name="plus" size={14} /> Add</button>
           <button type="button" className="btn btn--small" onClick={() => onShop("buy")}><Icon name="cart" size={14} /> Purchase</button>
+          <button type="button" className="btn btn--small" onClick={() => onShop("sell")} disabled={!s.bag.length}><Icon name="sell" size={14} /> Sell</button>
         </div>
       </div>
 
@@ -187,13 +252,20 @@ export function EquipmentPanel({ sh, c, rules, devMode, onShop }: {
                 {it.qty && it.qty > 1 ? <b className="bag__qty">{it.qty}</b> : null}</>}
             </span>
           );
-          const content = devMode && i <= s.bag.length
-            ? <button type="button" className="slot__btn" onClick={() => edit(i)} aria-label={it ? it.name : "Empty bag cell"}>{cell}</button>
-            : cell;
+          const openMenu = (e: React.MouseEvent<HTMLElement>) => setMenu(menuAt(e, it!.name, [
+            ...bagEntries(sh, i, onMessage),
+            ...(devMode ? [{ label: "Edit by hand (dev)", icon: "edit", onClick: () => edit(i) }] : []),
+          ]));
+          const content = it
+            ? <button type="button" className="slot__btn" onClick={openMenu} aria-haspopup="menu" aria-label={it.name}>{cell}</button>
+            : devMode && i === s.bag.length
+              ? <button type="button" className="slot__btn" onClick={() => edit(i)} aria-label="Add an item by hand">{cell}</button>
+              : cell;
           return it ? <Hint key={i} lines={bagLines(it)}>{content}</Hint> : <span key={i} className="bag__wrap">{content}</span>;
         })}
       </div>
-      {devMode && <p className="note">Dev mode: click a cell to add or rename an item; blank removes it. Edit coins in place.</p>}
+      <p className="note">Click an item for Wear, Use, Sell or Drop.{devMode ? " Dev mode: the first empty cell adds an item by hand; coins edit in place." : ""}</p>
+      <ItemMenu menu={menu} onClose={() => setMenu(null)} />
     </section>
   );
 }
