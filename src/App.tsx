@@ -22,6 +22,7 @@ import { CharacterPage } from "@/components/CharacterPage";
 import { CharacterCreator, type NewCharacter } from "@/components/CharacterCreator";
 import { LevelUpCard, LevelUpScreen, type PendingLevelUp } from "@/components/LevelUp";
 import { DevPanel } from "@/components/DevPanel";
+import { CombatPage } from "@/components/CombatPage";
 import { useRules } from "@/hooks/useRules";
 import { useSheet } from "@/hooks/useSheet";
 import { computeCharacter } from "@/rules/compute";
@@ -184,6 +185,7 @@ export default function App() {
             {page === "character" && <CharacterPage rules={rs.rules} sh={sh} ch={ch} c={computed} devMode={devMode}
                 onCreate={() => setPage("creator")} onLevelUp={startLevelUp} />}
             {page === "creator" && <CharacterCreator key={rs.rules.version} rules={rs.rules} onCreate={createCharacter} onCancel={() => setPage("character")} />}
+            {page === "combat" && <CombatPage key={`${ch.name}|${sh.sheet.level}|${ch.used}`} rules={rs.rules} c={computed} ch={ch} />}
             {page === "levelup" && (levelUp
               ? <LevelUpScreen rules={rs.rules} model={model} ch={ch} sheet={sh.sheet} pending={levelUp} onConfirm={confirmLevelUp} onCancel={cancelLevelUp} />
               : <p className="note">No level up in progress. Press Level up on the Character page to start one.</p>)}

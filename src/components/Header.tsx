@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export type Page = "tree" | "character" | "creator" | "levelup";
+export type Page = "tree" | "character" | "creator" | "levelup" | "combat";
 
 export function Header({ source, warnings, onFile, onBackToDatabase, theme, onToggleTheme,
   page, onPage, onSaveCharacter, onLoadCharacter, devMode, onToggleDev, message }: {
@@ -39,6 +39,7 @@ export function Header({ source, warnings, onFile, onBackToDatabase, theme, onTo
         <button className={`tab${page === "tree" ? " tab--on" : ""}`} onClick={() => onPage("tree")}>Tree</button>
         <button className={`tab${page === "character" ? " tab--on" : ""}`} onClick={() => onPage("character")}>Character</button>
         <button className={`tab${page === "creator" ? " tab--on" : ""}`} onClick={() => onPage("creator")}>Creator</button>
+        <button className={`tab${page === "combat" ? " tab--on" : ""}`} onClick={() => onPage("combat")}>Combat</button>
       </nav>
       <span className="source">{message || `Showing: ${source}`}</span>
       {warnings.length > 0 && (
