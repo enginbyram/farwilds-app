@@ -12,11 +12,13 @@
   "fig.wmg2": {
     "_name": "Defense",
     "description": "While you are wearing armor, you gain a bonus to Armor Rating.",
-    "bonuses": [{
-      "effect": "ar",
-      "value": 2,
-      "when": "every 10 AR"
-    }]
+    "bonuses": [
+      {
+        "effect": "ar",
+        "value": 2,
+        "when": "every 10 AR"
+      }
+    ]
   },
   "fig.wmg3": {
     "_name": "Greatweapon Fighting",
@@ -55,102 +57,102 @@
   },
   "bbr.headlong1": {
     "_name": "Headlong",
-    "description": "",
+    "description": "Charge up to 10 m and strike; builds 1 Rage on impact, 2 if you are struck during the charge. You end the charge in the middle of them.",
     "bonuses": []
   },
   "bbr.unmake1": {
     "_name": "Unmake",
-    "description": "",
+    "description": "Spend all Rage on one strike: +1d6 damage per 2 Rage spent. Rage drops to 0.",
     "bonuses": []
   },
   "bbr.blooded1": {
     "_name": "Blooded",
-    "description": "",
+    "description": "At 5 Rage or more, melee attacks deal +1d4 damage.",
     "bonuses": []
   },
   "bbr.berserker1": {
     "_name": "Berserker",
-    "description": "",
+    "description": "Lower your guard until your next turn: Armour halved, every hit you take builds 1 extra Rage.",
     "bonuses": []
   },
   "bbr.pastred1": {
     "_name": "Past the Red",
-    "description": "",
+    "description": "At 10 Rage, damage dice are doubled. No retreat and no non-Rage skills while it lasts.",
     "bonuses": []
   },
   "bbr.thickit1": {
     "_name": "Thick of It",
-    "description": "",
+    "description": "Gain 1 Rage each turn if two or more enemies are within reach.",
     "bonuses": []
   },
   "bbr.bitedown1": {
     "_name": "Bite Down",
-    "description": "",
+    "description": "Spend Rage to recover 1d6 HP per 2 Rage spent. Spending to 0 releases Held Wounds.",
     "bonuses": []
   },
   "bbr.grudge1": {
     "_name": "Grudge",
-    "description": "",
+    "description": "The first time each enemy hits you, gain 1 extra Rage.",
     "bonuses": []
   },
   "bbr.dti1": {
     "_name": "Draw Them In",
-    "description": "",
+    "description": "Spend 2 Rage on an Intimidation shout: enemies in reach make a Composure check or must attack you next turn.",
     "bonuses": []
   },
   "bbr.hw1": {
     "_name": "Held Wounds",
-    "description": "",
+    "description": "While Rage is above 0, hold back up to CON modifier × 2 damage of each hit. When Rage hits 0, everything held lands at once.",
     "bonuses": []
   },
   "bbr.corpse": {
     "_name": "Corpse-Eater",
-    "description": "",
+    "description": "Consume a fallen enemy: restore 1d6 HP and gain 2 Rage. Leaves you open (foes attack with advantage until your next turn) and adds 1 fel per corpse.",
     "bonuses": []
   },
   "bbr.bitedown2": {
     "_name": "Bite Down II",
-    "description": "",
+    "description": "2d6 HP per 2 Rage spent.",
     "bonuses": []
   },
   "bbr.grudge2": {
     "_name": "Grudge II",
-    "description": "",
+    "description": "2 extra Rage.",
     "bonuses": []
   },
   "bbr.ironmind": {
     "_name": "Iron Mind",
-    "description": "",
+    "description": "When a spell targets you, spend 1 Rage to gain advantage on the check against it.",
     "bonuses": []
   },
   "bbr.unbroken": {
     "_name": "Unbroken",
-    "description": "",
+    "description": "When Rage hits 0, make an Endurance check. On a success, held damage lands a third per turn over 3 turns instead of at once.",
     "bonuses": []
   },
   "bbr.headlong2": {
     "_name": "Headlong II",
-    "description": "",
+    "description": "The charge also deals 1d6 damage on impact.",
     "bonuses": []
   },
   "bbr.unmake2": {
     "_name": "Unmake II",
-    "description": "",
+    "description": "+2d6 per 2 Rage spent.",
     "bonuses": []
   },
   "bbr.blooded2": {
     "_name": "Blooded II",
-    "description": "",
+    "description": "+2d4 damage.",
     "bonuses": []
   },
   "bbr.berserker2": {
     "_name": "Berserker II",
-    "description": "",
+    "description": "2 extra Rage per hit taken.",
     "bonuses": []
   },
   "bbr.redmist2": {
     "_name": "Red Mist",
-    "description": "",
+    "description": "Rage gained above 10 is banked as +1d6 on your next hit, up to 3d6. The surge check still rolls; a failed check loses control for a turn and 1 Sanity per banked point.",
     "bonuses": []
   }
 }

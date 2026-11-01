@@ -70,6 +70,19 @@ src/data/characterFile.ts   JSON save / load format
 src/components/CharacterPage.tsx, CharacterCreator.tsx, LevelUp.tsx, DevPanel.tsx, ui.tsx
 ```
 
+## Combat
+
+**Combat** puts the current character against foes you set up, to test skills.
+
+- **Fighter**: stats come from the Character page. Pick a weapon and the armour worn.
+- **Foes**: edit HP, Defence, Armour, attack bonus and damage dice inline, or add presets.
+- **Skills in play**: starts from the nodes you own on the tree (● = on your tree); tick any others to test them.
+- **Fight**: choose an Active card and a Side card each turn, or press *Autopilot turn*. Passives and Reactions fire on their own. The log shows every roll.
+- **Simulate**: the autopilot plays 1,000 fights and compares *Past the Red doubles only base dice* with *…also Rage-bought dice*.
+
+Data: **`src/data/combat.json`** — `rules` (Defence, Rage gains, surge DC…), `skills` (each tree node's numbers, keyed by node id), `weapons`, `foes`. Rules marked *Proposed* are placeholders to tune.
+Engine: `src/combat/engine.ts` (pure TypeScript). A new skill needs its numbers in `combat.json` and its behaviour in `playTurn`.
+
 ## Where things live
 
 ```

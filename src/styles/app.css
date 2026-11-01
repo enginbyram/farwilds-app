@@ -366,3 +366,57 @@ dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .levelup__nodes { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .levelup__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 12px; align-items: start; }
 .gain { color: var(--success); font-weight: 600; }
+
+/* ── Combat page ───────────────────────────────────────────── */
+.combat { padding-bottom: 24px; }
+.combat__grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) minmax(0, 1fr); gap: 12px; align-items: start; }
+.combat__grid--wide { grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr); }
+@media (max-width: 1100px) { .combat__grid, .combat__grid--wide { grid-template-columns: minmax(0, 1fr); } }
+.combat__form { display: grid; gap: 8px; margin: 10px 0; }
+.combat__form label { display: flex; align-items: center; gap: 8px; justify-content: space-between; font-size: 13px; }
+.combat__form select, .combat__form input[type="number"], .combat__choices input[type="number"] { width: 6em; font: inherit; padding: 3px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); }
+.combat__form select { width: auto; min-width: 0; }
+.combat__stats { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; margin: 8px 0 0; font-size: 13px; }
+.combat__stats dt { color: var(--muted); }
+.combat__stats dd { margin: 0; font-variant-numeric: tabular-nums; font-weight: 600; text-align: right; }
+.combat__foes { display: grid; grid-template-columns: minmax(0, 2fr) repeat(4, minmax(0, .8fr)) minmax(0, 1.2fr) auto; gap: 4px; font-size: 11px; color: var(--muted); }
+.combat__foe { display: contents; }
+.combat__foe input { min-width: 0; font: 13px var(--font-body); padding: 3px 5px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); }
+.combat__row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 10px; }
+.combat__row select { font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--ink); }
+.combat__row .check { font-size: 13px; display: flex; gap: 6px; align-items: center; }
+.combat__skills { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+.combat__skills li { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 2px 0; border-bottom: 1px solid var(--line); }
+.combat__skills label { display: flex; gap: 6px; align-items: center; }
+.combat__bars { display: grid; gap: 8px; margin-bottom: 10px; }
+.bar { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13px; }
+.bar > span { color: var(--muted); }
+.bar b { font-variant-numeric: tabular-nums; }
+.bar__track { height: 10px; border-radius: 5px; background: var(--line); overflow: hidden; }
+.bar__track i { display: block; height: 100%; background: var(--success); transition: width .2s; }
+.rage { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 3px; }
+.rage i { height: 14px; border-radius: 3px; background: var(--line); }
+.rage i.on { background: var(--class); }
+.rage i.mark { box-shadow: inset 0 0 0 2px var(--ink); }
+.combat__foelist { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 13px; }
+.combat__foelist .dead { color: var(--muted); text-decoration: line-through; }
+.combat__choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+@media (max-width: 640px) { .combat__choices { grid-template-columns: minmax(0, 1fr); } }
+.combat__choices fieldset { border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px 8px; display: grid; gap: 4px; font-size: 13px; }
+.combat__choices legend { font: 500 11px var(--font-body); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding: 0 4px; }
+.combat__choices label { display: flex; gap: 6px; align-items: center; }
+.combat__choices label.off { color: var(--muted); }
+.combat__choices em { font-style: normal; font-size: 12px; }
+.combat__log { margin: 12px 0 0; padding: 8px 8px 8px 28px; max-height: 340px; overflow-y: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); font-size: 12.5px; display: grid; gap: 3px; }
+.combat__log .log--foe { color: var(--danger); }
+.combat__log .log--sys { font-weight: 600; }
+.combat__sim { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.combat__sim th, .combat__sim td { padding: 4px 6px; border-bottom: 1px solid var(--line); text-align: right; }
+.combat__sim th:first-child { text-align: left; color: var(--muted); font-weight: 400; }
+.combat__sim thead th { font-size: 11px; color: var(--muted); font-weight: 500; }
+.combat .hint, .combat__stats .hint { margin: 0; font-size: inherit; line-height: inherit; }
+.combat__skills { grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; }
+.combat__skills li { align-items: center; }
+.combat__skills .mono { font-size: 10.5px; white-space: nowrap; }
+@media (max-width: 640px) { .combat__skills { grid-template-columns: minmax(0, 1fr); } }
+.combat__form label:has(> input[type="checkbox"]) { justify-content: flex-start; }

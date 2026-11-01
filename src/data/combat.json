@@ -1,0 +1,58 @@
+{
+  "_about": "Combat calculator data. rules = how a turn resolves; skills = what each tree node does in a fight (keyed by node id); weapons and foes = presets for the Combat page. Edit by hand; the app reloads. Fields starting with _ are ignored.",
+
+  "rules": [
+    {"key": "AttackDie", "value": 20, "status": "Settled", "note": "Attacks roll a d20. A natural 20 is a critical hit: damage dice are doubled (glossary)."},
+    {"key": "DefenceBase", "value": 10, "status": "Proposed", "note": "What an attack must reach: DefenceBase + the target's Agility skill. Not decided yet — tune here."},
+    {"key": "NaturalOneMisses", "value": 1, "status": "Proposed", "note": "1 = a natural 1 always misses, 0 = no auto-miss."},
+    {"key": "MinDamage", "value": 0, "status": "Proposed", "note": "Least damage a hit deals after Armour. 0 = Armour can stop a hit completely."},
+    {"key": "RageOnDeal", "value": 1, "status": "Proposed", "note": "Rage gained when one of your attacks deals damage. Doc: taking damage builds more than dealing it."},
+    {"key": "RageOnTake", "value": 2, "status": "Proposed", "note": "Rage gained each time you take damage (Held Wounds damage counts)."},
+    {"key": "RageOnKill", "value": 2, "status": "Proposed", "note": "Burst of Rage for a kill."},
+    {"key": "RageDecay", "value": 1, "status": "Settled", "note": "Rage lost on a turn in which you neither deal nor take damage (Barbarian Pathway)."},
+    {"key": "RageThreshold", "value": 5, "status": "Settled", "note": "First threshold: Blooded and other threshold nodes switch on."},
+    {"key": "SurgeDC", "value": 12, "status": "Proposed", "note": "Endurance check (d20 + Endurance) against this, once per turn, when Rage went past the cap that turn. Fail: lose control next turn and lose Sanity equal to the overflow. Once-per-turn is Claude's proposal; the doc says each gain past the cap."},
+    {"key": "UnbrokenDC", "value": 12, "status": "Proposed", "note": "Endurance check for Unbroken when Rage hits 0."},
+    {"key": "MaxTurns", "value": 30, "status": "Proposed", "note": "A fight still going after this many turns counts as a draw."}
+  ],
+
+  "skills": {
+    "bbr.headlong1":  {"name": "Headlong",     "action": "active",   "pillar": "Carnage", "rage": 1, "rageIfStruck": 1, "impactDice": "", "text": "Charge up to 10 m and strike; builds 1 Rage on impact, 2 if you are struck during the charge. You end the charge in the middle of them. Usable on the first turn of a fight."},
+    "bbr.headlong2":  {"name": "Headlong II",  "action": "upgrade",  "pillar": "Carnage", "upgrades": "bbr.headlong1", "impactDice": "1d6", "text": "The charge also deals 1d6 damage on impact."},
+    "bbr.unmake1":    {"name": "Unmake",       "action": "active",   "pillar": "Carnage", "dicePer2Rage": "1d6", "text": "Spend all Rage on one strike: +1d6 damage per 2 Rage spent. Rage drops to 0."},
+    "bbr.unmake2":    {"name": "Unmake II",    "action": "upgrade",  "pillar": "Carnage", "upgrades": "bbr.unmake1", "dicePer2Rage": "2d6", "text": "+2d6 per 2 Rage spent."},
+    "bbr.blooded1":   {"name": "Blooded",      "action": "passive",  "pillar": "Carnage", "atRage": 5, "bonusDice": "1d4", "text": "At 5 Rage or more, melee attacks deal +1d4 damage."},
+    "bbr.blooded2":   {"name": "Blooded II",   "action": "upgrade",  "pillar": "Carnage", "upgrades": "bbr.blooded1", "bonusDice": "2d4", "text": "+2d4 damage."},
+    "bbr.berserker1": {"name": "Berserker",    "action": "side",     "pillar": "Carnage", "extraRagePerHit": 1, "armourFactor": 0.5, "text": "Lower your guard until your next turn: Armour halved, every hit you take builds 1 extra Rage."},
+    "bbr.berserker2": {"name": "Berserker II", "action": "upgrade",  "pillar": "Carnage", "upgrades": "bbr.berserker1", "extraRagePerHit": 2, "text": "2 extra Rage per hit taken."},
+    "bbr.pastred1":   {"name": "Past the Red", "action": "passive",  "pillar": "Carnage", "atRage": 10, "text": "At 10 Rage, damage dice are doubled. No retreat and no non-Rage skills while it lasts."},
+    "bbr.redmist2":   {"name": "Red Mist",     "action": "passive",  "pillar": "Carnage", "bankDice": "1d6", "bankMax": 3, "text": "Rage gained above 10 is banked as +1d6 on your next hit, up to 3d6. The surge check still rolls; a failed check loses control for a turn and 1 Sanity per banked point."},
+
+    "bbr.thickit1":   {"name": "Thick of It",  "action": "passive",  "pillar": "Bulwark", "rage": 1, "minFoes": 2, "text": "Gain 1 Rage each turn if two or more enemies are within reach."},
+    "bbr.bitedown1":  {"name": "Bite Down",    "action": "side",     "pillar": "Bulwark", "healPer2Rage": "1d6", "text": "Spend Rage to recover 1d6 HP per 2 Rage spent. Spending to 0 releases Held Wounds."},
+    "bbr.bitedown2":  {"name": "Bite Down II", "action": "upgrade",  "pillar": "Bulwark", "upgrades": "bbr.bitedown1", "healPer2Rage": "2d6", "text": "2d6 HP per 2 Rage spent."},
+    "bbr.grudge1":    {"name": "Grudge",       "action": "passive",  "pillar": "Bulwark", "rage": 1, "text": "The first time each enemy hits you, gain 1 extra Rage."},
+    "bbr.grudge2":    {"name": "Grudge II",    "action": "upgrade",  "pillar": "Bulwark", "upgrades": "bbr.grudge1", "rage": 2, "text": "2 extra Rage."},
+    "bbr.dti1":       {"name": "Draw Them In", "action": "side",     "pillar": "Bulwark", "cost": 2, "text": "Spend 2 Rage on an Intimidation shout: enemies in reach make a Composure check or must attack you next turn. (Solo fights: every foe already attacks you, so this only logs who failed.)"},
+    "bbr.hw1":        {"name": "Held Wounds",  "action": "passive",  "pillar": "Bulwark", "conMultiplier": 2, "text": "While Rage is above 0, hold back up to CON modifier × 2 damage of each hit. When Rage hits 0, everything held lands at once."},
+    "bbr.corpse":     {"name": "Corpse-Eater", "action": "active",   "pillar": "Bulwark", "heal": "1d6", "rage": 2, "fel": 1, "text": "Consume a fallen enemy: restore 1d6 HP and gain 2 Rage. Leaves you open (foes attack with advantage until your next turn) and adds 1 fel per corpse."},
+    "bbr.ironmind":   {"name": "Iron Mind",    "action": "reaction", "pillar": "Bulwark", "cost": 1, "text": "When a spell targets you, spend 1 Rage to gain advantage on the check against it. (Foes cast no spells yet.)"},
+    "bbr.unbroken":   {"name": "Unbroken",     "action": "passive",  "pillar": "Bulwark", "turns": 3, "text": "When Rage hits 0, make an Endurance check. On a success, held damage lands a third per turn over 3 turns instead of at once."}
+  },
+
+  "weapons": [
+    {"name": "Greataxe",   "dice": "1d12", "ap": 0, "note": "Placeholder: weapon AP comes from gear once gear exists."},
+    {"name": "Greatsword", "dice": "2d6",  "ap": 0},
+    {"name": "Longsword",  "dice": "1d8",  "ap": 0},
+    {"name": "Spear",      "dice": "1d8",  "ap": 0},
+    {"name": "Dagger",     "dice": "1d4",  "ap": 0},
+    {"name": "Unarmed",    "dice": "1d4",  "ap": 0}
+  ],
+
+  "foes": [
+    {"name": "Bandit",          "hp": 18, "defence": 12, "armour": 1, "attack": 3, "damage": "1d8+1", "composure": 0, "note": "Placeholder numbers until a bestiary exists."},
+    {"name": "Orc raider",      "hp": 30, "defence": 12, "armour": 2, "attack": 5, "damage": "1d12+2", "composure": 2},
+    {"name": "Hobgoblin veteran","hp": 40, "defence": 14, "armour": 4, "attack": 5, "damage": "1d10+3", "composure": 3},
+    {"name": "Training dummy",  "hp": 200, "defence": 8, "armour": 0, "attack": -99, "damage": "0", "composure": 0, "note": "Never hits back. Use it to measure damage per turn."}
+  ]
+}
