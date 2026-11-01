@@ -2,8 +2,8 @@
  * Character page — read-only character sheet. Points are spent only through Level Up
  * (tree node → Level Up screen) or the Creator. Dev mode turns the identity fields into inputs.
  *
- * Layout:  [ Identity (vertical) ] [ Resource pools                      ]
- *          [ + checks            ] [ Skills | Attributes | Combat stats   ]
+ * Layout:  top bar  [ Data | Affinities | Stats (HP + pools + icons) | Points ]
+ *          body     [ Skills | Attributes | Progression + Checks ]
  * Colours follow the core class (CLASS_THEME in config/settings.ts).
  */
 import { CLASS_THEME } from "@/config/settings";
@@ -101,6 +101,13 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
           <div className="ct__row">
             <Hint lines={[`Level 1: d${core?.hitDie ?? "?"} + CON`, "Then d/2 + 1 + CON per level", `From Asc. I: d${c.hitDie}`]}>
               <RadialGauge now={c.combat.hp} max={c.combat.hp} kind="hp" size={54} label="HP" title={`Hit Points ${c.combat.hp}`} /></Hint>
+            <div className="ct__pools">
+              <Pool label="Quick" now={c.pools.quick} max={c.well?.ceiling ? Math.max(c.pools.quick, c.well.ceiling) : c.pools.quick} kind="quick" lines={[["Well", c.well?.tier ?? "—"], ["Base pool", c.well?.base ?? 0], [`Growth × ${c.level - 1} levels`, (c.well?.growth ?? 0) * (c.level - 1)], ["Ceiling", c.well?.ceiling ?? 0], ["CON bonus", Math.max(0, c.attributes.find(a => a.key === "CON")?.mod ?? 0) * (rules.params.find(p => p.key === "QuickPerCON")?.value ?? 0)], "Ring: pool against the well's ceiling"]} />
+              <Pool label="Sanity" now={c.pools.sanity} max={c.pools.sanity} kind="sanity" lines={["Base + Endurance + 1 per level after the first", ["Endurance", signed(c.skills.find(k => k.name === "Endurance")?.total ?? 0)]]} />
+              {c.pools.purequick !== null && <Pool label="Purequick" now={c.pools.purequick} max={c.pools.purequick} kind="pq" lines={["(PQBase + WIS mod) × ((PQPerWIS + PQPerLevel) × (level − 1))", "Refills only by prayer"]} />}
+              {c.pools.rage !== null && <Pool label="Rage" now={0} max={c.pools.rage} kind="rage" lines={["Rests at 0; built by moves and damage taken", ["Cap", c.pools.rage]]} />}
+              {c.pools.felLimit !== null && <Pool label="Fel" now={0} max={c.pools.felLimit} kind="fel" lines={["Rests at 0; converted from Quick", ["Fel limit (the well)", c.pools.felLimit]]} />}
+            </div>
             <div className="ct__stats">
               <StatIcon icon="armour" label="AR" value={c.combat.armour} lines={["Armour — from gear & passives"]} />
               <StatIcon icon="initiative" label="Init" value={sp(c.combat.initiative)} lines={["Initiative — DEX modifier"]} />
@@ -177,19 +184,6 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
         </section>
 
         <div className="char__stack">
-          {/* ── Resource pools ── */}
-          <section className="card">
-            <h2>Resource pools</h2>
-            <div className="pools pools--gauges">
-              <Pool label="Quick" now={c.pools.quick} max={c.well?.ceiling ? Math.max(c.pools.quick, c.well.ceiling) : c.pools.quick} kind="quick" lines={[["Well", c.well?.tier ?? "—"], ["Base pool", c.well?.base ?? 0], [`Growth × ${c.level - 1} levels`, (c.well?.growth ?? 0) * (c.level - 1)], ["Ceiling", c.well?.ceiling ?? 0], ["CON bonus", Math.max(0, c.attributes.find(a => a.key === "CON")?.mod ?? 0) * (rules.params.find(p => p.key === "QuickPerCON")?.value ?? 0)]]} />
-              <Pool label="Sanity" now={c.pools.sanity} max={c.pools.sanity} kind="sanity" lines={["Base + Endurance + 1 per level after the first", ["Endurance", signed(c.skills.find(k => k.name === "Endurance")?.total ?? 0)]]} />
-              {c.pools.purequick !== null && <Pool label="Purequick" now={c.pools.purequick} max={c.pools.purequick} kind="pq" lines={["(PQBase + WIS mod) × ((PQPerWIS + PQPerLevel) × (level − 1))", "Refills only by prayer"]} />}
-              {c.pools.rage !== null && <Pool label="Rage" now={0} max={c.pools.rage} kind="rage" lines={["Rests at 0; built by moves and damage taken", ["Cap", c.pools.rage]]} />}
-              {c.pools.felLimit !== null && <Pool label="Fel" now={0} max={c.pools.felLimit} kind="fel" lines={["Rests at 0; converted from Quick", ["Fel limit (the well)", c.pools.felLimit]]} />}
-            </div>
-            <p className="note">Quick ring shows the pool against the well's ceiling.</p>
-          </section>
-
           {/* ── Progression (and Dev-mode identity editing) ── */}
           <section className="card">
             <h2>Progression</h2>
@@ -237,7 +231,7 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
 }
 
 function Pool({ label, now, max, kind, lines }: { label: string; now: number; max: number; kind: string; lines: (string | [string, string | number])[] }) {
-  return <div className="pool"><Hint lines={lines}><RadialGauge now={now} max={Math.max(1, max)} kind={kind} size={64} label={label} showMax /></Hint></div>;
+  return <Hint lines={lines}><RadialGauge now={now} max={Math.max(1, max)} kind={kind} size={54} label={label} /></Hint>;
 }
 
 function StatIcon({ icon, label, value, lines }: { icon: string; label: string; value: string | number; lines: (string | [string, string | number])[] }) {

@@ -578,7 +578,7 @@ dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 @media (max-width: 1000px) { .gauges { flex-wrap: wrap; } }
 
 /* ── Character page top bar: Data | Affinities | Stats | Points ── */
-.char-top { display: grid; grid-template-columns: minmax(300px, 1.5fr) auto minmax(320px, 1.6fr) auto; gap: 10px; align-items: stretch; }
+.char-top { display: grid; grid-template-columns: minmax(280px, 1.3fr) auto minmax(420px, 2.2fr) auto; gap: 10px; align-items: stretch; }
 .ct { background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--class); border-radius: var(--radius); padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
 .ct h2 { font: 500 11px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--class); margin: 0; }
 .ct__row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; flex: 1; }
@@ -627,3 +627,4 @@ dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .unit__body { display: flex; align-items: center; gap: 12px; }
 .unit__body .unit__stats { flex: 1; }
 .numbers.numbers--gauge { grid-template-columns: auto repeat(3, minmax(0, 1fr)); }
+.ct__pools { display: flex; gap: 10px; align-items: center; padding-right: 14px; margin-right: 2px; border-right: 1px solid var(--line); }
