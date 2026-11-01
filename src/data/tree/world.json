@@ -31,7 +31,7 @@
   ],
   "nodeTypes": {
     "centre": {"shape": "circle", "size": 3, "cost": 0, "description": "The hub"},
-    "starter socket": {"shape": "circle", "size": 3, "cost": 1, "description": "Class start; free"},
+    "starter socket": {"shape": "circle", "size": 3, "cost": 1, "description": "Class start; unlocked automatically at level 1 with that level's keystone point"},
     "passive keystone": {"shape": "circle", "size": 1, "cost": 1, "description": "passive or stat opener"},
     "ascendency": {"shape": "diamond", "size": 3, "cost": 1, "description": "Master Ascendency or Sundering Ascendency"},
     "gem socket": {"shape": "circle", "size": 2, "cost": 1, "description": "Active technique (gem), active skill opener"},

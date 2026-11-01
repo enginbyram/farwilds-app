@@ -136,6 +136,7 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
   const combat = {
     hp,
     initiative: M.DEX,
+    defence: attributes.find(a => a.key === "DEX")?.score ?? 0,   // physical attacks roll against the DEX score (1 Nov)
     speed: race?.speed ?? p("BaseSpeed"),
     apMelee: Math.floor(M.STR * (p("APMeleeSTR") + ext.meleeWeaponAP) + M.DEX * (p("APMeleeDEX") + ext.meleeWeaponAP)),
     apRanged: Math.floor(M.DEX * (p("APRangedDEX") + ext.rangedWeaponAP)),
@@ -149,11 +150,13 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
   // ── Resource pools ──
   const has = (flag: "purequick" | "rage" | "fel") => !!asc(asc1Eff)?.[flag] || !!(asc2Eff && asc(asc2Eff)?.[flag]);
   const tier = startingWell(rules);
-  const quick = !tier || tier.ceiling === 0 ? 0
-    : Math.min(tier.ceiling, tier.base + tier.growth * (L - 1)) + Math.max(0, M.CON) * p("QuickPerCON");
+  // Pools (1 Nov): Hit Die maximum + modifier, +PoolPerStep every PoolStepLevels levels after the first.
+  // The well still caps the Quick pool; a Trace well (NPCs) holds none.
+  const poolGrowth = p("PoolPerStep") * Math.floor((L - 1) / (p("PoolStepLevels") || 1));
+  const quick = !tier || tier.ceiling === 0 ? 0 : Math.max(0, Math.min(tier.ceiling, hdAsc + M.CON + poolGrowth));
   const pools = {
-    quick,
-    purequick: has("purequick") ? (p("PQBase") + M.WIS) * ((p("PQPerWIS") + p("PQPerLevel")) * (L - 1)) : null,
+    quick, poolGrowth,
+    purequick: has("purequick") ? Math.max(0, hdAsc + M.WIS + poolGrowth) : null,
     rage: has("rage") ? p("RageMax") : null,
     fel: has("fel"),
     felLimit: has("fel") ? quick : null,

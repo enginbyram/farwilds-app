@@ -39,11 +39,16 @@ In the README table below, "Change unlock / refund rules" still means the tree; 
 skill or stat to see where it comes from. Main attributes (race or class gives 2) have a gold outline, Side (gives 1) grey.
 The page takes its colours from the core class (`CLASS_THEME` in `src/config/settings.ts`).
 
+**Level 1**: the class start is unlocked automatically and takes the level-1 keystone point, so a new character
+starts with one keystone on its tree and nothing left to spend.
+
 **Level up**: the button sends you to the Tree with one new keystone point (tree points = level). Unlock a node, press
 Continue, and the Level Up screen shows what the level gives: first ascendancy at ring 1, second at ring 2, the subdominant
 affinity from Ascendancy III, +2 skill points per ascension, and AttributePointsPerLevel attribute points (0 until decided).
 Cancel refunds the node.
 
+- Quick = Hit Die (its maximum) + CON modifier, Purequick = Hit Die + WIS modifier; both +2 every 2 levels (`PoolPerStep`, `PoolStepLevels`).
+- Defence is the DEX score: physical attacks (d20 + AP) roll against it. Armour reduces physical damage.
 - Armour, weapon AP, Leech and "gear & passives" are filled automatically from gear and tree passives
   (`External` in `src/rules/compute.ts`). Until then they read 0.
 - **Save character** downloads `<name>.farwilds.json`; **Load character** reads it back (older files are converted).

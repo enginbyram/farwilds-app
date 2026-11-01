@@ -74,7 +74,8 @@ function eff<K extends keyof SkillDef>(owned: Owned, id: string, key: K): SkillD
 }
 
 export interface FoeState extends FoeDef { id: number; key: string; hpNow: number; hasHitYou: boolean; eaten: boolean; }
-export interface InitRoll { key: string; name: string; roll: number; bonus: number; total: number; side: "you" | "foe"; }
+/** tie: the reroll that broke a tie between foes (PC beats NPC on a tie; NPCs reroll until different). */
+export interface InitRoll { key: string; name: string; roll: number; bonus: number; total: number; side: "you" | "foe"; tie?: number; }
 /** kind "line" is a normal entry; "turn" and "round" are centred dividers. */
 export interface LogLine { round: number; who: "you" | "foe" | "sys"; text: string; kind?: "line" | "turn" | "round"; }
 
@@ -115,16 +116,28 @@ export function newFight(f: Fighter, foes: FoeDef[]): CombatState {
   };
 }
 
-/** Everyone rolls initiative; the order is fixed for the whole fight (ties go to you). */
+/** Everyone rolls initiative (d20 + DEX modifier); the order is fixed for the whole fight.
+ *  Ties: a PC goes before an NPC; NPCs (or PCs) tied with each other reroll until the results differ. */
 export function rollInitiative(prev: CombatState, f: Fighter, rng: Rng): CombatState {
   const s = structuredClone(prev);
   const dieSize = rule("InitiativeDie") || 20, addDex = rule("InitiativeAddsDex") ? 1 : 0;
   const you: InitRoll = { key: YOU, name: f.name, roll: die(rng, dieSize), bonus: addDex * f.initiative, total: 0, side: "you" };
   const foes: InitRoll[] = s.foes.map(x => ({ key: x.key, name: x.name, roll: die(rng, dieSize), bonus: 0, total: 0, side: "foe" }));
-  const all = [you, ...foes].map(r => ({ ...r, total: r.roll + r.bonus }));
-  all.sort((a, b) => b.total - a.total || (a.side === "you" ? -1 : b.side === "you" ? 1 : 0));
+  const all: InitRoll[] = [you, ...foes].map(r => ({ ...r, total: r.roll + r.bonus }));
+  const tied = new Map<number, InitRoll[]>();
+  all.filter(r => r.side === "foe").forEach(r => tied.set(r.total, [...(tied.get(r.total) ?? []), r]));
+  const rerolls: string[] = [];
+  for (const group of tied.values()) {
+    if (group.length < 2) continue;
+    let vals: number[];
+    do { vals = group.map(() => die(rng, dieSize)); } while (new Set(vals).size < vals.length);
+    group.forEach((r, i) => { r.tie = vals[i]; });
+    rerolls.push(group.map(r => `${T("foe", r.name)} ${T("roll", r.tie ?? 0)}`).join(" "));
+  }
+  all.sort((a, b) => b.total - a.total || (a.side === "you" ? -1 : b.side === "you" ? 1 : 0) || (b.tie ?? 0) - (a.tie ?? 0));
   s.order = all; s.cursor = 0; s.round = 1; s.phase = "foes";
   s.log.push({ round: 1, who: "sys", text: `Initiative: ${all.map(r => `${T(r.side, r.name)} ${T("roll", r.total)}`).join(" ")}` });
+  rerolls.forEach(t => s.log.push({ round: 1, who: "sys", text: `Tie reroll: ${t}` }));
   s.log.push({ round: 1, who: "sys", text: "Round 1", kind: "round" });
   return s;
 }
@@ -172,9 +185,26 @@ function spendRage(s: CombatState, f: Fighter, owned: Owned, rng: Rng, n: number
   if (was > 0 && s.rage === 0) releaseHeld(s, f, owned, rng);
 }
 
-function checkOver(s: CombatState) {
+/**
+ * At 0 HP you make death saving throws (Core Rulebook 9.6): a d20 each turn, DeathSaveDC or more is a recover
+ * point, less is a loss point; DeathSavePoints of either kind ends it. Fighting alone, nobody can heal you,
+ * so the saves are rolled straight away and the fight is lost either way: dead, or stable but downed.
+ */
+function deathSaves(s: CombatState, rng: Rng) {
+  const dc = rule("DeathSaveDC") || 10, need = rule("DeathSavePoints") || 3;
+  let up = 0, down = 0; const rolls: string[] = [];
+  while (up < need && down < need) { const r = die(rng, 20); if (r >= dc) up++; else down++; rolls.push(T(r >= dc ? "check" : "fail", r)); }
+  say(s, "you", `Death saving throws ${rolls.join(" ")} → ${up >= need ? T("check", `${up} recover: stable but downed`) : T("fail", `${down} loss: dead`)}`);
+  return up >= need;
+}
+
+function checkOver(s: CombatState, rng?: Rng) {
   if (s.result) return;
-  if (s.hp <= 0) { s.result = "loss"; s.phase = "over"; say(s, "sys", `${T("fail", "Defeat")} You fall in round ${s.round}.`); }
+  if (s.hp <= 0) {
+    const stable = rng ? deathSaves(s, rng) : false;
+    s.result = "loss"; s.phase = "over";
+    say(s, "sys", `${T("fail", "Defeat")} You fall in round ${s.round}${stable ? " and lie stable, downed until healed to 1 HP" : ""}.`);
+  }
   else if (!aliveFoes(s).length) { s.result = "win"; s.phase = "over"; say(s, "sys", `${T("hit", "Victory")} in round ${s.round}.`); }
 }
 
@@ -215,7 +245,7 @@ function beginPlayerTurn(s: CombatState, f: Fighter, owned: Owned, rng: Rng) {
   if (owned.has("bbr.thickit1") && s.playerTurns > 1 && aliveFoes(s).length >= (SKILLS["bbr.thickit1"].minFoes ?? 2))
     gainRage(s, f, owned, SKILLS["bbr.thickit1"].rage ?? 1, "Thick of It");
   say(s, "sys", s.lostControl ? `${T("you", "Your turn")} ${T("fail", "lost in the surge")} a plain weapon attack only` : T("you", "Your turn"));
-  checkOver(s);
+  checkOver(s, rng);
 }
 
 function foeTurn(s: CombatState, f: Fighter, owned: Owned, foe: FoeState, rng: Rng) {
@@ -248,7 +278,7 @@ export function step(prev: CombatState, f: Fighter, owned: Owned, rng: Rng): Com
     foeTurn(s, f, owned, foe, rng);
     s.log.push({ round: s.round, who: "sys", text: `${foe.name}'s turn ends`, kind: "turn" });
   }
-  checkOver(s);
+  checkOver(s, rng);
   if (!s.result) advance(s);
   return s;
 }
@@ -320,7 +350,7 @@ export function playCard(prev: CombatState, f: Fighter, owned: Owned, id: string
   } else {
     strike(s, f, owned, id, targetKey, rng, opt, G);
   }
-  checkOver(s);
+  checkOver(s, rng);
   return s;
 }
 

@@ -16,7 +16,7 @@
  *   - everything else you own still connects back to your class start (or the centre) without it,
  *   - no owned node lists it as parent 2,
  *   - the cluster gem (if unlocked) would still have enough members without it.
- * Your class start and the centre are always owned and free.
+ * Your class start and the centre are always owned. The start is paid for with the level-1 keystone point.
  */
 import type { TreeNode } from "@/data/types";
 
@@ -50,9 +50,13 @@ export function clusterRuleText(n: TreeNode): string {
   return gem.clusterMode === "one" ? `Part of ${gem.name} — choose one` : `Part of ${gem.name}`;
 }
 
-export function pointsUsed(owned: Set<TreeNode>, start: TreeNode | null): number {
+/**
+ * Keystone points spent. The class start is unlocked automatically at level 1 and takes that
+ * level's keystone point (Core Rulebook 2.2, 1 Nov): every character starts with one keystone on its tree.
+ */
+export function pointsUsed(owned: Set<TreeNode>, _start: TreeNode | null): number {
   let used = 0;
-  owned.forEach(n => { if (n !== start && !n.isCentre) used += n.points; });
+  owned.forEach(n => { if (!n.isCentre) used += n.points; });
   return used;
 }
 
