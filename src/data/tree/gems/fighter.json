@@ -11,12 +11,13 @@
   },
   "fig.wmg2": {
     "_name": "Defense",
-    "description": "While you are wearing armor, you gain a bonus to Armor Rating.",
+    "description": "While you wear armour, you gain +2 Armour for every 10 Armour you have (rounded down).",
     "bonuses": [
       {
         "effect": "ar",
         "value": 2,
-        "when": "every 10 AR"
+        "per": "armour",
+        "step": 10
       }
     ]
   },

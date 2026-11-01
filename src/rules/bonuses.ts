@@ -16,6 +16,10 @@
  * armour, hp, ap, damage:cold…). A bonus with a `when` condition is listed but NOT added: it is
  * situational, and the combat engine will read it when that situation is modelled.
  * All bonuses are flat and stack (Rulebook 7.3).
+ *
+ * Scaling bonuses: {"effect": "ar", "value": 2, "per": "armour", "step": 10} = ROUNDDOWN(2 × Armour ÷ 10).
+ * `per` is a target (armour, attr:STR, skill:Endurance, hp…) and reads that target's total from gear and the
+ * tree BEFORE any scaling bonus — so a scaling bonus never feeds itself.
  */
 import { catalogItem } from "@/model/equipment";
 import type { BonusDef, TreeNode, WorldDef } from "@/data/types";
@@ -32,6 +36,8 @@ export interface BonusLine {
   value: number;
   when?: string;           // conditional: listed, not added
   text?: string;           // a line that couldn't be read as a number
+  /** Scaling: the bonus is rate × (total of `per` ÷ step), rounded down. `value` holds the result once summed. */
+  scale?: { rate: number; per: string; step: number };
 }
 
 /** What the sheet receives from gear and the tree. compute.ts adds these on top of the character's own numbers. */
@@ -89,7 +95,8 @@ function fromDef(b: BonusDef, effects: Effects, skills: string[]): Omit<BonusLin
   const r = resolve(String(b.effect ?? ""), effects);
   const value = Number(String(b.value ?? 0).replace("−", "-")) || 0;
   if (!r) return { target: "", label: String(b.effect), value, text: `${value >= 0 ? "+" : ""}${value} ${b.effect}${b.when ? ` ${b.when}` : ""}` };
-  return { ...r, value, ...(b.when ? { when: b.when } : {}) };
+  const scale = b.per ? { rate: value, per: resolve(b.per, effects)?.target ?? b.per, step: Number(b.step) || 1 } : undefined;
+  return { ...r, value: scale ? 0 : value, ...(b.when ? { when: b.when } : {}), ...(scale ? { scale } : {}) };
 }
 
 const isWeapon = (cat?: string) => cat === "weapon" || cat === "firearm";
@@ -116,8 +123,7 @@ export function bonusLines(sheet: Pick<CharacterSheet, "equipped">, owned: Itera
 export function collectBonuses(sheet: Pick<CharacterSheet, "equipped">, owned: Iterable<TreeNode>, effects: Effects, skills: string[] = []): External {
   const ext: External = { attributes: zeroPoints(), skills: {}, armour: 0, meleeWeaponAP: 0, rangedWeaponAP: 0, flat: {}, armourTypes: [], lines: [] };
   ext.lines = bonusLines(sheet, owned, effects, skills);
-  for (const l of ext.lines) {
-    if (!l.target || l.when) continue;
+  const add = (l: BonusLine) => {
     const [kind, arg] = l.target.split(/:(.*)/s);
     if (kind === "attr" && (ATTR_KEYS as readonly string[]).includes(arg)) ext.attributes[arg as AttrKey] += l.value;
     else if (kind === "skill") ext.skills[arg] = (ext.skills[arg] ?? 0) + l.value;
@@ -125,7 +131,19 @@ export function collectBonuses(sheet: Pick<CharacterSheet, "equipped">, owned: I
     else if (l.target === "weapon_ap_melee") ext.meleeWeaponAP += l.value;
     else if (l.target === "weapon_ap_ranged") ext.rangedWeaponAP += l.value;
     else ext.flat[l.target] = (ext.flat[l.target] ?? 0) + l.value;
-  }
+  };
+  const total = (target: string) => {
+    const [kind, arg] = target.split(/:(.*)/s);
+    if (kind === "attr") return ext.attributes[arg as AttrKey] ?? 0;
+    if (kind === "skill") return ext.skills[arg] ?? 0;
+    if (target === "armour") return ext.armour;
+    return ext.flat[target] ?? 0;
+  };
+  const live = ext.lines.filter(l => l.target && !l.when);
+  live.filter(l => !l.scale).forEach(add);
+  // Scaling bonuses read the totals above, then add on top.
+  const scaled = live.filter(l => l.scale).map(l => ({ l, v: Math.floor((l.scale!.rate * total(l.scale!.per)) / l.scale!.step) }));
+  for (const { l, v } of scaled) { l.value = v; add(l); }
   for (const it of new Set(Object.values(sheet.equipped))) {
     const t = catalogItem(it.ref)?.armor_type;
     if (t && catalogItem(it.ref)?.category === "armour") ext.armourTypes.push(t);

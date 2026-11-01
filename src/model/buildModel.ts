@@ -386,5 +386,6 @@ function formatBonus(b: BonusDef, world: WorldDef, nodeId: string, warnings: str
   const v = text(b.value);
   const value = v === "" ? "" : /^[+\-−]/.test(v) ? v : `+${v}`;
   const unit = v !== "" && text(def?.unit) === "%" ? "%" : "";
-  return [value + unit, name, text(b.when)].filter(Boolean).join(" ");
+  const per = b.per ? `per ${b.step ?? 1} ${text(world.effects?.[b.per]?.name) || b.per.replace(/^\w+:/, "")}` : "";
+  return [value + unit, name, per, text(b.when)].filter(Boolean).join(" ");
 }

@@ -3,8 +3,8 @@
  * Equipment card's Add and Purchase buttons. One catalog list, two modes:
  *
  *   add  — tick items, then "Add to bag". Free; for the DM or for starting gear.
- *   buy  — each item shows its default price with − / + (one unit of its coin, e.g. ±1 gp);
- *          a lowered price shows red, a raised one yellow.
+ *   buy  — each item shows its price as gold / silver / copper boxes; type in any of them to haggle
+ *          (PriceEditor). A lowered price shows red, a raised one yellow.
  *          Adjusted prices and the cart live only while the drawer is open; closing forgets them.
  *          Pay takes the total from the purse (with change) and puts the items in the bag.
  *   sell — the bag, each item at its selling price (catalog price × sellRate in gear.json) with − / +
@@ -15,7 +15,7 @@
 import { useMemo, useState } from "react";
 import gear from "@/data/gear.json";
 import type { SheetState } from "@/hooks/useSheet";
-import { addToBag, CATALOG, CATEGORIES, catalogItem, categoryLabel, type CatalogItem, coinValue, formatMoney, itemIcon, pay, receive, sellPrice, toCopper, walletCopper } from "@/model/equipment";
+import { addToBag, CATALOG, CATEGORIES, catalogItem, categoryLabel, type CatalogItem, COINS_DESC, formatMoney, itemIcon, pay, receive, sellPrice, toCopper, walletCopper } from "@/model/equipment";
 import { GEAR_SLOTS } from "./Inventory";
 import { Hint, Icon } from "./ui";
 
@@ -53,6 +53,31 @@ export function EquipmentDrawer({ mode, sh, onClose, onMessage, style }: {
   return <ShopDrawer mode={mode} sh={sh} onClose={onClose} onMessage={onMessage} style={style} />;
 }
 
+/**
+ * Price as one box per coin (gp / sp / cp). Typing in any box changes the price; the boxes are then shown
+ * in the fewest coins (15 sp → 1 gp 5 sp). Red when below the default, yellow when above.
+ */
+function PriceEditor({ value, base, onChange, disabled, label }: { value: number; base: number; onChange: (cp: number) => void; disabled?: boolean; label: string }) {
+  let left = Math.max(0, value);
+  const parts = COINS_DESC.map(c => { const n = Math.floor(left / c.value); left -= n * c.value; return { c, n }; });
+  const set = (id: string, n: number) => onChange(parts.reduce((t, x) => t + (x.c.id === id ? Math.max(0, Math.floor(n) || 0) : x.n) * x.c.value, 0));
+  const trend = value < base ? " down" : value > base ? " up" : "";
+  return (
+    <Hint className={`price${trend}`} lines={[["Default", formatMoney(base)], ["Now", formatMoney(value)], "Type in any coin. Not saved when the drawer closes."]}>
+      <span className="price__boxes" role="group" aria-label={label}>
+        {parts.map(({ c, n }) => (
+          <label key={c.id} className={`price__coin coin--${c.id}`}>
+            <input type="number" min={0} className="in in--num price__in" value={n} disabled={disabled} aria-label={c.label}
+              onChange={e => set(c.id, Number(e.target.value))} onFocus={e => e.target.select()} />
+            <small>{c.short}</small>
+          </label>
+        ))}
+        {value !== base && !disabled && <button type="button" className="price__reset" onClick={() => onChange(base)} aria-label="Back to the default price" title="Back to the default price">↺</button>}
+      </span>
+    </Hint>
+  );
+}
+
 /** Sell: the bag, priced at what a merchant pays. Counts and haggled prices live only while the drawer is open. */
 function SellDrawer({ sh, onClose, onMessage, style }: { sh: SheetState; onClose: () => void; onMessage: (m: string) => void; style?: React.CSSProperties }) {
   const { sheet: s, setSheet } = sh;
@@ -61,7 +86,6 @@ function SellDrawer({ sh, onClose, onMessage, style }: { sh: SheetState; onClose
 
   const rows = s.bag.map((it, i) => ({ it, i, c: catalogItem(it.ref), base: sellPrice(it), qty: it.qty ?? 1 }));
   const priceOf = (i: number) => prices[i] ?? rows[i].base;
-  const step = (i: number) => Math.max(1, coinValue(rows[i].c?.price.coin ?? "cp"));
   const setN = (i: number, n: number) => setCount(x => ({ ...x, [i]: Math.max(0, Math.min(rows[i].qty, n)) }));
   const total = rows.reduce((t, r) => t + (count[r.i] ?? 0) * priceOf(r.i), 0);
   const pieces = Object.values(count).reduce((t, n) => t + n, 0);
@@ -91,18 +115,13 @@ function SellDrawer({ sh, onClose, onMessage, style }: { sh: SheetState; onClose
         {rows.length === 0 && <li className="empty">The bag is empty. Worn gear must be taken off before it can be sold.</li>}
         {rows.map(({ it, i, c, base, qty }) => {
           const p = priceOf(i), n = count[i] ?? 0;
-          const trend = p < base ? " down" : p > base ? " up" : "";
           return (
             <li key={i} className={`shop__row${n ? " on" : ""}`}>
               <Icon name={itemIcon(it)} size={20} />
               <Hint lines={c ? itemLines(c, p) : [[categoryLabel(it.kind) || "Item", it.name], "Not from the catalog: no price"]} className="shop__name">
                 <b>{it.name}</b><small>{qty > 1 ? `${qty} in the bag · ` : ""}{base ? `${formatMoney(base)} each` : "no price"}</small>
               </Hint>
-              <span className={`shop__adjust${trend}`}>
-                <button type="button" className="btn btn--ghost btn--small" onClick={() => setPrices(x => ({ ...x, [i]: Math.max(0, p - step(i)) }))} disabled={!base || p === 0} aria-label="Lower price"><Icon name="minus" size={14} /></button>
-                <Hint lines={[["Merchant's offer", formatMoney(base)], "Not saved when the drawer closes"]}><span className="shop__price">{formatMoney(p)}</span></Hint>
-                <button type="button" className="btn btn--ghost btn--small" onClick={() => setPrices(x => ({ ...x, [i]: p + step(i) }))} disabled={!base} aria-label="Raise price"><Icon name="plus" size={14} /></button>
-              </span>
+              <PriceEditor value={p} base={base} disabled={!base} label={`Price for ${it.name}`} onChange={v => setPrices(x => ({ ...x, [i]: v }))} />
               <span className="shop__qty">
                 <button type="button" className="btn btn--ghost btn--small" onClick={() => setN(i, n - 1)} disabled={!n} aria-label="Sell one less"><Icon name="minus" size={14} /></button>
                 <b>{n}</b>
@@ -143,8 +162,6 @@ function ShopDrawer({ mode, sh, onClose, onMessage, style }: {
   }, [category, search]);
 
   const priceOf = (it: CatalogItem) => prices[it.id] ?? toCopper(it.price);
-  const step = (it: CatalogItem) => coinValue(it.price.coin);
-  const nudge = (it: CatalogItem, dir: 1 | -1) => setPrices(p => ({ ...p, [it.id]: Math.max(0, priceOf(it) + dir * step(it)) }));
 
   const cartCount = cart.reduce((t, l) => t + l.qty, 0);
   const total = cart.reduce((t, l) => t + l.price * l.qty, 0);
@@ -211,7 +228,6 @@ function ShopDrawer({ mode, sh, onClose, onMessage, style }: {
           {list.length === 0 && <li className="empty">Nothing in this category.</li>}
           {list.map(it => {
             const p = priceOf(it), base = toCopper(it.price);
-            const trend = p < base ? " down" : p > base ? " up" : "";
             const on = picked.has(it.id);
             const meta = [categoryLabel(it.category), slotLabel(it.slot), it.damage && `${it.damage}${it.damage_type ? ` ${it.damage_type}` : ""}`,
               it.range_m !== undefined && `${it.range_m}/${it.range_long_m ?? it.range_m} m`].filter(Boolean).join(" · ");
@@ -231,11 +247,7 @@ function ShopDrawer({ mode, sh, onClose, onMessage, style }: {
               <li key={it.id} className="shop__row">
                 <Icon name={itemIcon(it)} size={20} />
                 {name}
-                <span className={`shop__adjust${trend}`}>
-                  <button type="button" className="btn btn--ghost btn--small" onClick={() => nudge(it, -1)} disabled={p === 0} aria-label={`Lower price by 1 ${it.price.coin}`}><Icon name="minus" size={14} /></button>
-                  <Hint lines={[["Default", formatMoney(toCopper(it.price))], `Step: 1 ${it.price.coin}`, "Not saved when the drawer closes"]}><span className="shop__price">{formatMoney(p)}</span></Hint>
-                  <button type="button" className="btn btn--ghost btn--small" onClick={() => nudge(it, 1)} aria-label={`Raise price by 1 ${it.price.coin}`}><Icon name="plus" size={14} /></button>
-                </span>
+                <PriceEditor value={p} base={base} label={`Price for ${it.name}`} onChange={v => setPrices(x => ({ ...x, [it.id]: v }))} />
                 <button type="button" className="btn btn--small" onClick={() => addToCart(it)} title="Add to cart"><Icon name="cart" size={15} /></button>
               </li>
             );

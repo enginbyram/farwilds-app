@@ -603,7 +603,7 @@ dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .aff--earth .icon { color: var(--brass); }
 .aff--air .icon { color: var(--apt-wisdom); }
 .aff--locked { opacity: .55; }
-.ct__stats { display: grid; grid-template-columns: repeat(3, minmax(0, auto)); gap: 6px 16px; flex: 1; }
+.ct__stats { display: grid; grid-template-columns: repeat(3, max-content); gap: 6px 12px; flex: 1; min-width: 0; }
 .stat-ic { display: grid; grid-template-columns: auto auto; grid-template-rows: auto auto; column-gap: 6px; align-items: center; }
 .stat-ic .icon { grid-row: 1 / 3; color: var(--class); }
 .stat-ic b { font: 600 13px var(--font-body); font-variant-numeric: tabular-nums; white-space: nowrap; }
@@ -706,7 +706,7 @@ dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .bag__cell--full { border-color: color-mix(in srgb, var(--class) 70%, var(--line)); background: color-mix(in srgb, var(--class) 9%, var(--panel)); }
 .bag__abbr { font: 600 11px var(--font-body); color: var(--ink); text-transform: capitalize; }
 .bag__qty { position: absolute; right: 2px; bottom: 0; font: 600 9px var(--font-body); color: var(--ink); }
-.bag .slot__btn { display: block; }
+.bag .slot__btn { display: block; width: 100%; box-sizing: border-box; }   /* a button shrinks to its content unless told to fill the cell */
 .bag .slot__btn:hover .bag__cell { border-color: var(--brass); }
 
 /* Card header with tools on the right (Equipment: Add / Purchase) */
@@ -768,4 +768,42 @@ dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .imenu__item:disabled { color: var(--muted); cursor: default; }
 .imenu__item--danger, .imenu__item--danger .icon { color: var(--danger); }
 .shop__row.on { background: color-mix(in srgb, var(--class) 8%, transparent); }
-body:has(.imenu) .hint__box { display: none; }   /* no hover cards over an open item menu */
+body:has(.imenu) .hint__box { display: none !important; }   /* no hover cards over an open item menu */
+
+/* Price editor (Purchase / Sell): one box per coin */
+.price { margin: 0; }
+.price__boxes { display: inline-flex; align-items: center; gap: 3px; }
+.price__coin { display: inline-flex; align-items: baseline; gap: 1px; }
+.price__coin small { font-size: 10px; color: var(--muted); }
+.price__in { width: 38px; padding: 2px 3px; text-align: right; font-variant-numeric: tabular-nums; -moz-appearance: textfield; }
+.price__in::-webkit-outer-spin-button, .price__in::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.price.down .price__in { color: var(--danger); font-weight: 600; }
+.price.up .price__in { color: var(--price-up); font-weight: 600; }
+.price__reset { all: unset; cursor: pointer; color: var(--muted); padding: 0 3px; font-size: 13px; }
+.price__reset:hover { color: var(--ink); }
+.price .hint__box { left: auto; right: 0; }
+
+/* Rest buttons (Character page, right of the stats): Quick's colour */
+.ct__rest { display: grid; gap: 6px; align-content: center; padding-left: 12px; border-left: 1px solid var(--line); }
+.ct__rest .hint { margin: 0; }
+.btn--rest { width: 100%; white-space: nowrap; padding: 4px 10px; font-size: 12px; color: var(--apt-wisdom); border-color: var(--apt-wisdom); background: color-mix(in srgb, var(--apt-wisdom) 10%, var(--panel)); font-weight: 600; }
+.btn--rest:hover { background: color-mix(in srgb, var(--apt-wisdom) 20%, var(--panel)); }
+.btn--rest-short { background: transparent; }
+
+/* Rows with a price editor: name on its own line, the editor and counts under it */
+.shop__row:has(.price) { flex-wrap: wrap; row-gap: 4px; }
+.shop__row:has(.price) .shop__name { flex: 1 1 calc(100% - 32px); }
+.shop__row:has(.price) .price { margin-left: 28px; }
+.shop__row:has(.price) .shop__qty, .shop__row:has(.price) > .btn { margin-left: auto; }
+
+.ct--stats .ct__row { flex-wrap: nowrap; }   /* rest buttons stay on the right; the stat grid drops to two columns instead */
+@media (max-width: 1560px) {   /* narrower stats card: two stat columns, smaller gauges, so the rest buttons keep their place */
+  .ct__stats { grid-template-columns: repeat(2, max-content); }
+}
+@media (max-width: 1420px) {
+  .ct--stats .ct__row { gap: 10px; }
+  .ct--stats .ct__pools { gap: 6px; padding-right: 10px; }
+  .ct--stats .gauge svg { width: 44px; height: 44px; }
+  .btn--rest { padding: 3px 7px; font-size: 11.5px; }
+  .ct__rest { padding-left: 10px; }
+}

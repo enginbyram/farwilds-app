@@ -24,8 +24,10 @@ export interface SkillDef {
   minFoes?: number; healPer2Rage?: string; cost?: number; conMultiplier?: number; heal?: string; fel?: number; turns?: number;
   /** Action economy: playing the card gives this many more Main / Side actions this turn (Action Surge). */
   grantActive?: number; grantSide?: number;
-  /** Times the card can be played in one fight (stands in for "once per short or long rest"). */
+  /** Times the card can be played in one fight. */
   perFight?: number;
+  /** Times the card can be played between rests, and which rest makes it ready again ("short": short or long). */
+  uses?: number; recharge?: "short" | "long";
 }
 export interface WeaponDef { name: string; dice: string; ap: number; damageType?: string; note?: string; }
 export interface FoeDef { name: string; hp: number; defence: number; armour: number; attack: number; damage: string; composure: number; note?: string; }
@@ -66,6 +68,7 @@ export interface Fighter {
   name: string; hpMax: number; defence: number; armour: number; attackBonus: number; ap: number; initiative: number;
   weapon: Dice; endurance: number; intimidation: number; conMod: number; sanity: number; rageMax: number;
   weaponName?: string;
+  hpStart?: number;                       // HP when the fight starts (the sheet's current HP); hpMax if absent
   damageType?: string;                    // of the weapon: slashing, piercing… (physical types are cut by Armour)
   extraDamage?: Record<string, number>;   // flat extra damage by type from gear and the tree ("cold" → 1), lands past Armour
 }
@@ -113,10 +116,11 @@ export interface CombatState {
 
 export const YOU = "you";
 
-export function newFight(f: Fighter, foes: FoeDef[]): CombatState {
+/** `used` = rest-limited cards already used since their last recharge (the sheet's condition.uses). */
+export function newFight(f: Fighter, foes: FoeDef[], used: Record<string, number> = {}): CombatState {
   return {
-    phase: "setup", round: 0, order: [], cursor: 0, playerTurns: 0, used: { active: false, side: false }, extra: { active: 0, side: 0 }, uses: {},
-    hp: f.hpMax, rage: 0, held: 0, heldQueue: [], bank: 0, guardDown: false, open: false, lostControl: false,
+    phase: "setup", round: 0, order: [], cursor: 0, playerTurns: 0, used: { active: false, side: false }, extra: { active: 0, side: 0 }, uses: { ...used },
+    hp: Math.min(f.hpMax, f.hpStart ?? f.hpMax), rage: 0, held: 0, heldQueue: [], bank: 0, guardDown: false, open: false, lostControl: false,
     fel: 0, sanityLost: 0,
     foes: foes.map((x, i) => {
       const same = foes.filter(y => y.name === x.name);   // "Bandit 1", "Bandit 2" when names repeat
@@ -317,8 +321,9 @@ export function canPlay(s: CombatState, owned: Owned, id: string, targetKey: str
   const slot = cardSlot(id);
   if (slot === "active" && s.used.active && s.extra.active <= 0) return { ok: false, why: "Main action already used" };
   if (slot === "side" && s.used.side && s.extra.side <= 0) return { ok: false, why: "Side action already used" };
-  const per = SKILLS[id]?.perFight;
-  if (per !== undefined && (s.uses[id] ?? 0) >= per) return { ok: false, why: per === 1 ? "Already used this fight" : `Used ${per} times this fight` };
+  const def0 = SKILLS[id], per = def0?.perFight ?? def0?.uses;
+  if (per !== undefined && (s.uses[id] ?? 0) >= per)
+    return { ok: false, why: def0?.perFight !== undefined ? `Used ${per}× this fight` : `Used — ready after a ${def0?.recharge === "long" ? "long" : "short or long"} rest` };
   if (s.lostControl && id !== ATTACK) return { ok: false, why: "Lost in the surge" };
   if (id !== ATTACK && !owned.has(id)) return { ok: false, why: "Not unlocked" };
   const target = s.foes.find(x => x.key === targetKey && x.hpNow > 0);

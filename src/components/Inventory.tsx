@@ -9,7 +9,7 @@
  * Slots, coins and bag size come from src/data/gear.json. Items live on the sheet, so they are
  * saved with the character file.
  *
- * Click an item (bag or slot) for its menu (ItemMenu.tsx): Wear, Take off, Use, Sell, Drop.
+ * Click an item (bag or slot) for its menu (ItemMenu.tsx): Wear, Take off, Use, Drop. Selling goes through the Sell drawer.
  * Click an empty slot to wear something from the bag that fits it. Worn gear counts in the
  * calculation through rules/bonuses.ts. Dev mode adds "Edit by hand" to every menu.
  */
@@ -18,7 +18,7 @@ import type { SheetState } from "@/hooks/useSheet";
 import type { Computed } from "@/rules/compute";
 import type { Item, Rules } from "@/rules/types";
 import { useState } from "react";
-import { carriedWeight, catalogItem, categoryLabel, formatMoney, itemIcon, itemWeight, receive, sellPrice, slotsFor, unequip, wear } from "@/model/equipment";
+import { carriedWeight, catalogItem, categoryLabel, itemIcon, itemWeight, slotsFor, unequip, wear } from "@/model/equipment";
 import type { ShopMode } from "./EquipmentDrawer";
 import { ItemMenu, menuAt, type MenuEntry, type MenuState } from "./ItemMenu";
 import { Hint, Icon, RadialGauge, signed } from "./ui";
@@ -40,7 +40,7 @@ function askItem(what: string, current?: Item): Item | null | undefined {
 
 const slotName = (id: string) => GEAR_SLOTS.find(x => x.id === id)?.label ?? id;
 
-/** Menu entries for one bag item: Wear (per slot that fits), Use, Sell, Drop. */
+/** Menu entries for one bag item: Wear (per slot that fits), Use, Drop. */
 export function bagEntries(sh: SheetState, i: number, say: (m: string) => void): MenuEntry[] {
   const { sheet: s, setSheet } = sh;
   const it = s.bag[i];
@@ -59,15 +59,6 @@ export function bagEntries(sh: SheetState, i: number, say: (m: string) => void):
   if (c?.category === "consumable") out.push({
     label: "Use", icon: "use",
     onClick: () => { setSheet(x => ({ ...x, bag: qty > 1 ? x.bag.map((b, j) => (j === i ? { ...b, qty: qty - 1 } : b)) : x.bag.filter((_, j) => j !== i) })); say(`Used ${it.name}${c.description ? `: ${c.description}` : ""}`); },
-  });
-  const price = sellPrice(it);
-  out.push({
-    label: qty > 1 ? "Sell one" : "Sell", icon: "sell", note: price ? formatMoney(price) : "no price", disabled: !price,
-    onClick: () => { setSheet(x => ({ ...x, wealth: receive(x.wealth, price), bag: qty > 1 ? x.bag.map((b, j) => (j === i ? { ...b, qty: qty - 1 } : b)) : x.bag.filter((_, j) => j !== i) })); say(`Sold ${it.name} for ${formatMoney(price)}`); },
-  });
-  if (qty > 1 && price) out.push({
-    label: `Sell all ${qty}`, icon: "sell", note: formatMoney(price * qty),
-    onClick: () => { setSheet(x => ({ ...x, wealth: receive(x.wealth, price * qty), bag: x.bag.filter((_, j) => j !== i) })); say(`Sold ${qty} × ${it.name} for ${formatMoney(price * qty)}`); },
   });
   out.push({
     label: qty > 1 ? `Drop all ${qty}` : "Drop", icon: "drop", danger: true,
@@ -264,7 +255,7 @@ export function EquipmentPanel({ sh, c, rules, devMode, onShop, onMessage = () =
           return it ? <Hint key={i} lines={bagLines(it)}>{content}</Hint> : <span key={i} className="bag__wrap">{content}</span>;
         })}
       </div>
-      <p className="note">Click an item for Wear, Use, Sell or Drop.{devMode ? " Dev mode: the first empty cell adds an item by hand; coins edit in place." : ""}</p>
+      <p className="note">Click an item for Wear, Use or Drop.{devMode ? " Dev mode: the first empty cell adds an item by hand; coins edit in place." : ""}</p>
       <ItemMenu menu={menu} onClose={() => setMenu(null)} />
     </section>
   );

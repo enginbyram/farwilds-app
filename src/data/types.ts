@@ -29,7 +29,8 @@ export interface LinkDef { from: string; to: string; type?: string; notes?: stri
 export interface ClusterDef { name?: string; class?: string; ring?: number; template?: string; notes?: string; }
 
 /** A bonus line: plain text, or an effect from world.json → effects with a value. */
-export type BonusDef = string | { effect: string; value?: number | string; when?: string };
+/** per + step make a scaling bonus: value × (per's total ÷ step), rounded down — {"effect": "ar", "value": 2, "per": "armour", "step": 10}. */
+export type BonusDef = string | { effect: string; value?: number | string; when?: string; per?: string; step?: number };
 
 /** gems/*.json — the text of a node, keyed by node id. Works for any node, not only gems. */
 export interface GemDef { description?: string; flavor?: string; bonuses?: BonusDef[]; }

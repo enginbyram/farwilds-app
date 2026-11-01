@@ -4,7 +4,7 @@
  * Saved in the browser so a reload keeps it.
  */
 import { useEffect, useState } from "react";
-import { ATTR_KEYS, type AttrPoints, type CharacterSheet, type Item, zeroPoints } from "@/rules/types";
+import { ATTR_KEYS, type AttrPoints, type CharacterSheet, type Condition, FRESH, type Item, zeroPoints } from "@/rules/types";
 
 const KEY = "farwilds.sheet";
 
@@ -22,6 +22,7 @@ export const DEFAULT_SHEET: CharacterSheet = {
   bag: [],
   wealth: { gold: 0, silver: 0, copper: 0 },
   valuables: [],
+  condition: FRESH,
 };
 
 /** Keeps only well-formed items from a saved or hand-edited file. */
@@ -34,6 +35,15 @@ const asItem = (v: unknown): Item | null => {
   };
 };
 const asItems = (v: unknown): Item[] => (Array.isArray(v) ? v.map(asItem).filter((x): x is Item => !!x) : []);
+
+const n0 = (v: unknown) => Math.max(0, Math.floor(Number(v)) || 0);
+const asCondition = (v: unknown): Condition => {
+  const o = (v ?? {}) as Partial<Condition>;
+  return {
+    hpLost: n0(o.hpLost), quickSpent: n0(o.quickSpent), purequickSpent: n0(o.purequickSpent), sanityLost: n0(o.sanityLost),
+    uses: Object.fromEntries(Object.entries(o.uses ?? {}).map(([k, x]) => [k, n0(x)]).filter(([, x]) => x)),
+  };
+};
 
 /** Old (v1) sheets chose a rank per attribute; turn those into creator points so nothing is lost. */
 const RANK_POINTS: Record<string, number> = { Main: 4, Side: 2, Misc: 1 };
@@ -56,6 +66,7 @@ export function normaliseSheet(raw: unknown): CharacterSheet {
     bag: asItems(s.bag),
     wealth: Object.fromEntries(Object.entries({ ...d.wealth, ...s.wealth }).map(([k, v]) => [k, Math.max(0, Math.floor(Number(v) || 0))])),
     valuables: asItems(s.valuables),
+    condition: asCondition(s.condition),
   };
 }
 

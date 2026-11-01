@@ -10,6 +10,8 @@
 import { CLASS_THEME } from "@/config/settings";
 import type { Character } from "@/hooks/useCharacter";
 import { linesFor } from "@/rules/bonuses";
+import { longRest, shortRest } from "@/rules/rest";
+import { SKILLS } from "@/combat/engine";
 import type { SheetState } from "@/hooks/useSheet";
 import type { Computed } from "@/rules/compute";
 import type { Rules } from "@/rules/types";
@@ -49,6 +51,12 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
   const race = rules.races.find(r => r.name === s.race);
   const mark = rules.marks.find(m => m.name === s.mark);
   const core = rules.coreClasses.find(k => k.name === ch.className);
+  // What is used up since the last rest (rules/rest.ts).
+  const cond = s.condition;
+  const hpNow = Math.max(0, c.combat.hp - cond.hpLost);
+  const usedLines = Object.entries(cond.uses).map(([id, n]) => [`Used: ${SKILLS[id]?.name ?? id}`, `${n}×`] as [string, string]);
+  const doLong = () => { update("condition", longRest(cond)); onMessage?.(`${ch.name} took a long rest.`); };
+  const doShort = () => { update("condition", shortRest(cond, c.pools.purequick)); onMessage?.(`${ch.name} took a short rest.`); };
   /** Hover lines for one bonus target: each item or node that gives it, or "Gear & passives +0". */
   const from = (...targets: string[]) => {
     const l = linesFor(c.external, ...targets);
@@ -109,12 +117,12 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
         <section className="ct ct--stats" aria-label="Stats">
           <h2>Stats</h2>
           <div className="ct__row">
-            <Hint lines={[`Level 1: d${core?.hitDie ?? "?"} + CON`, "Then d/2 + 1 + CON per level", `From Asc. I: d${c.hitDie}`, ...linesFor(c.external, "hp")]}>
-              <RadialGauge now={c.combat.hp} max={c.combat.hp} kind="hp" size={54} label="HP" title={`Hit Points ${c.combat.hp}`} /></Hint>
+            <Hint lines={[`Level 1: d${core?.hitDie ?? "?"} + CON`, "Then d/2 + 1 + CON per level", `From Asc. I: d${c.hitDie}`, ...linesFor(c.external, "hp"), ["Now", `${hpNow} of ${c.combat.hp}`]]}>
+              <RadialGauge now={hpNow} max={c.combat.hp} kind="hp" size={54} label="HP" title={`Hit Points ${hpNow} of ${c.combat.hp}`} /></Hint>
             <div className="ct__pools">
-              <Pool label="Quick" now={c.pools.quick} max={c.pools.quick} kind="quick" lines={["Hit Die + CON mod, +2 every 2 levels", [`Hit Die (d${c.hitDie})`, c.hitDie], ["CON mod", signed(c.attributes.find(a => a.key === "CON")?.mod ?? 0)], ["Level growth", c.pools.poolGrowth], "Refills on rest and food"]} />
-              <Pool label="Sanity" now={c.pools.sanity} max={c.pools.sanity} kind="sanity" lines={["Base + Endurance + 1 per level after the first", ["Endurance", signed(c.skills.find(k => k.name === "Endurance")?.total ?? 0)]]} />
-              {c.pools.purequick !== null && <Pool label="Purequick" now={c.pools.purequick} max={c.pools.purequick} kind="pq" lines={["Hit Die + WIS mod, +2 every 2 levels", [`Hit Die (d${c.hitDie})`, c.hitDie], ["WIS mod", signed(c.attributes.find(a => a.key === "WIS")?.mod ?? 0)], ["Level growth", c.pools.poolGrowth], "Refills only by prayer; rest counts as prayer (short rest half, long rest all)"]} />}
+              <Pool label="Quick" now={Math.max(0, c.pools.quick - cond.quickSpent)} max={c.pools.quick} kind="quick" lines={["Hit Die + CON mod, +2 every 2 levels", [`Hit Die (d${c.hitDie})`, c.hitDie], ["CON mod", signed(c.attributes.find(a => a.key === "CON")?.mod ?? 0)], ["Level growth", c.pools.poolGrowth], "Refills on rest and food"]} />
+              <Pool label="Sanity" now={Math.max(0, c.pools.sanity - cond.sanityLost)} max={c.pools.sanity} kind="sanity" lines={["Base + Endurance + 1 per level after the first", ["Endurance", signed(c.skills.find(k => k.name === "Endurance")?.total ?? 0)]]} />
+              {c.pools.purequick !== null && <Pool label="Purequick" now={Math.max(0, c.pools.purequick - cond.purequickSpent)} max={c.pools.purequick} kind="pq" lines={["Hit Die + WIS mod, +2 every 2 levels", [`Hit Die (d${c.hitDie})`, c.hitDie], ["WIS mod", signed(c.attributes.find(a => a.key === "WIS")?.mod ?? 0)], ["Level growth", c.pools.poolGrowth], "Refills only by prayer; rest counts as prayer (short rest half, long rest all)"]} />}
               {c.pools.rage !== null && <Pool label="Rage" now={0} max={c.pools.rage} kind="rage" lines={["Rests at 0; built by moves and damage taken", ["Cap", c.pools.rage]]} />}
               {c.pools.felLimit !== null && <Pool label="Fel" now={0} max={c.pools.felLimit} kind="fel" lines={["Rests at 0; converted from Quick", ["Fel limit", c.pools.felLimit]]} />}
             </div>
@@ -126,6 +134,12 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, 
               <StatIcon icon="melee" label="AP" value={`${sp(c.combat.apMelee)} / ${sp(c.combat.apRanged)}`} lines={[["Melee", sp(c.combat.apMelee)], ["Ranged", sp(c.combat.apRanged)], "Melee: STR × (1 + weapon AP) + DEX × (0.5 + weapon AP)", "Ranged: DEX × (1 + weapon AP)", ...linesFor(c.external, "weapon_ap_melee", "weapon_ap_ranged", "ap", "ap_melee", "ap_ranged")]} />
               <StatIcon icon="spell" label="SP" value={`${sp(c.combat.spWeave)} / ${sp(c.combat.spWell)} / ${sp(c.combat.spDivine)}`} lines={[["Weave (Intellect)", sp(c.combat.spWeave)], ["Well (CON)", sp(c.combat.spWell)], ["Divine (WIS)", sp(c.combat.spDivine)], ...linesFor(c.external, "sp")]} />
               <StatIcon icon="leech" label="Leech" value={c.combat.leech} lines={["Leech — returns health from damage and healing", ...from("leech")]} />
+            </div>
+            <div className="ct__rest" aria-label="Rest">
+              <Hint lines={["Long rest — 8 hours, once per 24 hours", "All Hit Points, Quick and Purequick return", "Cards that recharge on a rest are ready again", ...usedLines]}>
+                <button type="button" className="btn btn--rest" onClick={doLong}>Long rest</button></Hint>
+              <Hint lines={["Short rest — 1 hour", "Purequick refills by half (rest counts as prayer)", "Cards that recharge on a short rest are ready again", "HP and Quick return through food, not rest", ...usedLines]}>
+                <button type="button" className="btn btn--rest btn--rest-short" onClick={doShort}>Short rest</button></Hint>
             </div>
           </div>
         </section>

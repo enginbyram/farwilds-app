@@ -10,7 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { Computed } from "@/rules/compute";
 import { attackPower, paramGetter } from "@/rules/compute";
-import type { Item, Rules } from "@/rules/types";
+import type { Condition, Item, Rules } from "@/rules/types";
 import { equippedWeapons, type WeaponChoice } from "@/model/equipment";
 import type { Character } from "@/hooks/useCharacter";
 import {
@@ -26,7 +26,13 @@ const FOE_STEP_MS = 650;
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 const one = (x: number) => (Math.round(x * 10) / 10).toString();
 
-export function CombatPage({ rules, c, ch, equipped, devMode }: { rules: Rules; c: Computed; ch: Character; equipped: Record<string, Item>; devMode: boolean }) {
+/** Cards whose uses carry over between fights until a rest (combat.json → skills → recharge). */
+const restUses = (uses: Record<string, number>) => Object.fromEntries(Object.entries(uses).filter(([id, n]) => n > 0 && SKILLS[id]?.recharge));
+
+export function CombatPage({ rules, c, ch, equipped, condition, onFightEnd, devMode }: {
+  rules: Rules; c: Computed; ch: Character; equipped: Record<string, Item>;
+  condition: Condition; onFightEnd: (next: Condition) => void; devMode: boolean;
+}) {
   const p = paramGetter(rules);
   const skillIds = Object.keys(SKILLS);
   const onTree = useMemo(() => new Set([...ch.owned].map(n => n.id).filter(id => id in SKILLS)), [ch.owned]);
@@ -55,6 +61,7 @@ export function CombatPage({ rules, c, ch, equipped, devMode }: { rules: Rules; 
   const fighter: Fighter = {
     name: ch.name,
     hpMax: Math.max(1, Math.round(c.combat.hp)),
+    hpStart: Math.max(0, Math.round(c.combat.hp) - condition.hpLost),   // the fight starts from the sheet's current HP
     defence: c.combat.defence,                     // physical attacks roll against the DEX score (1 Nov)
     armour: (armourWorn?.value ?? 0) + c.combat.armour,
     attackBonus: weaponAP,                         // attack = d20 + AP (1 Nov)
@@ -64,12 +71,12 @@ export function CombatPage({ rules, c, ch, equipped, devMode }: { rules: Rules; 
     weaponName: weapon.name, damageType: weapon.damageType,
     extraDamage: c.combat.extraDamage,
     endurance: skill("Endurance"), intimidation: skill("Intimidation"), conMod: mods.CON ?? 0,
-    sanity: c.pools.sanity,
+    sanity: Math.max(0, c.pools.sanity - condition.sanityLost),
     rageMax: c.pools.rage ?? (hasRageSkills ? p("RageMax") : 0),
   };
 
   // ── Fight ──
-  const [fight, setFight] = useState<CombatState>(() => newFight(fighter, foes));
+  const [fight, setFight] = useState<CombatState>(() => newFight(fighter, foes, condition.uses));
   const [targetKey, setTargetKey] = useState("foe0");
   const [drawer, setDrawer] = useState<Drawer>("");
   const [tray, setTray] = useState(false);
@@ -78,7 +85,7 @@ export function CombatPage({ rules, c, ch, equipped, devMode }: { rules: Rules; 
   const setup = fight.phase === "setup";
 
   // Rebuild the (unstarted) fight when foes or gear change.
-  useEffect(() => { if (setup) setFight(newFight(fighter, foes)); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [foes, weaponName, armourName, owned, setup]);
+  useEffect(() => { if (setup) setFight(newFight(fighter, foes, condition.uses)); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [foes, weaponName, armourName, owned, setup]);
   // Foes act one by one, so the wheel can be followed.
   useEffect(() => {
     if (fight.phase !== "foes") return;
@@ -97,8 +104,17 @@ export function CombatPage({ rules, c, ch, equipped, devMode }: { rules: Rules; 
     window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k);
   }, []);
 
-  const start = () => { setDrawer(""); setFight(rollInitiative(newFight(fighter, foes), fighter, Math.random)); };
-  const reset = () => { setDrawer(""); setFight(newFight(fighter, foes)); };
+  // When a fight ends, the wounds, lost Sanity and rest-limited cards go back to the sheet.
+  const saved = useRef<CombatState | null>(null);
+  useEffect(() => {
+    if (fight.phase !== "over" || saved.current === fight) return;
+    saved.current = fight;
+    onFightEnd({ ...condition, hpLost: Math.max(0, fighter.hpMax - Math.max(0, fight.hp)), sanityLost: condition.sanityLost + fight.sanityLost, uses: restUses(fight.uses) });
+  }, [fight]);   // eslint-disable-line react-hooks/exhaustive-deps
+  const downed = (fighter.hpStart ?? 1) <= 0;
+
+  const start = () => { setDrawer(""); setFight(rollInitiative(newFight(fighter, foes, condition.uses), fighter, Math.random)); };
+  const reset = () => { setDrawer(""); setFight(newFight(fighter, foes, condition.uses)); };
   const play = (id: string) => { setFight(s => playCard(s, fighter, owned, id, targetKey, Math.random, opt)); setDrawer(""); };
   const autopilot = () => setFight(s => autoTurn(s, fighter, owned, policy, Math.random, opt));
 
@@ -106,8 +122,8 @@ export function CombatPage({ rules, c, ch, equipped, devMode }: { rules: Rules; 
   const [policy, setPolicy] = useState<Policy>(DEFAULT_POLICY);
   const [sim, setSim] = useState<{ off: SimResult; on: SimResult } | null>(null);
   const runSim = () => setSim({
-    off: simulate(fighter, foes, owned, policy, false, 1000, 7),
-    on: simulate(fighter, foes, owned, policy, true, 1000, 7),
+    off: simulate({ ...fighter, hpStart: undefined }, foes, owned, policy, false, 1000, 7),   // simulations start fresh
+    on: simulate({ ...fighter, hpStart: undefined }, foes, owned, policy, true, 1000, 7),
   });
 
   const setFoe = (i: number, k: keyof FoeDef, v: string) => setFoes(fs => fs.map((f, j) => j !== i ? f : { ...f, [k]: k === "name" || k === "damage" ? v : Number(v) }));
@@ -314,7 +330,8 @@ export function CombatPage({ rules, c, ch, equipped, devMode }: { rules: Rules; 
       {/* ── Bottom bar ── */}
       <footer className="cb__bar">
         <div className="cb__bar-left">
-          {setup && <button className="btn btn--class btn--big" onClick={start} disabled={!foes.length}>Start fight</button>}
+          {setup && <button className="btn btn--class btn--big" onClick={start} disabled={!foes.length || downed}
+            title={downed ? "Downed at 0 HP — take a long rest on the Character page" : undefined}>{downed ? "Downed — rest first" : "Start fight"}</button>}
           {!setup && fight.phase !== "over" && <button className="btn btn--class btn--big" onClick={() => { setDrawer(""); setFight(s => endTurn(s)); }} disabled={!myTurn}>{myTurn ? "End turn" : "Foes acting…"}</button>}
           {fight.phase === "over" && <button className="btn btn--class btn--big" onClick={reset}>New fight</button>}
           {!setup && fight.phase !== "over" && <button className="btn btn--small btn--ghost" onClick={reset} title="Abandon this fight">Reset</button>}

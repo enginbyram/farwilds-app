@@ -196,7 +196,8 @@ export default function App() {
             {page === "character" && <CharacterPage rules={rs.rules} sh={sh} ch={ch} c={computed} devMode={devMode}
                 onCreate={() => setPage("creator")} onLevelUp={startLevelUp} onShop={setShop} onMessage={setMessage} />}
             {page === "creator" && <CharacterCreator key={rs.rules.version} rules={rs.rules} onCreate={createCharacter} onCancel={() => setPage("character")} />}
-            {page === "combat" && <CombatPage key={`${ch.name}|${sh.sheet.level}|${ch.used}`} rules={rs.rules} c={computed} ch={ch} equipped={sh.sheet.equipped} devMode={devMode} />}
+            {page === "combat" && <CombatPage key={`${ch.name}|${sh.sheet.level}|${ch.used}`} rules={rs.rules} c={computed} ch={ch} equipped={sh.sheet.equipped}
+                condition={sh.sheet.condition} onFightEnd={next => sh.update("condition", next)} devMode={devMode} />}
             {page === "levelup" && (levelUp
               ? <LevelUpScreen rules={rs.rules} model={model} ch={ch} sheet={sh.sheet} pending={levelUp} onConfirm={confirmLevelUp} onCancel={cancelLevelUp} />
               : <p className="note">No level up in progress. Press Level up on the Character page to start one.</p>)}

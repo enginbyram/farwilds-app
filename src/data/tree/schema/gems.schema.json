@@ -92,6 +92,14 @@
                 "when": {
                   "type": "string",
                   "description": "Condition: 'while Raging'. A bonus with 'when' is shown only; without it, it is added to the sheet."
+                },
+                "per": {
+                  "type": "string",
+                  "description": "Scaling: read this total (armour, ar, str, skill:Endurance\u2026). Bonus = ROUNDDOWN(value \u00d7 total \u00f7 step)."
+                },
+                "step": {
+                  "type": "number",
+                  "description": "Scaling step: 10 \u2192 per 10 points of 'per'."
                 }
               }
             }

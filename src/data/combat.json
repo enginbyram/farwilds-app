@@ -1,5 +1,5 @@
 {
-  "_about": "Combat calculator data. rules = how a turn resolves; skills = what each tree node does in a fight (keyed by node id; grantActive / grantSide give extra actions this turn, perFight limits uses); weapons = test presets for Dev mode (the Combat page uses the weapons you have equipped); foes = presets for the Combat page. Edit by hand; the app reloads. Fields starting with _ are ignored.",
+  "_about": "Combat calculator data. rules = how a turn resolves; skills = what each tree node does in a fight (keyed by node id; grantActive / grantSide give extra actions this turn; perFight limits uses per fight; uses + recharge (short / long) limits uses between rests); weapons = test presets for Dev mode (the Combat page uses the weapons you have equipped); foes = presets for the Combat page. Edit by hand; the app reloads. Fields starting with _ are ignored.",
 
   "rules": [
     {"key": "AttackDie", "value": 20, "status": "Settled", "note": "Attacks roll a d20. A natural 20 is a critical hit: damage dice are doubled (glossary)."},
@@ -20,7 +20,7 @@
   ],
 
   "skills": {
-    "fig.actions1":   {"name": "Action Surge", "action": "misc",     "pillar": "Fighter", "grantActive": 1, "perFight": 1, "text": "Push past your limits: take one more Main action this turn. Once per fight here; the rule is once per short or long rest."},
+    "fig.actions1":   {"name": "Action Surge", "action": "misc",     "pillar": "Fighter", "grantActive": 1, "uses": 1, "recharge": "short", "text": "Push past your limits: take one more Main action this turn. Once, then ready again after a short or long rest."},
 
     "bbr.headlong1":  {"name": "Headlong",     "action": "active",   "pillar": "Carnage", "rage": 1, "rageIfStruck": 1, "impactDice": "", "text": "Charge up to 10 m and strike; builds 1 Rage on impact, 2 if you are struck during the charge. You end the charge in the middle of them. Usable on the first turn of a fight."},
     "bbr.headlong2":  {"name": "Headlong II",  "action": "upgrade",  "pillar": "Carnage", "upgrades": "bbr.headlong1", "impactDice": "1d6", "text": "The charge also deals 1d6 damage on impact."},
