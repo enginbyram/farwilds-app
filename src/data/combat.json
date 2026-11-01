@@ -3,8 +3,7 @@
 
   "rules": [
     {"key": "AttackDie", "value": 20, "status": "Settled", "note": "Attacks roll a d20. A natural 20 is a critical hit: damage dice are doubled (glossary)."},
-    {"key": "DefenceBase", "value": 10, "status": "Proposed", "note": "What an attack must reach: DefenceBase + the target's Agility skill. Not decided yet — tune here."},
-    {"key": "NaturalOneMisses", "value": 1, "status": "Proposed", "note": "1 = a natural 1 always misses, 0 = no auto-miss."},
+    {"key": "NaturalOneMisses", "value": 0, "status": "Settled", "note": "0 = a natural 1 has no effect in combat unless a gem says so (1 Nov). Physical attacks are d20 + AP against the target's DEX score."},
     {"key": "MinDamage", "value": 0, "status": "Proposed", "note": "Least damage a hit deals after Armour. 0 = Armour can stop a hit completely."},
     {"key": "RageOnDeal", "value": 1, "status": "Proposed", "note": "Rage gained when one of your attacks deals damage. Doc: taking damage builds more than dealing it."},
     {"key": "RageOnTake", "value": 2, "status": "Proposed", "note": "Rage gained each time you take damage (Held Wounds damage counts)."},
@@ -14,7 +13,9 @@
     {"key": "SurgeDC", "value": 12, "status": "Proposed", "note": "Endurance check (d20 + Endurance) against this, once per turn, when Rage went past the cap that turn. Fail: lose control next turn and lose Sanity equal to the overflow. Once-per-turn is Claude's proposal; the doc says each gain past the cap."},
     {"key": "UnbrokenDC", "value": 12, "status": "Proposed", "note": "Endurance check for Unbroken when Rage hits 0."},
     {"key": "InitiativeDie", "value": 20, "status": "Settled", "note": "At the start of a fight everyone rolls this for initiative. Highest acts first; turns go clockwise round the wheel."},
-    {"key": "InitiativeAddsDex", "value": 0, "status": "Proposed", "note": "1 = add the DEX modifier (Initiative) to the roll. 0 for now: plain d20."},
+    {"key": "InitiativeAddsDex", "value": 1, "status": "Settled", "note": "1 = initiative is d20 + DEX modifier. Ties: PC before NPC; NPCs reroll until different."},
+    {"key": "DeathSaveDC", "value": 10, "status": "Settled", "note": "At 0 HP: d20 each turn, this or more is a recover point, less a loss point."},
+    {"key": "DeathSavePoints", "value": 3, "status": "Settled", "note": "Three loss points: dead. Three recover points: stable but downed until healed to 1 HP."},
     {"key": "MaxTurns", "value": 30, "status": "Proposed", "note": "A fight still going after this many rounds counts as a draw."}
   ],
 
@@ -52,7 +53,7 @@
   ],
 
   "foes": [
-    {"name": "Bandit",          "hp": 18, "defence": 12, "armour": 1, "attack": 3, "damage": "1d8+1", "composure": 0, "note": "Placeholder numbers until a bestiary exists."},
+    {"name": "Bandit",          "hp": 18, "defence": 12, "armour": 1, "attack": 3, "damage": "1d8+1", "composure": 0, "note": "Placeholder numbers until a bestiary exists. defence = the foe's DEX score (physical attacks roll against it); attack = its AP."},
     {"name": "Orc raider",      "hp": 30, "defence": 12, "armour": 2, "attack": 5, "damage": "1d12+2", "composure": 2},
     {"name": "Hobgoblin veteran","hp": 40, "defence": 14, "armour": 4, "attack": 5, "damage": "1d10+3", "composure": 3},
     {"name": "Training dummy",  "hp": 200, "defence": 8, "armour": 0, "attack": -99, "damage": "0", "composure": 0, "note": "Never hits back. Use it to measure damage per turn."}

@@ -65,6 +65,7 @@ const ICONS: Record<string, string> = {
   armour: "M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z",
   initiative: "M13 2L4 14h7l-1 8 9-12h-7z",
   speed: "M4 6l6 6-6 6M12 6l6 6-6 6",
+  defence: "M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8z",
   melee: "M14.5 3.5H20v5.5L9 20l-5-5zM4 15l5 5M3 21l2.5-2.5",
   ranged: "M4 20L20 4M14 4h6v6M4 20l1.5-4.5L8.5 18.5z",
   spell: "M12 3l2.6 5.6 6.1.7-4.5 4.1 1.2 6-5.4-3.1-5.4 3.1 1.2-6L3.3 9.3l6.1-.7z",

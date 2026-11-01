@@ -102,15 +102,16 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
             <Hint lines={[`Level 1: d${core?.hitDie ?? "?"} + CON`, "Then d/2 + 1 + CON per level", `From Asc. I: d${c.hitDie}`]}>
               <RadialGauge now={c.combat.hp} max={c.combat.hp} kind="hp" size={54} label="HP" title={`Hit Points ${c.combat.hp}`} /></Hint>
             <div className="ct__pools">
-              <Pool label="Quick" now={c.pools.quick} max={c.pools.quick} kind="quick" lines={[["Base pool", c.well?.base ?? 0], [`Growth × ${c.level - 1} levels`, (c.well?.growth ?? 0) * (c.level - 1)], ["CON bonus", Math.max(0, c.attributes.find(a => a.key === "CON")?.mod ?? 0) * (rules.params.find(p => p.key === "QuickPerCON")?.value ?? 0)]]} />
+              <Pool label="Quick" now={c.pools.quick} max={c.pools.quick} kind="quick" lines={["Hit Die + CON mod, +2 every 2 levels", [`Hit Die (d${c.hitDie})`, c.hitDie], ["CON mod", signed(c.attributes.find(a => a.key === "CON")?.mod ?? 0)], ["Level growth", c.pools.poolGrowth], "Refills on rest and food"]} />
               <Pool label="Sanity" now={c.pools.sanity} max={c.pools.sanity} kind="sanity" lines={["Base + Endurance + 1 per level after the first", ["Endurance", signed(c.skills.find(k => k.name === "Endurance")?.total ?? 0)]]} />
-              {c.pools.purequick !== null && <Pool label="Purequick" now={c.pools.purequick} max={c.pools.purequick} kind="pq" lines={["(PQBase + WIS mod) × ((PQPerWIS + PQPerLevel) × (level − 1))", "Refills only by prayer"]} />}
+              {c.pools.purequick !== null && <Pool label="Purequick" now={c.pools.purequick} max={c.pools.purequick} kind="pq" lines={["Hit Die + WIS mod, +2 every 2 levels", [`Hit Die (d${c.hitDie})`, c.hitDie], ["WIS mod", signed(c.attributes.find(a => a.key === "WIS")?.mod ?? 0)], ["Level growth", c.pools.poolGrowth], "Refills only by prayer; rest counts as prayer (short rest half, long rest all)"]} />}
               {c.pools.rage !== null && <Pool label="Rage" now={0} max={c.pools.rage} kind="rage" lines={["Rests at 0; built by moves and damage taken", ["Cap", c.pools.rage]]} />}
               {c.pools.felLimit !== null && <Pool label="Fel" now={0} max={c.pools.felLimit} kind="fel" lines={["Rests at 0; converted from Quick", ["Fel limit", c.pools.felLimit]]} />}
             </div>
             <div className="ct__stats">
-              <StatIcon icon="armour" label="AR" value={c.combat.armour} lines={["Armour — from gear & passives"]} />
-              <StatIcon icon="initiative" label="Init" value={sp(c.combat.initiative)} lines={["Initiative — DEX modifier"]} />
+              <StatIcon icon="armour" label="AR" value={c.combat.armour} lines={["Armour — from gear & passives", "Reduces physical damage"]} />
+              <StatIcon icon="defence" label="Def" value={c.combat.defence} lines={["Defence — the DEX score", "Physical attacks roll against it"]} />
+              <StatIcon icon="initiative" label="Init" value={sp(c.combat.initiative)} lines={["Initiative — d20 + DEX modifier"]} />
               <StatIcon icon="speed" label="Speed" value={`${c.combat.speed} m`} lines={[race?.speed == null ? "Base speed" : `${s.race} speed`]} />
               <StatIcon icon="melee" label="AP" value={`${sp(c.combat.apMelee)} / ${sp(c.combat.apRanged)}`} lines={[["Melee", sp(c.combat.apMelee)], ["Ranged", sp(c.combat.apRanged)], "Melee: STR × (1 + weapon AP) + DEX × (0.5 + weapon AP)", "Ranged: DEX × (1 + weapon AP)"]} />
               <StatIcon icon="spell" label="SP" value={`${sp(c.combat.spWeave)} / ${sp(c.combat.spWell)} / ${sp(c.combat.spDivine)}`} lines={[["Weave (Intellect)", sp(c.combat.spWeave)], ["Well (CON)", sp(c.combat.spWell)], ["Divine (WIS)", sp(c.combat.spDivine)]]} />

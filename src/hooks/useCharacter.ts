@@ -1,6 +1,7 @@
 /**
  * The character being built: name, class, and the set of unlocked node ids.
  * Points to spend on the tree = keystone points = the character level (passed in as `total`).
+ * The class start is always owned and uses the level-1 point, so a new character has 0 points left.
  * Saved in the browser (localStorage) per workbook, so a reload keeps your build.
  */
 import { useEffect, useMemo, useState } from "react";

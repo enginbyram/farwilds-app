@@ -46,13 +46,14 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
   const mods = Object.fromEntries(c.attributes.map(a => [a.key, a.mod])) as Record<string, number>;
   const skill = (n: string) => c.skills.find(s => s.name === n)?.total ?? 0;
   const hasRageSkills = [...owned].some(id => id.startsWith("bbr."));
+  const meleeAP = Math.floor((mods.STR ?? 0) * (p("APMeleeSTR") + weapon.ap) + (mods.DEX ?? 0) * (p("APMeleeDEX") + weapon.ap));
   const fighter: Fighter = {
     name: ch.name,
     hpMax: Math.max(1, Math.round(c.combat.hp)),
-    defence: rule("DefenceBase") + skill("Agility"),
+    defence: c.combat.defence,                     // physical attacks roll against the DEX score (1 Nov)
     armour: (armourWorn?.value ?? 0) + c.combat.armour,
-    attackBonus: mods.STR ?? 0,
-    ap: Math.floor((mods.STR ?? 0) * (p("APMeleeSTR") + weapon.ap) + (mods.DEX ?? 0) * (p("APMeleeDEX") + weapon.ap)),
+    attackBonus: meleeAP,                          // attack = d20 + AP (1 Nov)
+    ap: meleeAP,
     initiative: c.combat.initiative,
     weapon: parseDice(weapon.dice),
     endurance: skill("Endurance"), intimidation: skill("Intimidation"), conMod: mods.CON ?? 0,
@@ -135,7 +136,7 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
                       <input aria-label="Foe name" value={foes[i]?.name ?? ""} onChange={e => setFoe(i, "name", e.target.value)} />
                       <button className="unit__x" aria-label="Remove foe" onClick={() => setFoes(fs => fs.filter((_, j) => j !== i))} disabled={foes.length === 1}>×</button>
                       {(["hp", "defence", "armour", "attack"] as const).map(k => (
-                        <label key={k}>{k === "hp" ? "HP" : k === "defence" ? "Def" : k === "armour" ? "Arm" : "Atk"}
+                        <label key={k}>{k === "hp" ? "HP" : k === "defence" ? "DEX" : k === "armour" ? "Arm" : "Atk"}
                           <input type="number" value={foes[i]?.[k] ?? 0} onChange={e => setFoe(i, k, e.target.value)} /></label>))}
                       <label>Dmg<input value={foes[i]?.damage ?? ""} onChange={e => setFoe(i, "damage", e.target.value)} /></label>
                     </div>
@@ -144,7 +145,7 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
                       <div className="unit__top"><b>{f.name}</b>{init && <span className="unit__init" title="Initiative roll">Init {init.total}</span>}</div>
                       <div className="unit__body">
                         <RadialGauge now={Math.max(0, f.hpNow)} max={f.hp} kind="foe" size={50} label="HP" />
-                        <div className="unit__meta">Def {f.defence} · Arm {f.armour}<br />Atk {signed(f.attack)} · {f.damage}{f.eaten ? " · eaten" : ""}</div>
+                        <div className="unit__meta">DEX {f.defence} · Arm {f.armour}<br />Atk {signed(f.attack)} · {f.damage}{f.eaten ? " · eaten" : ""}</div>
                       </div>
                       {targetKey === f.key && !dead && <span className="unit__tag">Target</span>}
                     </>
@@ -178,7 +179,7 @@ export function CombatPage({ rules, c, ch, devMode }: { rules: Rules; c: Compute
               <div className="unit__body">
                 <RadialGauge now={Math.max(0, fight.hp)} max={fighter.hpMax} kind="hp" size={50} label="HP" />
               <dl className="unit__stats">
-                <dt>Defence</dt><dd>{fighter.defence}</dd><dt>Armour</dt><dd>{fighter.armour}</dd>
+                <dt>Defence (DEX)</dt><dd>{fighter.defence}</dd><dt>Armour</dt><dd>{fighter.armour}</dd>
                 <dt>Attack</dt><dd>{signed(fighter.attackBonus)}</dd><dt>Damage</dt><dd>{weapon.dice} {signed(fighter.ap)}</dd>
               </dl>
               </div>

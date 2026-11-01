@@ -6,6 +6,8 @@
  *  - +2 skill points per ascension; every character starts with a Deep well
  *  - subdominant affinity opens at Ascendancy III; marks include eye powers; no mark = 2 free attribute points
  *  - Rage on a scale of 10 (31 Oct); Barbarian + Shifter combination removed (31 Oct)
+ *  - Core Rulebook review (1 Nov): Hit Dice (Artificer d6, Witch d8), race speeds, Hunter moved to the Ranger,
+ *    Quick / Purequick = Hit Die + CON / WIS mod, +2 every 2 levels
  *
  * `version` is a fingerprint of the file: when you edit rules.json, browsers set their saved
  * Dev-mode copy aside and use the new file.
