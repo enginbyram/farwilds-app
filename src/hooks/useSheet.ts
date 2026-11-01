@@ -29,7 +29,7 @@ const asItem = (v: unknown): Item | null => {
   const o = v as Partial<Item> | null;
   if (!o || typeof o.name !== "string" || !o.name.trim()) return null;
   return {
-    name: o.name, ...(typeof o.kind === "string" ? { kind: o.kind } : {}),
+    name: o.name, ...(typeof o.kind === "string" ? { kind: o.kind } : {}), ...(typeof o.ref === "string" ? { ref: o.ref } : {}),
     ...(Number.isFinite(o.qty) ? { qty: Number(o.qty) } : {}), ...(typeof o.note === "string" ? { note: o.note } : {}),
   };
 };

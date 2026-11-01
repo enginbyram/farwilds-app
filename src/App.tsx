@@ -18,10 +18,11 @@ import { nextSteps } from "@/model/character";
 import { allocate } from "@/model/routing";
 import { useCharacter } from "@/hooks/useCharacter";
 import { Header, type Page } from "@/components/Header";
-import { CharacterPage } from "@/components/CharacterPage";
+import { CharacterPage, classStyle } from "@/components/CharacterPage";
 import { CharacterCreator, type NewCharacter } from "@/components/CharacterCreator";
 import { LevelUpCard, LevelUpScreen, type PendingLevelUp } from "@/components/LevelUp";
 import { DevPanel } from "@/components/DevPanel";
+import { EquipmentDrawer, type ShopMode } from "@/components/EquipmentDrawer";
 import { CombatPage } from "@/components/CombatPage";
 import { useRules } from "@/hooks/useRules";
 import { useSheet } from "@/hooks/useSheet";
@@ -73,6 +74,9 @@ export default function App() {
     try { return localStorage.getItem("devMode") === "1"; } catch { return false; }
   });
   const [message, setMessage] = useState("");
+  // Equipment drawer (Add / Purchase) — takes the left column while open; closes when you leave the page.
+  const [shop, setShop] = useState<ShopMode | null>(null);
+  useEffect(() => { if (page !== "character") setShop(null); }, [page]);
   useEffect(() => {
     try { localStorage.setItem("page", page); localStorage.setItem("devMode", devMode ? "1" : "0"); } catch { /* storage blocked */ }
   }, [page, devMode]);
@@ -179,11 +183,13 @@ export default function App() {
         page={page} onPage={setPage} onSaveCharacter={saveCharacter} onLoadCharacter={loadCharacter}
         devMode={devMode} onToggleDev={() => setDevMode(d => !d)} message={message} />
       {page === "tree" ? treeView : (
-        <div className={`charmain${devMode && page !== "combat" ? " charmain--dev" : ""}`}>
-          {devMode && page !== "combat" && <DevPanel rs={rs} />}
+        <div className={`charmain${shop ? " charmain--shop" : devMode && page !== "combat" ? " charmain--dev" : ""}`}>
+          {shop
+            ? <EquipmentDrawer key={shop} mode={shop} sh={sh} onClose={() => setShop(null)} onMessage={setMessage} style={classStyle(ch.className)} />
+            : devMode && page !== "combat" && <DevPanel rs={rs} />}
           <div className={`charmain__page${page === "combat" ? " charmain__page--full" : ""}`}>
             {page === "character" && <CharacterPage rules={rs.rules} sh={sh} ch={ch} c={computed} devMode={devMode}
-                onCreate={() => setPage("creator")} onLevelUp={startLevelUp} />}
+                onCreate={() => setPage("creator")} onLevelUp={startLevelUp} onShop={setShop} />}
             {page === "creator" && <CharacterCreator key={rs.rules.version} rules={rs.rules} onCreate={createCharacter} onCancel={() => setPage("character")} />}
             {page === "combat" && <CombatPage key={`${ch.name}|${sh.sheet.level}|${ch.used}`} rules={rs.rules} c={computed} ch={ch} devMode={devMode} />}
             {page === "levelup" && (levelUp

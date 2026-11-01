@@ -2,7 +2,7 @@
  * Character page panels for what a character wears and owns:
  *   GearPanel  — RPG paper doll: slots left and right of a figure, weapon slots underneath.
  *   WealthPanel — coins (gold, silver, copper) and valuables (gems, jewellery…).
- *   BagPanel   — carried items as a grid of bag cells.
+ *   BagPanel   — carried items as a grid of bag cells, with Add / Purchase (EquipmentDrawer.tsx).
  *
  * Slots, coins and bag size come from src/data/gear.json. Items live on the sheet, so they are
  * saved with the character file. Display only for now; in Dev mode slots, coins and lists can be
@@ -12,6 +12,8 @@ import gear from "@/data/gear.json";
 import type { SheetState } from "@/hooks/useSheet";
 import type { Computed } from "@/rules/compute";
 import type { Item } from "@/rules/types";
+import { itemIcon } from "@/model/equipment";
+import type { ShopMode } from "./EquipmentDrawer";
 import { Hint, Icon, signed } from "./ui";
 
 export interface GearSlot { id: string; label: string; side: "left" | "right" | "melee" | "ranged"; icon: string }
@@ -140,7 +142,7 @@ export function WealthPanel({ sh, devMode }: { sh: SheetState; devMode: boolean 
   );
 }
 
-export function BagPanel({ sh, devMode }: { sh: SheetState; devMode: boolean }) {
+export function BagPanel({ sh, devMode, onShop }: { sh: SheetState; devMode: boolean; onShop: (m: ShopMode) => void }) {
   const { sheet: s, update } = sh;
   const cols = gear.bagColumns;
   const cells = Math.max(gear.bagMinCells, Math.ceil((s.bag.length + (devMode ? 1 : 0)) / cols) * cols);
@@ -154,13 +156,20 @@ export function BagPanel({ sh, devMode }: { sh: SheetState; devMode: boolean }) 
 
   return (
     <section className="card" aria-label="Equipment">
-      <h2>Equipment <span className="h3hint">{s.bag.length} carried</span></h2>
+      <div className="card__head">
+        <h2>Equipment <span className="h3hint">{s.bag.length} carried</span></h2>
+        <div className="card__tools">
+          <button type="button" className="btn btn--small" onClick={() => onShop("add")}><Icon name="plus" size={14} /> Add</button>
+          <button type="button" className="btn btn--small" onClick={() => onShop("buy")}><Icon name="cart" size={14} /> Purchase</button>
+        </div>
+      </div>
       <div className="bag" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
         {Array.from({ length: cells }, (_, i) => {
           const it = s.bag[i];
           const cell = (
             <span className={`bag__cell${it ? " bag__cell--full" : ""}`}>
-              {it && <><span className="bag__name">{it.name}</span>{it.qty && it.qty > 1 ? <b className="bag__qty">{it.qty}</b> : null}</>}
+              {it && <>{it.kind || it.ref ? <Icon name={itemIcon(it)} size={18} /> : <span className="bag__abbr">{it.name.slice(0, 2)}</span>}
+                {it.qty && it.qty > 1 ? <b className="bag__qty">{it.qty}</b> : null}</>}
             </span>
           );
           const content = devMode && i <= s.bag.length

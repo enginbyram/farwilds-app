@@ -12,6 +12,7 @@ import type { Character } from "@/hooks/useCharacter";
 import type { SheetState } from "@/hooks/useSheet";
 import type { Computed } from "@/rules/compute";
 import type { Rules } from "@/rules/types";
+import type { ShopMode } from "./EquipmentDrawer";
 import { BagPanel, GearPanel, WealthPanel } from "./Inventory";
 import { Badge, Hint, Icon, RadialGauge, signed } from "./ui";
 
@@ -37,8 +38,8 @@ export function classStyle(coreClass: string): React.CSSProperties {
   return (t ? { "--class-l": t[0], "--class-d": t[1] } : {}) as React.CSSProperties;
 }
 
-export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }: {
-  rules: Rules; sh: SheetState; ch: Character; c: Computed; devMode: boolean; onCreate: () => void; onLevelUp: () => void;
+export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp, onShop }: {
+  rules: Rules; sh: SheetState; ch: Character; c: Computed; devMode: boolean; onCreate: () => void; onLevelUp: () => void; onShop: (m: ShopMode) => void;
 }) {
   const { sheet: s, update } = sh;
   const failing = c.checks.filter(x => !x.ok);
@@ -202,7 +203,7 @@ export function CharacterPage({ rules, sh, ch, c, devMode, onCreate, onLevelUp }
 
         <div className="char__third">
           <WealthPanel sh={sh} devMode={devMode} />
-          <BagPanel sh={sh} devMode={devMode} />
+          <BagPanel sh={sh} devMode={devMode} onShop={onShop} />
         </div>
       </div>
 

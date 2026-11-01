@@ -70,7 +70,8 @@ export interface CharacterSheet {
 /** Anything a character can wear, carry or trade. Stats come later with the equipment chapter. */
 export interface Item {
   name: string;
-  kind?: string;   // gear slot id for wearables; "gem", "jewellery", "art"… for valuables
+  kind?: string;   // gear slot id when worn; catalog category in the bag; "gem", "jewellery"… for valuables
+  ref?: string;    // catalog id (src/data/equipment.json) when the item came from the catalog
   qty?: number;
   note?: string;
 }

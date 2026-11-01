@@ -100,6 +100,12 @@ const ICONS: Record<string, string> = {
   art: "M4 5h16v14H4zM4 15l5-5 4 4 2-2 5 5M15 8.5a1 1 0 1 0 0 .1",
   other: "M5 9l7-5 7 5v10H5zM9 19v-6h6v6",
   bag: "M5 8h14l-1 13H6zM9 8V6a3 3 0 0 1 6 0v2",
+  tool: "M14.5 5.5a4 4 0 0 0 5 5L11 19a2 2 0 0 1-3-3l8.5-8.5a4 4 0 0 0-2-2zM14.5 5.5l2 2",
+  potion: "M9 3h6M10 3v5L5.5 16a3.5 3.5 0 0 0 3 5h7a3.5 3.5 0 0 0 3-5L14 8V3M7 14h10",
+  cart: "M3 4h2.5l2.5 11h10l2-8H7M9.5 20a1 1 0 1 0 0-.1M16.5 20a1 1 0 1 0 0-.1",
+  plus: "M12 5v14M5 12h14",
+  minus: "M5 12h14",
+  close: "M6 6l12 12M18 6L6 18",
 };
 export function Icon({ name, size = 18, className = "" }: { name: string; size?: number; className?: string }) {
   return (

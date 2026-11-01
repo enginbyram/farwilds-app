@@ -283,9 +283,9 @@ dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .h3hint { text-transform: none; letter-spacing: 0; font-style: italic; margin-left: 6px; }
 
 /* ── Class colour scheme (CLASS_THEME in config/settings.ts sets --class-l / --class-d) ── */
-.char, .levelup, .cb { --class: var(--class-l, var(--brass)); }
-@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .char, :root:not([data-theme="light"]) .levelup, :root:not([data-theme="light"]) .cb { --class: var(--class-d, var(--brass)); } }
-:root[data-theme="dark"] .char, :root[data-theme="dark"] .levelup, :root[data-theme="dark"] .cb { --class: var(--class-d, var(--brass)); }
+.char, .levelup, .cb, .shop { --class: var(--class-l, var(--brass)); }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .char, :root:not([data-theme="light"]) .levelup, :root:not([data-theme="light"]) .cb, :root:not([data-theme="light"]) .shop { --class: var(--class-d, var(--brass)); } }
+:root[data-theme="dark"] .char, :root[data-theme="dark"] .levelup, :root[data-theme="dark"] .cb, :root[data-theme="dark"] .shop { --class: var(--class-d, var(--brass)); }
 .char .card, .levelup .card { border-top: 3px solid var(--class); }
 .char .card h2, .levelup .card h2 { color: var(--class); }
 .btn--class { background: var(--class); border-color: var(--class); color: var(--panel); font-weight: 600; }
@@ -697,12 +697,57 @@ dl.facts dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
 .valuables .hint { margin: 0; font-size: inherit; line-height: inherit; }
 
 /* Equipment: bag grid */
-.bag { display: grid; gap: 6px; margin-top: 6px; }
+.bag { display: grid; gap: 4px; margin-top: 6px; }
 .bag > .hint, .bag__wrap { display: block; min-width: 0; }
-.bag__cell { position: relative; display: grid; place-items: center; aspect-ratio: 1; border-radius: 6px; border: 1px solid var(--line);
+.bag__cell { position: relative; display: grid; place-items: center; aspect-ratio: 1; border-radius: 5px; color: var(--class); border: 1px solid var(--line);
   background: color-mix(in srgb, var(--bg) 70%, var(--panel)); box-shadow: inset 0 2px 5px rgb(0 0 0 / .1); }
 .bag__cell--full { border-color: color-mix(in srgb, var(--class) 70%, var(--line)); background: color-mix(in srgb, var(--class) 9%, var(--panel)); }
-.bag__name { font: 500 10px/1.15 var(--font-body); text-align: center; padding: 3px; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; }
-.bag__qty { position: absolute; right: 3px; bottom: 1px; font: 600 10px var(--font-body); color: var(--class); }
+.bag__abbr { font: 600 11px var(--font-body); color: var(--ink); text-transform: capitalize; }
+.bag__qty { position: absolute; right: 2px; bottom: 0; font: 600 9px var(--font-body); color: var(--ink); }
 .bag .slot__btn { display: block; }
 .bag .slot__btn:hover .bag__cell { border-color: var(--brass); }
+
+/* Card header with tools on the right (Equipment: Add / Purchase) */
+.card__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.card__head h2 { margin: 0; }
+.card__tools { display: flex; gap: 6px; }
+.card__tools .btn, .shop .btn { display: inline-flex; align-items: center; gap: 5px; }
+.btn--on { border-color: var(--class); color: var(--class); }
+
+/* Equipment drawer (left column, in place of the Dev sidebar) */
+.shop { min-height: 0; max-height: calc(100vh - 90px); position: sticky; top: 0; display: flex; flex-direction: column; gap: 8px;
+  background: var(--panel); border: 1px solid var(--line); border-top: 3px solid var(--class, var(--brass)); border-radius: var(--radius); padding: 12px; }
+.shop__head { display: flex; align-items: center; gap: 8px; }
+.shop__head h2 { flex: 1; font: 500 11px var(--font-body); letter-spacing: .12em; text-transform: uppercase; color: var(--class, var(--brass)); margin: 0; }
+.shop__cat { max-width: 170px; }
+.shop__close { padding: 3px 5px; }
+.shop__search { width: 100%; }
+.shop__list { list-style: none; margin: 0; padding: 0; overflow-y: auto; flex: 1; min-height: 120px; border-top: 1px solid var(--line); }
+.shop__row { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-bottom: 1px solid color-mix(in srgb, var(--line) 50%, transparent); font-size: 13px; }
+.shop__row > .icon { color: var(--class, var(--brass)); flex: none; }
+.shop__row--pick { cursor: pointer; border-radius: 6px; }
+.shop__row--pick:hover { background: color-mix(in srgb, var(--class, var(--brass)) 6%, transparent); }
+.shop__row--pick.on { background: color-mix(in srgb, var(--class, var(--brass)) 12%, transparent); }
+.shop__name { flex: 1; min-width: 0; display: flex !important; flex-direction: column; margin: 0; font-size: inherit; line-height: 1.25; }
+.shop__name b { font-weight: 600; }
+.shop__name small { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.shop .hint { margin: 0; font-size: inherit; line-height: inherit; }
+.shop__adjust { display: inline-flex; align-items: center; gap: 2px; }
+.shop__adjust .btn { padding: 3px 4px; }
+.shop__price { font-variant-numeric: tabular-nums; white-space: nowrap; min-width: 64px; text-align: center; display: inline-block; font-size: 12.5px; }
+.shop__adjust.changed .shop__price { color: var(--route); font-weight: 600; }
+.shop__qty { display: inline-flex; align-items: center; gap: 4px; }
+.shop__qty .btn { padding: 3px 4px; }
+.shop__qty b { min-width: 18px; text-align: center; font-variant-numeric: tabular-nums; }
+.shop__list--cart .shop__price { min-width: 70px; text-align: right; }
+.shop__foot { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; border-top: 1px solid var(--line); padding-top: 8px; font-size: 12.5px; }
+.shop__foot > span { flex: 1; color: var(--muted); }
+.shop__totals { display: flex; flex-wrap: wrap; gap: 4px 14px; width: 100%; color: var(--muted); }
+.shop__totals b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.shop__totals .bad, .shop__totals .bad b { color: var(--danger); }
+.shop__actions { display: flex; gap: 6px; width: 100%; }
+.shop__actions .btn--class { margin-left: auto; padding: 6px 18px; }
+.charmain--shop { grid-template-columns: var(--shop-sidebar, 360px) minmax(0, 1fr); }
+@media (max-width: 1100px) { .charmain--shop { grid-template-columns: 1fr; } .shop { position: static; max-height: 70vh; } }
+.shop .hint__box { pointer-events: none; left: 0; right: auto; }
+.shop__adjust .hint__box { left: auto; right: 0; }
