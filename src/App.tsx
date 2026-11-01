@@ -179,13 +179,13 @@ export default function App() {
         page={page} onPage={setPage} onSaveCharacter={saveCharacter} onLoadCharacter={loadCharacter}
         devMode={devMode} onToggleDev={() => setDevMode(d => !d)} message={message} />
       {page === "tree" ? treeView : (
-        <div className={`charmain${devMode ? " charmain--dev" : ""}`}>
-          {devMode && <DevPanel rs={rs} />}
-          <div className="charmain__page">
+        <div className={`charmain${devMode && page !== "combat" ? " charmain--dev" : ""}`}>
+          {devMode && page !== "combat" && <DevPanel rs={rs} />}
+          <div className={`charmain__page${page === "combat" ? " charmain__page--full" : ""}`}>
             {page === "character" && <CharacterPage rules={rs.rules} sh={sh} ch={ch} c={computed} devMode={devMode}
                 onCreate={() => setPage("creator")} onLevelUp={startLevelUp} />}
             {page === "creator" && <CharacterCreator key={rs.rules.version} rules={rs.rules} onCreate={createCharacter} onCancel={() => setPage("character")} />}
-            {page === "combat" && <CombatPage key={`${ch.name}|${sh.sheet.level}|${ch.used}`} rules={rs.rules} c={computed} ch={ch} />}
+            {page === "combat" && <CombatPage key={`${ch.name}|${sh.sheet.level}|${ch.used}`} rules={rs.rules} c={computed} ch={ch} devMode={devMode} />}
             {page === "levelup" && (levelUp
               ? <LevelUpScreen rules={rs.rules} model={model} ch={ch} sheet={sh.sheet} pending={levelUp} onConfirm={confirmLevelUp} onCancel={cancelLevelUp} />
               : <p className="note">No level up in progress. Press Level up on the Character page to start one.</p>)}
