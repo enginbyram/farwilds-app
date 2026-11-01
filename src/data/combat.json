@@ -29,9 +29,9 @@
     "bbr.unmake2":    {"name": "Unmake II",    "action": "upgrade",  "pillar": "Carnage", "upgrades": "bbr.unmake1", "dicePer2Rage": "2d6", "text": "Upgrade to Unmake, +2d6 damage per 2 Rage spent."},
     "bbr.blooded1":   {"name": "Blooded",      "action": "passive",  "pillar": "Carnage", "atRage": 5, "bonusDice": "1d4", "text": "if rage >= 5, +1d4 damage."},
     "bbr.blooded2":   {"name": "Blooded II",   "action": "upgrade",  "pillar": "Carnage", "upgrades": "bbr.blooded1", "bonusDice": "2d4", "text": "Upgrade to Blooded, At 5 Rage or more, melee attacks deal +2d4."},
-    "bbr.berserker1": {"name": "Berserker",    "action": "side",     "pillar": "Carnage", "extraRagePerHit": 1, "text": "used as side action, every hit you take builds 1 extra Rage."},
+    "bbr.berserker1": {"name": "Berserker",    "action": "side",     "pillar": "Carnage", "extraRagePerHit": 1, "armourFactor": 0.5, "text": "Side action: lower your guard until your next turn. Armour halved; every hit you take builds 1 extra Rage."},
     "bbr.berserker2": {"name": "Berserker II", "action": "upgrade",  "pillar": "Carnage", "upgrades": "bbr.berserker1", "extraRagePerHit": 2, "armourFactor": 0.5, "text": "Upgrade to Berserker, Armour halved; 2 extra Rage per hit taken."},
-    "bbr.pastred1":   {"name": "Past the Red", "action": "passive",  "pillar": "Carnage", "atRage": 10, "text": "Side action, if rage >= 10, damage dice are doubled."},
+    "bbr.pastred1":   {"name": "Past the Red", "action": "passive",  "pillar": "Carnage", "atRage": 10, "text": "Passive: while Rage is 10 or more, damage dice are doubled. A reward for holding Rage instead of spending it."},
     "bbr.redmist2":   {"name": "Red Mist",     "action": "passive",  "pillar": "Carnage", "bankDice": "1d6", "bankMax": 3, "text": "Rage gained above 10 is banked as +1d6 on your next hit, up to 3d6. The surge check still rolls."},
 
     "bbr.thickit1":   {"name": "Thick of It",  "action": "passive",  "pillar": "Bulwark", "rage": 1, "minFoes": 2, "text": "Gain 1 Rage each turn if two or more enemies are within reach."},
@@ -40,7 +40,7 @@
     "bbr.grudge1":    {"name": "Grudge",       "action": "passive",  "pillar": "Bulwark", "rage": 1, "text": "every time an enemy hits you, you gain 1 extra Rage."},
     "bbr.grudge2":    {"name": "Grudge II",    "action": "upgrade",  "pillar": "Bulwark", "upgrades": "bbr.grudge1", "rage": 2, "text": "Upgrade to Grudge, 2 extra Rage."},
     "bbr.dti1":       {"name": "Draw Them In", "action": "side",     "pillar": "Bulwark", "cost": 2, "text": "Spend 2 Rage on an Intimidation shout: enemies in reach make a Composure check or must attack you next turn."},
-    "bbr.hw1":        {"name": "Held Wounds",  "action": "passive",  "pillar": "Bulwark", "conMultiplier": 2, "text": "While Rage is above 0, hold back up to CON modifier + damage of each hit."},
+    "bbr.hw1":        {"name": "Held Wounds",  "action": "passive",  "pillar": "Bulwark", "conMultiplier": 2, "text": "While Rage is above 0, hold back up to CON modifier × 2 damage of each hit."},
     "bbr.corpse":     {"name": "Corpse-Eater", "action": "active",   "pillar": "Bulwark", "heal": "1d6", "rage": 2, "fel": 1, "text": "Consume a fallen enemy to restore HP and gain Rage. The corpse's foul Quick is fel and enters"},
     "bbr.ironmind":   {"name": "Iron Mind",    "action": "reaction", "pillar": "Bulwark", "cost": 1, "text": "When a spell targets you, spend 1 Rage to gain advantage on the check against it."},
     "bbr.unbroken":   {"name": "Unbroken",     "action": "passive",  "pillar": "Bulwark", "turns": 3, "text": "When Rage hits 0, make an Endurance check. On a success, held damage lands a third per turn over 3 turns instead of at once."}

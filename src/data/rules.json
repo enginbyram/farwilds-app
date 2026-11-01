@@ -79,7 +79,7 @@
     {"name": "Witch", "aptitude": "Charisma", "hitDie": 8, "points": {"STR": 0, "DEX": 0, "CON": 1, "ENC": 0, "LOG": 0, "WIS": 0, "PRE": 0, "RHE": 2, "AUT": 2}, "identity": "The afflicter: curses, drains, damage over time."}
   ],
   "ascendancies": [
-    {"name": "Fighter", "coreClass": "Fighter", "forbidden": false, "hitDie": 10, "purequick": false, "rage": false, "fel": false, "maxArmour": "Heavy", "identity": "Go deep: soldier, huscarl, cavalier, spearman."},
+    {"name": "Fighter", "coreClass": "Fighter", "forbidden": false, "hitDie": 10, "purequick": false, "rage": false, "fel": false, "maxArmour": "Medium", "identity": "Go deep: soldier, huscarl, cavalier, spearman."},
     {"name": "Barbarian", "coreClass": "Fighter", "forbidden": false, "hitDie": 12, "purequick": false, "rage": true, "fel": false, "maxArmour": "Medium", "identity": "Wild shock troop fuelled by Rage."},
     {"name": "Monk", "coreClass": "Fighter", "forbidden": false, "hitDie": 8, "purequick": false, "rage": false, "fel": false, "maxArmour": "None", "identity": "Quick-perfected martial arts; Moon Gates."},
     {"name": "Sorcerer", "coreClass": "Fighter", "forbidden": false, "hitDie": 6, "purequick": false, "rage": false, "fel": false, "maxArmour": "Light", "identity": "The Quick user proper."},

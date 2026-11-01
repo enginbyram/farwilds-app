@@ -180,8 +180,11 @@ export function computeCharacter(rules: Rules, s: CharacterSheet, coreClass: str
   const maxPer = p("CreationMaxPerAttribute");
   // Armour training: the heavier limit of the two ascendancies (or the core class). "Medium Armor" → Medium.
   const order = (name?: string) => rules.armour.find(a => a.name === name)?.order ?? 0;
-  const maxArmour = [asc1Eff, asc2Eff].filter(Boolean).map(a => asc(a)?.maxArmour ?? "")
+  const fromRules = [asc1Eff, asc2Eff].filter(Boolean).map(a => asc(a)?.maxArmour ?? "")
     .reduce((best, n) => (order(n) > order(best) ? n : best), "");
+  // Tree nodes can open heavier armour ("Heavy Armor available to use"): the limit is the higher of the two.
+  const fromTree = rules.armour.find(a => a.order === F("armour_training"))?.name ?? "";
+  const maxArmour = order(fromTree) > order(fromRules) ? fromTree : fromRules;
   const tooHeavy = ext.armourTypes.filter(t => order(t.split(" ")[0]) > order(maxArmour));
   const overCap = attributes.filter(a => a.points > maxPer).map(a => a.key);
   const checks: Check[] = [

@@ -94,6 +94,12 @@ const CONDITIONS: [RegExp, string][] = [
  *  a line; anything that doesn't start with a number and name an effect → text only. */
 export function parseBonusText(text: string, effects: Effects, skills: string[] = []): Omit<BonusLine, "source" | "from"> {
   const plain: Omit<BonusLine, "source" | "from"> = { target: "", label: text, value: 0, text };
+  // Armour training: "Light and Medium Armor and Shields available to use", "Heavy Armor available to use".
+  // The value is the heaviest tier named (Light 1, Medium 2, Heavy 3); the character's limit is the highest it has.
+  if (/\barmou?r\b/i.test(text) && /\bavailable\b/i.test(text)) {
+    const tier = (["heavy", "medium", "light"] as const).find(k => new RegExp(`\\b${k}\\b`, "i").test(text));
+    if (tier) return { target: "armour_training", label: "Armour training", value: { light: 1, medium: 2, heavy: 3 }[tier], text };
+  }
   const m = /^\s*'?\s*([+\-−]\s*\d+(?:\.\d+)?)\s+(.+?)\s*\.?\s*$/i.exec(text);
   if (!m) return plain;
   const value = Number(m[1].replace(/\s/g, "").replace("−", "-"));
@@ -163,6 +169,7 @@ export function collectBonuses(sheet: Pick<CharacterSheet, "equipped">, owned: I
     else if (l.target === "armour") ext.armour += l.value;
     else if (l.target === "weapon_ap_melee") ext.meleeWeaponAP += l.value;
     else if (l.target === "weapon_ap_ranged") ext.rangedWeaponAP += l.value;
+    else if (l.target === "armour_training") ext.flat.armour_training = Math.max(ext.flat.armour_training ?? 0, l.value);   // highest, not a sum
     else ext.flat[l.target] = (ext.flat[l.target] ?? 0) + l.value;
   };
   const total = (target: string) => {

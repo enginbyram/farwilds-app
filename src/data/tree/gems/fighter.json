@@ -93,14 +93,14 @@
     "_name": "Berserker",
     "description": "Lower your guard until your next turn",
     "bonuses": [
-      "used as side action, every hit you take builds 1 extra Rage."
+      "Side action: lower your guard until your next turn. Armour halved; every hit you take builds 1 extra Rage."
     ]
   },
   "bbr.pastred1": {
     "_name": "Past the Red",
     "description": "You feel the rage flowing from you.",
     "bonuses": [
-      "Side action, if rage >= 10, damage dice are doubled."
+      "Passive: while Rage is 10 or more, damage dice are doubled. A reward for holding Rage instead of spending it."
     ]
   },
   "bbr.thickit1": {
@@ -135,7 +135,7 @@
     "_name": "Held Wounds",
     "description": "",
     "bonuses": [
-      "While Rage is above 0, hold back up to CON modifier + damage of each hit."
+      "While Rage is above 0, hold back up to CON modifier × 2 damage of each hit."
     ]
   },
   "bbr.corpse": {
