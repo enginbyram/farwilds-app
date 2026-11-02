@@ -85,7 +85,7 @@ function strike(c: CardCtx, b: Behaviour) {
     target.hpNow -= dmg; s.stats.dealt += dmg;
     each(c, "onHit", h => h(c));
     say(s, "you", `${T("skill", plan.name)} at ${T("foe", target.name)} ${rolled} ${crit ? T("crit", "CRIT") : T("hit", "hit")}${boosts.map(x => ` ${T("skill", x.label)}`).join("")} ${parts.map(x => T("roll", x)).join(" + ")}${f.damageType ? ` ${f.damageType}` : ""} + ${T("stat", `AP ${f.ap}`)}${armourCut ? ` − ${T("stat", `Armour ${armourCut}`)}` : ""}${extras.map(([k, v]) => ` + ${T("stat", `${v} ${k}`)}`).join("")} = ${T("dmg", `${dmg} dmg`)} → ${T("stat", `${Math.max(0, target.hpNow)} HP left`)}`);
-    if (dmg > 0) { s.cycle.dealt = true; gainRage(c, rule("RageOnDeal"), "dealt damage"); }
+    if (dmg > 0 && !s.cycle.dealt) { s.cycle.dealt = true; gainRage(c, rule("RageOnDeal"), "dealt damage"); }   // once per turn
     if (target.hpNow <= 0) { say(s, "you", `${T("foe", target.name)} ${T("crit", "falls")}`); gainRage(c, rule("RageOnKill"), "kill"); }
     b.afterHit?.(c);
   }

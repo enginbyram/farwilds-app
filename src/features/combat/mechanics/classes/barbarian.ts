@@ -180,7 +180,7 @@ const ironMind: Behaviour = {
 /** When Rage hits 0, an Endurance check spreads the held damage over several turns. */
 const unbroken: Behaviour = {
   rageEmpty: ({ s, f, rng }) => {
-    const roll = die(rng, 20), total = roll + f.endurance, dc = rule("UnbrokenDC");
+    const roll = die(rng, 20), total = roll + f.endurance, dc = rule("UnbrokenDP");
     if (total >= dc) {
       const n = num(BBR.unbroken, "turns", 3), part = Math.ceil(s.held / n);
       s.heldQueue.push(...Array.from({ length: n }, (_, i) => Math.min(part, s.held - part * i)).filter(x => x > 0));

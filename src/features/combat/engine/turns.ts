@@ -75,7 +75,7 @@ function settleSurge(c: Ctx) {
   const overflow = s.cycle.overflow, banked = s.cycle.banked;
   if (overflow <= 0) return;
   s.stats.surges += 1;
-  const roll = die(rng, 20), total = roll + f.endurance, dc = rule("SurgeDC");
+  const roll = die(rng, 20), total = roll + f.endurance, dc = rule("SurgeDP");
   const check = `${T("skill", "Surge")} ${T("rage", `${overflow} past the cap`)} ${T("roll", `Endurance ${roll}+${f.endurance}=${total} vs ${dc}`)}`;
   if (total >= dc) { say(s, "you", `${check} ${T("check", "held")}`); return; }
   const loss = first(c, "surgeLoss", h => h(c, overflow, banked)) ?? overflow;

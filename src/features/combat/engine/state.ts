@@ -30,12 +30,12 @@ export const livingFoe = (s: CombatState, key: string) => s.foes.find(x => x.key
 export const heal = (s: CombatState, f: Fighter, n: number) => { s.hp = Math.min(f.hpMax, s.hp + n); };
 
 /**
- * At 0 HP you make death saving throws (Core Rulebook 9.6): a d20 each turn, DeathSaveDC or more is a recover
+ * At 0 HP you make death saving throws (Core Rulebook 9.6): a d20 each turn, DeathSaveDP or more is a recover
  * point, less is a loss point; DeathSavePoints of either kind ends it. Fighting alone, nobody can heal you,
  * so the saves are rolled straight away and the fight is lost either way: dead, or stable but downed.
  */
 function deathSaves(s: CombatState, rng: () => number) {
-  const dc = rule("DeathSaveDC") || 10, need = rule("DeathSavePoints") || 3;
+  const dc = rule("DeathSaveDP") || 10, need = rule("DeathSavePoints") || 3;
   let up = 0, down = 0; const rolls: string[] = [];
   while (up < need && down < need) { const r = die(rng, 20); if (r >= dc) up++; else down++; rolls.push(T(r >= dc ? "check" : "fail", r)); }
   say(s, "you", `Death saving throws ${rolls.join(" ")} → ${up >= need ? T("check", `${up} recover: stable but downed`) : T("fail", `${down} loss: dead`)}`);
